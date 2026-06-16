@@ -34,8 +34,20 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Atleta no encontrado." }, { status: 404 });
   }
 
+  // Origen real del request (funciona en local, Netlify, cualquier host).
+  // Cae a SITE.url solo si no se puede derivar.
+  const origin =
+    req.headers.get("origin") ??
+    (() => {
+      try {
+        return new URL(req.url).origin;
+      } catch {
+        return SITE.url;
+      }
+    })();
+
   const demoUrl =
-    `${SITE.url}/gracias?slug=${encodeURIComponent(slug)}` +
+    `${origin}/gracias?slug=${encodeURIComponent(slug)}` +
     `&amount=${amount}&type=${type}`;
 
   const stripe = await getStripe();
@@ -47,9 +59,9 @@ export async function POST(req: Request) {
 
   const amountCents = Math.round(amount * 100);
   const successUrl =
-    `${SITE.url}/gracias?slug=${encodeURIComponent(slug)}` +
+    `${origin}/gracias?slug=${encodeURIComponent(slug)}` +
     `&amount=${amount}&type=${type}&session_id={CHECKOUT_SESSION_ID}`;
-  const cancelUrl = `${SITE.url}/atleta/${slug}`;
+  const cancelUrl = `${origin}/atleta/${slug}`;
 
   try {
     let session;
