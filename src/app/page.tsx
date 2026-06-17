@@ -13,7 +13,7 @@ import Link from "next/link";
 export default async function HomePage() {
   const athletes = await getAthletes();
   const teams = await getTeams();
-  const { athleteCount, totalRaised } = await getGlobalStats();
+  const { athleteCount, totalRaised, supporterTotal } = await getGlobalStats();
   const netPct = Math.round((1 - PLATFORM_FEE_RATE) * 100);
   const feePct = Math.round(PLATFORM_FEE_RATE * 100);
 
@@ -104,7 +104,11 @@ export default async function HomePage() {
                   </p>
                   <CountdownFull />
                 </div>
-                <div className="flex gap-8">
+                <div className="flex flex-wrap gap-6 sm:gap-8">
+                  <Stat
+                    value={supporterTotal.toLocaleString("es-AR")}
+                    label="Personas bancando"
+                  />
                   <Stat value={String(athleteCount)} label="Atletas en campaña" />
                   <Stat value={formatMoney(totalRaised)} label="Total recaudado" />
                 </div>

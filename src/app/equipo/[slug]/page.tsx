@@ -5,13 +5,15 @@ import Link from "next/link";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { DonationWidget } from "@/components/DonationWidget";
-import { ProgressBar } from "@/components/ProgressBar";
 import { Monogram } from "@/components/Monogram";
 import { Reveal } from "@/components/Reveal";
+import { SupporterStack } from "@/components/SupporterStack";
+import { SupporterWall } from "@/components/SupporterWall";
 import { getTeams, getTeamBySlug, getTeamMembers } from "@/lib/data/athletes";
 import { getSport } from "@/config/sports";
 import { asset, SITE } from "@/config/site";
-import { formatMoney, progressPct } from "@/lib/money";
+import { formatMoney } from "@/lib/money";
+import { supporterCount } from "@/lib/supporters";
 
 export async function generateStaticParams() {
   const teams = await getTeams();
@@ -41,7 +43,7 @@ export default async function TeamPage({
 
   const sport = getSport(team.sport);
   const color = sport?.color ?? "#1B7A4B";
-  const pct = progressPct(team.raised_amount, team.goal_amount);
+  const backers = supporterCount(team.raised_amount);
   const members = await getTeamMembers(team);
 
   return (
@@ -92,17 +94,24 @@ export default async function TeamPage({
                 ))}
               </div>
 
-              {/* Progreso */}
+              {/* Quiénes bancan al equipo */}
               <div className="mt-6 rounded-xl border border-line bg-paper p-5">
-                <ProgressBar raised={team.raised_amount} goal={team.goal_amount} />
-                <div className="mt-3 flex items-baseline justify-between font-display">
-                  <span className="text-ink">
-                    <span className="text-xl font-700 text-celeste-deep">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <div className="font-display text-3xl font-700 text-celeste-deep sm:text-4xl">
+                      {backers}
+                    </div>
+                    <div className="eyebrow mt-1 text-steel">personas bancando</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-display text-3xl font-700 text-ink sm:text-4xl">
                       {formatMoney(team.raised_amount)}
-                    </span>{" "}
-                    <span className="text-steel">de {formatMoney(team.goal_amount)}</span>
-                  </span>
-                  <span className="text-xl font-700 text-gold">{pct}%</span>
+                    </div>
+                    <div className="eyebrow mt-1 text-steel">recaudados</div>
+                  </div>
+                </div>
+                <div className="mt-4 border-t border-line pt-4">
+                  <SupporterStack slug={team.slug} count={backers} max={9} />
                 </div>
               </div>
 
@@ -154,14 +163,12 @@ export default async function TeamPage({
                             {m.full_name}
                           </Link>
                           <p className="text-xs text-steel">{m.role}</p>
-                          <div className="mt-2">
-                            <ProgressBar raised={m.raised_amount} goal={m.goal_amount} />
-                          </div>
                           <div className="mt-1.5 font-display text-xs text-steel">
                             <span className="font-700 text-celeste-deep">
-                              {formatMoney(m.raised_amount)}
+                              {supporterCount(m.raised_amount)}
                             </span>{" "}
-                            recaudados
+                            bancando ·{" "}
+                            <span className="text-ink">{formatMoney(m.raised_amount)}</span>
                           </div>
                           <Link
                             href={`/atleta/${m.slug}`}
@@ -198,6 +205,11 @@ export default async function TeamPage({
                     </li>
                   ))}
                 </ul>
+              </Reveal>
+
+              {/* Los que bancan al equipo */}
+              <Reveal className="mt-10">
+                <SupporterWall slug={team.slug} count={backers} label="todo el equipo" />
               </Reveal>
             </div>
 

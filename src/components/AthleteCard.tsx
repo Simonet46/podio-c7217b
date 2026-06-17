@@ -3,14 +3,15 @@ import Image from "next/image";
 import type { Athlete } from "@/lib/data/types";
 import { getSport } from "@/config/sports";
 import { asset } from "@/config/site";
-import { formatMoney, progressPct } from "@/lib/money";
+import { formatMoney } from "@/lib/money";
+import { supporterCount } from "@/lib/supporters";
 import { Monogram } from "./Monogram";
-import { ProgressBar } from "./ProgressBar";
+import { SupporterStack } from "./SupporterStack";
 
 export function AthleteCard({ athlete }: { athlete: Athlete }) {
   const sport = getSport(athlete.sport);
   const color = sport?.color ?? "#1E6E8C";
-  const pct = progressPct(athlete.raised_amount, athlete.goal_amount);
+  const backers = supporterCount(athlete.raised_amount);
 
   return (
     <article className="group flex flex-col overflow-hidden rounded-xl border border-line bg-paper shadow-sm transition-shadow hover:shadow-md">
@@ -54,21 +55,16 @@ export function AthleteCard({ athlete }: { athlete: Athlete }) {
           {athlete.city}, {athlete.province} · {athlete.discipline}
         </p>
 
-        <div className="mt-4">
-          <ProgressBar
-            raised={athlete.raised_amount}
-            goal={athlete.goal_amount}
-          />
-          <div className="mt-2 flex items-baseline justify-between font-display">
-            <span className="text-sm text-ink">
-              <span className="font-700 text-celeste-deep">
-                {formatMoney(athlete.raised_amount)}
-              </span>{" "}
-              <span className="text-steel">
-                de {formatMoney(athlete.goal_amount)}
-              </span>
-            </span>
-            <span className="text-sm font-700 text-gold">{pct}%</span>
+        <div className="mt-4 flex items-center justify-between gap-2">
+          <SupporterStack slug={athlete.slug} count={backers} />
+          <div className="text-right font-display leading-tight">
+            <div className="text-sm">
+              <span className="font-700 text-celeste-deep">{backers}</span>{" "}
+              <span className="text-steel">bancando</span>
+            </div>
+            <div className="text-sm font-600 text-ink">
+              {formatMoney(athlete.raised_amount)}
+            </div>
           </div>
         </div>
 

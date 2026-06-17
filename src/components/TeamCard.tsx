@@ -3,14 +3,15 @@ import Image from "next/image";
 import type { Team } from "@/lib/data/types";
 import { getSport } from "@/config/sports";
 import { asset } from "@/config/site";
-import { formatMoney, progressPct } from "@/lib/money";
+import { formatMoney } from "@/lib/money";
+import { supporterCount } from "@/lib/supporters";
 import { Monogram } from "./Monogram";
-import { ProgressBar } from "./ProgressBar";
+import { SupporterStack } from "./SupporterStack";
 
 export function TeamCard({ team }: { team: Team }) {
   const sport = getSport(team.sport);
   const color = sport?.color ?? "#1B7A4B";
-  const pct = progressPct(team.raised_amount, team.goal_amount);
+  const backers = supporterCount(team.raised_amount);
 
   return (
     <article className="group flex flex-col overflow-hidden rounded-xl border border-line bg-paper shadow-sm transition-shadow hover:shadow-md">
@@ -58,16 +59,16 @@ export function TeamCard({ team }: { team: Team }) {
           {team.discipline} · {team.member_slugs.length}+ jugadores
         </p>
 
-        <div className="mt-4">
-          <ProgressBar raised={team.raised_amount} goal={team.goal_amount} />
-          <div className="mt-2 flex items-baseline justify-between font-display">
-            <span className="text-sm text-ink">
-              <span className="font-700 text-celeste-deep">
-                {formatMoney(team.raised_amount)}
-              </span>{" "}
-              <span className="text-steel">de {formatMoney(team.goal_amount)}</span>
-            </span>
-            <span className="text-sm font-700 text-gold">{pct}%</span>
+        <div className="mt-4 flex items-center justify-between gap-2">
+          <SupporterStack slug={team.slug} count={backers} />
+          <div className="text-right font-display leading-tight">
+            <div className="text-sm">
+              <span className="font-700 text-celeste-deep">{backers}</span>{" "}
+              <span className="text-steel">bancando</span>
+            </div>
+            <div className="text-sm font-600 text-ink">
+              {formatMoney(team.raised_amount)}
+            </div>
           </div>
         </div>
 

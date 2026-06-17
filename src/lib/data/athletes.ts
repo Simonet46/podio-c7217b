@@ -1,4 +1,5 @@
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
+import { supporterCount } from "@/lib/supporters";
 import { SEED_ATHLETES } from "./seed";
 import { SEED_TEAMS } from "./teams";
 import type { Athlete, Team } from "./types";
@@ -83,6 +84,12 @@ export async function getGlobalStats() {
   // Cada atleta (individual o jugador de equipo) cuenta una sola vez.
   // Las metas de equipo se derivan de los jugadores, así que NO se suman aparte.
   const totalRaised = athletes.reduce((s, a) => s + a.raised_amount, 0);
+  // Personas bancando: individuales + equipos (los jugadores rollupean en su equipo).
+  const supporterTotal =
+    athletes
+      .filter((a) => !a.team)
+      .reduce((s, a) => s + supporterCount(a.raised_amount), 0) +
+    teams.reduce((s, t) => s + supporterCount(t.raised_amount), 0);
   return {
     // Atletas individuales + todos los jugadores de equipos.
     athleteCount: athletes.length,
@@ -90,5 +97,6 @@ export async function getGlobalStats() {
     campaignCount: athletes.filter((a) => !a.team).length + teams.length,
     teamCount: teams.length,
     totalRaised,
+    supporterTotal,
   };
 }

@@ -5,12 +5,14 @@ import Link from "next/link";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { DonationWidget } from "@/components/DonationWidget";
-import { ProgressBar } from "@/components/ProgressBar";
 import { Monogram } from "@/components/Monogram";
 import { Reveal } from "@/components/Reveal";
+import { SupporterStack } from "@/components/SupporterStack";
+import { SupporterWall } from "@/components/SupporterWall";
 import { getAthleteBySlug, getAllAthletes, getTeamBySlug } from "@/lib/data/athletes";
 import { getSport } from "@/config/sports";
-import { formatMoney, progressPct } from "@/lib/money";
+import { formatMoney } from "@/lib/money";
+import { supporterCount } from "@/lib/supporters";
 import { SITE, asset } from "@/config/site";
 
 export async function generateStaticParams() {
@@ -41,7 +43,7 @@ export default async function AthletePage({
 
   const sport = getSport(athlete.sport);
   const color = sport?.color ?? "#1E6E8C";
-  const pct = progressPct(athlete.raised_amount, athlete.goal_amount);
+  const backers = supporterCount(athlete.raised_amount);
   const team = athlete.team ? await getTeamBySlug(athlete.team) : null;
 
   return (
@@ -111,27 +113,25 @@ export default async function AthletePage({
                 ))}
               </div>
 
-              {/* Progreso. Jugadores de equipo: solo recaudado (sin % ni meta). */}
+              {/* Quiénes bancan (estilo Patreon: la gente, no la meta). */}
               <div className="mt-6 rounded-xl border border-line bg-paper p-5">
-                <ProgressBar raised={athlete.raised_amount} goal={athlete.goal_amount} />
-                {athlete.team ? (
-                  <div className="mt-3 font-display">
-                    <span className="text-xl font-700 text-celeste-deep">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <div className="font-display text-3xl font-700 text-celeste-deep sm:text-4xl">
+                      {backers}
+                    </div>
+                    <div className="eyebrow mt-1 text-steel">personas bancando</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-display text-3xl font-700 text-ink sm:text-4xl">
                       {formatMoney(athlete.raised_amount)}
-                    </span>{" "}
-                    <span className="text-steel">recaudados</span>
+                    </div>
+                    <div className="eyebrow mt-1 text-steel">recaudados</div>
                   </div>
-                ) : (
-                  <div className="mt-3 flex items-baseline justify-between font-display">
-                    <span className="text-ink">
-                      <span className="text-xl font-700 text-celeste-deep">
-                        {formatMoney(athlete.raised_amount)}
-                      </span>{" "}
-                      <span className="text-steel">de {formatMoney(athlete.goal_amount)}</span>
-                    </span>
-                    <span className="text-xl font-700 text-gold">{pct}%</span>
-                  </div>
-                )}
+                </div>
+                <div className="mt-4 border-t border-line pt-4">
+                  <SupporterStack slug={athlete.slug} count={backers} max={9} />
+                </div>
               </div>
 
               {/* La historia */}
@@ -167,6 +167,15 @@ export default async function AthletePage({
                     </li>
                   ))}
                 </ul>
+              </Reveal>
+
+              {/* Los que bancan (muro de hinchas) */}
+              <Reveal className="mt-10">
+                <SupporterWall
+                  slug={athlete.slug}
+                  count={backers}
+                  label={athlete.first_name}
+                />
               </Reveal>
             </div>
 
