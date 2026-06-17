@@ -1,4 +1,8 @@
 import type { Athlete } from "./types";
+import { SPORTS } from "@/config/sports";
+
+/** Meta interna por jugador de equipo (solo para la barra; no se muestra el %). */
+const PLAYER_GOAL = 5000;
 
 /**
  * 8 atletas ficticios de deportes individuales subfinanciados.
@@ -227,66 +231,110 @@ export const SEED_ATHLETES: Athlete[] = [
   // Pertenecen a un equipo (campo `team`). No aparecen sueltos en el home,
   // sino dentro de su equipo; igual tienen perfil propio y se pueden bancar.
 
-  // Handball — Equipo Argentino de Handball
-  player("bruno-vidal", "Bruno Vidal", "handball", "handball-arg", "Pivote", "Buenos Aires", "Buenos Aires", "Pivote de garra, gana cada duelo en el área de seis metros. Sueña con jugar el Mundial con la celeste y blanca.", 6000, 2100),
-  player("lautaro-gomez", "Lautaro Gómez", "handball", "handball-arg", "Lateral izquierdo", "Córdoba", "Córdoba", "El goleador del equipo desde el lateral. Combina potencia y muñeca para definir desde los nueve metros.", 6000, 3400),
-  player("nicolas-funes", "Nicolás Funes", "handball", "handball-arg", "Arquero", "Mendoza", "Mendoza", "El último muro. Sus atajadas en los minutos finales cambiaron más de un partido.", 6000, 1800),
-  player("inaki-perez", "Iñaki Pérez", "handball", "handball-arg", "Extremo derecho", "Bahía Blanca", "Buenos Aires", "Velocidad pura por la banda. Vive del contragolpe y los ángulos imposibles.", 6000, 2600),
+  // Handball — Equipo Argentino de Handball (16)
+  ...roster("handball-arg", "handball", [
+    ["bruno-vidal", "Bruno Vidal", "Pivote", "Buenos Aires", "Buenos Aires", 2100],
+    ["lautaro-gomez", "Lautaro Gómez", "Lateral izquierdo", "Córdoba", "Córdoba", 3400],
+    ["nicolas-funes", "Nicolás Funes", "Arquero", "Mendoza", "Mendoza", 1800],
+    ["inaki-perez", "Iñaki Pérez", "Extremo derecho", "Bahía Blanca", "Buenos Aires", 2600],
+    ["santiago-rivas", "Santiago Rivas", "Central", "Rosario", "Santa Fe", 1500],
+    ["matias-leiva", "Matías Leiva", "Lateral derecho", "La Plata", "Buenos Aires", 2800],
+    ["joaquin-bravo", "Joaquín Bravo", "Pivote", "San Juan", "San Juan", 900],
+    ["franco-medina", "Franco Medina", "Extremo izquierdo", "Santa Fe", "Santa Fe", 3200],
+    ["agustin-ferreyra", "Agustín Ferreyra", "Lateral izquierdo", "Neuquén", "Neuquén", 1200],
+    ["julian-castro", "Julián Castro", "Arquero", "Mar del Plata", "Buenos Aires", 2000],
+    ["benjamin-roldan", "Benjamín Roldán", "Central", "Tucumán", "Tucumán", 1700],
+    ["emiliano-paez", "Emiliano Páez", "Extremo derecho", "Salta", "Salta", 2400],
+    ["valentin-sosa", "Valentín Sosa", "Lateral derecho", "Paraná", "Entre Ríos", 1000],
+    ["gonzalo-ibarra", "Gonzalo Ibarra", "Pivote", "Posadas", "Misiones", 2900],
+    ["lucas-moreno", "Lucas Moreno", "Lateral izquierdo", "Bariloche", "Río Negro", 1300],
+    ["maximo-arce", "Máximo Arce", "Extremo izquierdo", "Corrientes", "Corrientes", 2200],
+  ]),
 
-  // Hockey — Equipo Argentino de Hockey (femenino)
-  player("delfina-castro", "Delfina Castro", "hockey", "hockey-arg", "Volante", "Rosario", "Santa Fe", "El motor del mediocampo. Recupera, distribuye y nunca deja de correr.", 6500, 3900),
-  player("morena-ruiz", "Morena Ruiz", "hockey", "hockey-arg", "Delantera", "La Plata", "Buenos Aires", "Olfato de gol dentro del área. Su especialidad: aparecer donde nadie la espera.", 6500, 2700),
-  player("abril-sosa", "Abril Sosa", "hockey", "hockey-arg", "Arquera", "Mar del Plata", "Buenos Aires", "Reflejos felinos bajo los postes. Se entrena el doble para llegar al Mundial.", 6500, 1500),
-  player("juana-mendez", "Juana Méndez", "hockey", "hockey-arg", "Defensora", "Tucumán", "Tucumán", "Marca, anticipa y saca limpio desde el fondo. La tranquilidad de la última línea.", 6500, 2300),
+  // Hockey — Equipo Argentino de Hockey, femenino (16)
+  ...roster("hockey-arg", "hockey", [
+    ["delfina-castro", "Delfina Castro", "Volante", "Rosario", "Santa Fe", 3900],
+    ["morena-ruiz", "Morena Ruiz", "Delantera", "La Plata", "Buenos Aires", 2700],
+    ["abril-sosa", "Abril Sosa", "Arquera", "Mar del Plata", "Buenos Aires", 1500],
+    ["juana-mendez", "Juana Méndez", "Defensora", "Tucumán", "Tucumán", 2300],
+    ["catalina-vega", "Catalina Vega", "Delantera", "Córdoba", "Córdoba", 1800],
+    ["martina-rios", "Martina Ríos", "Volante", "Mendoza", "Mendoza", 2600],
+    ["valentina-cabrera", "Valentina Cabrera", "Defensora", "San Isidro", "Buenos Aires", 1100],
+    ["paulina-acosta", "Paulina Acosta", "Volante", "Santa Fe", "Santa Fe", 2000],
+    ["josefina-luna", "Josefina Luna", "Delantera", "Neuquén", "Neuquén", 900],
+    ["renata-molina", "Renata Molina", "Defensora", "Bahía Blanca", "Buenos Aires", 3100],
+    ["emma-herrera", "Emma Herrera", "Arquera", "Salta", "Salta", 1400],
+    ["mia-dominguez", "Mía Domínguez", "Volante", "Paraná", "Entre Ríos", 2200],
+    ["clara-ponce", "Clara Ponce", "Defensora", "Posadas", "Misiones", 1600],
+    ["agostina-vera", "Agostina Vera", "Delantera", "Santa Rosa", "La Pampa", 2500],
+    ["guadalupe-bravo", "Guadalupe Bravo", "Volante", "San Juan", "San Juan", 1900],
+    ["olivia-figueroa", "Olivia Figueroa", "Defensora", "Mar del Plata", "Buenos Aires", 1300],
+  ]),
 
-  // Vóley — Equipo Argentino de Vóley (masculino)
-  player("ivan-torres", "Iván Torres", "voley", "voley-arg", "Opuesto", "San Juan", "San Juan", "El rematador principal. Salta como pocos y define los puntos calientes.", 6000, 2900),
-  player("facundo-ledesma", "Facundo Ledesma", "voley", "voley-arg", "Central", "Santa Fe", "Santa Fe", "Bloqueo y ataque rápido por el medio. Dueño de la red.", 6000, 2200),
-  player("bautista-rios", "Bautista Ríos", "voley", "voley-arg", "Armador", "Neuquén", "Neuquén", "El cerebro del equipo. Cada jugada pasa por sus manos.", 6000, 3100),
-  player("thiago-paz", "Thiago Paz", "voley", "voley-arg", "Punta receptor", "Salta", "Salta", "Recibe, defiende y ataca: el todoterreno que sostiene al equipo.", 6000, 1700),
+  // Vóley — Equipo Argentino de Vóley, masculino (16)
+  ...roster("voley-arg", "voley", [
+    ["ivan-torres", "Iván Torres", "Opuesto", "San Juan", "San Juan", 2900],
+    ["facundo-ledesma", "Facundo Ledesma", "Central", "Santa Fe", "Santa Fe", 2200],
+    ["bautista-rios", "Bautista Ríos", "Armador", "Neuquén", "Neuquén", 3100],
+    ["thiago-paz", "Thiago Paz", "Punta receptor", "Salta", "Salta", 1700],
+    ["mateo-silva", "Mateo Silva", "Central", "Córdoba", "Córdoba", 1500],
+    ["lautaro-mendez", "Lautaro Méndez", "Punta receptor", "Rosario", "Santa Fe", 2400],
+    ["nicolas-ferrari", "Nicolás Ferrari", "Líbero", "La Plata", "Buenos Aires", 1200],
+    ["juan-cruz-vera", "Juan Cruz Vera", "Armador", "Mendoza", "Mendoza", 2000],
+    ["valentin-rocha", "Valentín Rocha", "Opuesto", "Bahía Blanca", "Buenos Aires", 900],
+    ["simon-aguirre", "Simón Aguirre", "Punta receptor", "Tucumán", "Tucumán", 2700],
+    ["benicio-ramos", "Benicio Ramos", "Central", "San Luis", "San Luis", 1600],
+    ["tobias-luna", "Tobías Luna", "Punta receptor", "Posadas", "Misiones", 1000],
+    ["ciro-herrera", "Ciro Herrera", "Líbero", "Paraná", "Entre Ríos", 2300],
+    ["dante-correa", "Dante Correa", "Central", "Neuquén", "Neuquén", 1400],
+    ["bruno-medina", "Bruno Medina", "Punta receptor", "Salta", "Salta", 2100],
+    ["felipe-aguero", "Felipe Agüero", "Punta receptor", "Mar del Plata", "Buenos Aires", 1800],
+  ]),
 ];
 
-/** Helper para crear un jugador de equipo con datos mínimos completos. */
-function player(
-  slug: string,
-  full_name: string,
-  sport: Athlete["sport"],
+/** Fila compacta de jugador: [slug, nombre, posición, ciudad, provincia, recaudado]. */
+type RosterRow = [string, string, string, string, string, number];
+
+/**
+ * Construye los jugadores de un equipo. La meta es interna (no se muestra el %),
+ * solo sirve para que la barra de recaudación sea comparable entre jugadores.
+ */
+function roster(
   team: string,
-  role: string,
-  city: string,
-  province: string,
-  bio: string,
-  goal: number,
-  raised: number,
-): Athlete {
-  const first_name = full_name.split(" ")[0];
-  return {
-    id: slug,
-    slug,
-    full_name,
-    first_name,
-    sport,
-    discipline: role,
-    city,
-    province,
-    bio,
-    goal_amount: goal,
-    raised_amount: raised,
-    photo_url: null,
-    stats: [
-      [role, "Posición"],
-      ["Selección", "Categoría"],
-      ["Mundial", "Objetivo"],
-    ],
-    fund_items: [
-      ["Concentraciones", "Viajes y estadía con la selección rumbo al Mundial."],
-      ["Equipamiento", "Indumentaria y material de competición."],
-      ["Preparación", "Cuerpo técnico, físico y recuperación."],
-    ],
-    verified: true,
-    stripe_account_id: null,
-    created_at: "2026-02-05T10:00:00Z",
-    team,
-    role,
-  };
+  sport: Athlete["sport"],
+  rows: RosterRow[],
+): Athlete[] {
+  const sportLabel = (SPORTS[sport]?.label ?? sport).toLowerCase();
+  return rows.map(([slug, full_name, role, city, province, raised]): Athlete => {
+    const first_name = full_name.split(" ")[0];
+    return {
+      id: slug,
+      slug,
+      full_name,
+      first_name,
+      sport,
+      discipline: role,
+      city,
+      province,
+      bio: `${first_name} es ${role.toLowerCase()} de la selección argentina de ${sportLabel}. Como gran parte del plantel, compite sin sponsors privados: la ayuda que recibe no alcanza para mucho y se banca buena parte del camino al Mundial.`,
+      goal_amount: PLAYER_GOAL,
+      raised_amount: raised,
+      photo_url: null,
+      stats: [
+        [role, "Posición"],
+        ["Selección", "Categoría"],
+        ["Mundial", "Objetivo"],
+      ],
+      fund_items: [
+        ["Directo a los jugadores", "El cuerpo técnico cobra sueldo; el plantel no. Tu aporte llega a ellos."],
+        ["Viajes y concentraciones", "Pasajes, estadía y comida que hoy salen de su bolsillo."],
+        ["Equipamiento", "Indumentaria y material de competición."],
+      ],
+      verified: true,
+      stripe_account_id: null,
+      created_at: "2026-02-05T10:00:00Z",
+      team,
+      role,
+    };
+  });
 }

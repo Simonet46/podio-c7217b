@@ -4,6 +4,7 @@ import type { Team } from "./types";
  * Campañas de equipos (deportes de equipo).
  * Se puede bancar al equipo entero (se reparte entre el plantel) o a un jugador.
  * `member_slugs` apunta a atletas del seed con `team` igual a este slug.
+ * goal/raised se recalculan en la capa de datos a partir de los jugadores.
  */
 export const SEED_TEAMS: Team[] = [
   {
@@ -14,22 +15,27 @@ export const SEED_TEAMS: Team[] = [
     discipline: "Selección masculina",
     city: "Buenos Aires",
     province: "Argentina",
-    bio: "El handball argentino se ganó un lugar entre la elite a pura garra, casi siempre con menos recursos que sus rivales europeos. Este plantel pelea por meterse en el próximo Mundial concentrando, viajando y entrenando con lo justo. Tu aporte se reparte en partes iguales entre los jugadores.",
-    goal_amount: 24000,
-    raised_amount: 9900,
+    bio: "El handball argentino se ganó un lugar entre la elite a pura garra, casi siempre con menos recursos que sus rivales europeos. El cuerpo técnico cobra un sueldo; los jugadores, en su mayoría, no tienen sponsors privados y la ayuda que reciben no alcanza. Tu aporte se reparte en partes iguales entre los 16 jugadores del plantel.",
+    goal_amount: 80000,
+    raised_amount: 33000,
     photo_url: "/teams/handball-arg.webp",
     stats: [
-      ["14", "Jugadores"],
+      ["16", "Jugadores"],
       ["Mundial", "Objetivo"],
       ["#1", "Sudamérica"],
     ],
     fund_items: [
-      ["Concentraciones", "Giras y amistosos preparatorios en Europa."],
-      ["Logística", "Pasajes, estadía y comida de toda la delegación."],
-      ["Cuerpo técnico", "Entrenadores, médicos y preparadores físicos."],
+      ["Directo a los jugadores", "El cuerpo técnico cobra sueldo; el plantel no. Tu aporte va a ellos."],
+      ["Viajes y concentraciones", "Pasajes, estadía y comida que hoy salen de su bolsillo."],
+      ["Equipamiento", "Indumentaria y material de competición de cada jugador."],
     ],
     verified: true,
-    member_slugs: ["bruno-vidal", "lautaro-gomez", "nicolas-funes", "inaki-perez"],
+    member_slugs: [
+      "bruno-vidal", "lautaro-gomez", "nicolas-funes", "inaki-perez",
+      "santiago-rivas", "matias-leiva", "joaquin-bravo", "franco-medina",
+      "agustin-ferreyra", "julian-castro", "benjamin-roldan", "emiliano-paez",
+      "valentin-sosa", "gonzalo-ibarra", "lucas-moreno", "maximo-arce",
+    ],
     created_at: "2026-02-05T10:00:00Z",
   },
   {
@@ -40,9 +46,9 @@ export const SEED_TEAMS: Team[] = [
     discipline: "Selección femenina",
     city: "Buenos Aires",
     province: "Argentina",
-    bio: "Una de las camadas más prometedoras del hockey argentino va por su lugar en el Mundial. Entrenan doble turno, estudian o trabajan en paralelo y se bancan buena parte de los viajes. Tu aporte se reparte en partes iguales entre las jugadoras.",
-    goal_amount: 26000,
-    raised_amount: 10400,
+    bio: "Una de las camadas más prometedoras del hockey argentino va por su lugar en el Mundial. Entrenan doble turno, estudian o trabajan en paralelo y se bancan buena parte de los viajes. Salvo el cuerpo técnico, casi ninguna tiene un sponsor que la respalde. Tu aporte se reparte en partes iguales entre las 16 jugadoras.",
+    goal_amount: 80000,
+    raised_amount: 32800,
     photo_url: "/teams/hockey-arg.webp",
     stats: [
       ["16", "Jugadoras"],
@@ -50,12 +56,17 @@ export const SEED_TEAMS: Team[] = [
       ["Oro", "Panamericano"],
     ],
     fund_items: [
-      ["Gira internacional", "Torneos clasificatorios fuera del país."],
-      ["Equipamiento", "Palos, protecciones e indumentaria del plantel."],
-      ["Preparación", "Cuerpo técnico, físico y nutrición."],
+      ["Directo a las jugadoras", "El cuerpo técnico cobra sueldo; el plantel no. Tu aporte va a ellas."],
+      ["Viajes y concentraciones", "Pasajes y estadía de torneos que hoy se pagan solas."],
+      ["Equipamiento", "Palos, protecciones e indumentaria de cada jugadora."],
     ],
     verified: true,
-    member_slugs: ["delfina-castro", "morena-ruiz", "abril-sosa", "juana-mendez"],
+    member_slugs: [
+      "delfina-castro", "morena-ruiz", "abril-sosa", "juana-mendez",
+      "catalina-vega", "martina-rios", "valentina-cabrera", "paulina-acosta",
+      "josefina-luna", "renata-molina", "emma-herrera", "mia-dominguez",
+      "clara-ponce", "agostina-vera", "guadalupe-bravo", "olivia-figueroa",
+    ],
     created_at: "2026-02-05T10:00:00Z",
   },
   {
@@ -66,22 +77,27 @@ export const SEED_TEAMS: Team[] = [
     discipline: "Selección masculina",
     city: "Buenos Aires",
     province: "Argentina",
-    bio: "Con una mística que enamora, el vóley argentino sueña con repetir las grandes hazañas de su historia. Este plantel joven necesita competir afuera para llegar al Mundial en su mejor forma. Tu aporte se reparte en partes iguales entre los jugadores.",
-    goal_amount: 22000,
-    raised_amount: 9900,
+    bio: "Con una mística que enamora, el vóley argentino sueña con repetir las grandes hazañas de su historia. El plantel es joven y, más allá del cuerpo técnico, casi nadie tiene un sponsor que lo sostenga. Tu aporte se reparte en partes iguales entre los 16 jugadores.",
+    goal_amount: 80000,
+    raised_amount: 30800,
     photo_url: "/teams/voley-arg.webp",
     stats: [
-      ["14", "Jugadores"],
+      ["16", "Jugadores"],
       ["Mundial", "Objetivo"],
       ["Top 8", "Ranking FIVB"],
     ],
     fund_items: [
-      ["Competencias", "Ventana de partidos internacionales y amistosos."],
-      ["Logística", "Pasajes y estadía de la delegación completa."],
-      ["Cuerpo técnico", "Entrenadores, físicos y recuperación."],
+      ["Directo a los jugadores", "El cuerpo técnico cobra sueldo; el plantel no. Tu aporte va a ellos."],
+      ["Viajes y concentraciones", "Pasajes y estadía de la ventana internacional."],
+      ["Equipamiento", "Indumentaria y material de competición de cada jugador."],
     ],
     verified: true,
-    member_slugs: ["ivan-torres", "facundo-ledesma", "bautista-rios", "thiago-paz"],
+    member_slugs: [
+      "ivan-torres", "facundo-ledesma", "bautista-rios", "thiago-paz",
+      "mateo-silva", "lautaro-mendez", "nicolas-ferrari", "juan-cruz-vera",
+      "valentin-rocha", "simon-aguirre", "benicio-ramos", "tobias-luna",
+      "ciro-herrera", "dante-correa", "bruno-medina", "felipe-aguero",
+    ],
     created_at: "2026-02-05T10:00:00Z",
   },
 ];

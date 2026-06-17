@@ -124,7 +124,6 @@ export default async function TeamPage({
                 </p>
                 <div className="mt-4 grid gap-4 sm:grid-cols-2">
                   {members.map((m) => {
-                    const mp = progressPct(m.raised_amount, m.goal_amount);
                     return (
                       <div
                         key={m.id}
@@ -158,11 +157,17 @@ export default async function TeamPage({
                           <div className="mt-2">
                             <ProgressBar raised={m.raised_amount} goal={m.goal_amount} />
                           </div>
+                          <div className="mt-1.5 font-display text-xs text-steel">
+                            <span className="font-700 text-celeste-deep">
+                              {formatMoney(m.raised_amount)}
+                            </span>{" "}
+                            recaudados
+                          </div>
                           <Link
                             href={`/atleta/${m.slug}`}
-                            className="mt-2 inline-block font-display text-xs font-600 uppercase tracking-wide text-celeste-deep hover:underline"
+                            className="mt-1 inline-block font-display text-xs font-600 uppercase tracking-wide text-celeste-deep hover:underline"
                           >
-                            Bancar a {m.first_name} · {mp}%
+                            Bancar a {m.first_name}
                           </Link>
                         </div>
                       </div>

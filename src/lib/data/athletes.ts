@@ -41,13 +41,31 @@ export async function getAthleteBySlug(slug: string): Promise<Athlete | null> {
   return all.find((a) => a.slug === slug) ?? null;
 }
 
+/** Recalcula recaudado y meta del equipo como la suma de sus jugadores. */
+function withTeamTotals(team: Team, all: Athlete[]): Team {
+  const members = team.member_slugs
+    .map((slug) => all.find((a) => a.slug === slug))
+    .filter((a): a is Athlete => Boolean(a));
+  return {
+    ...team,
+    raised_amount: members.reduce((s, m) => s + m.raised_amount, 0),
+    goal_amount: members.reduce((s, m) => s + m.goal_amount, 0),
+  };
+}
+
 /** Equipos (deportes de equipo). */
 export async function getTeams(): Promise<Team[]> {
-  return SEED_TEAMS.filter((t) => !ONLY_VERIFIED || t.verified);
+  const all = await allAthletesRaw();
+  return SEED_TEAMS.filter((t) => !ONLY_VERIFIED || t.verified).map((t) =>
+    withTeamTotals(t, all),
+  );
 }
 
 export async function getTeamBySlug(slug: string): Promise<Team | null> {
-  return SEED_TEAMS.find((t) => t.slug === slug) ?? null;
+  const team = SEED_TEAMS.find((t) => t.slug === slug);
+  if (!team) return null;
+  const all = await allAthletesRaw();
+  return withTeamTotals(team, all);
 }
 
 /** Jugadores de un equipo, en el orden de member_slugs. */
@@ -62,9 +80,9 @@ export async function getTeamMembers(team: Team): Promise<Athlete[]> {
 export async function getGlobalStats() {
   const athletes = await getAllAthletes();
   const teams = await getTeams();
-  const totalRaised =
-    athletes.reduce((s, a) => s + a.raised_amount, 0) +
-    teams.reduce((s, t) => s + t.raised_amount, 0);
+  // Cada atleta (individual o jugador de equipo) cuenta una sola vez.
+  // Las metas de equipo se derivan de los jugadores, así que NO se suman aparte.
+  const totalRaised = athletes.reduce((s, a) => s + a.raised_amount, 0);
   return {
     // Atletas individuales + todos los jugadores de equipos.
     athleteCount: athletes.length,

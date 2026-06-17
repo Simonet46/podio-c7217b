@@ -111,18 +111,27 @@ export default async function AthletePage({
                 ))}
               </div>
 
-              {/* Progreso */}
+              {/* Progreso. Jugadores de equipo: solo recaudado (sin % ni meta). */}
               <div className="mt-6 rounded-xl border border-line bg-paper p-5">
                 <ProgressBar raised={athlete.raised_amount} goal={athlete.goal_amount} />
-                <div className="mt-3 flex items-baseline justify-between font-display">
-                  <span className="text-ink">
+                {athlete.team ? (
+                  <div className="mt-3 font-display">
                     <span className="text-xl font-700 text-celeste-deep">
                       {formatMoney(athlete.raised_amount)}
                     </span>{" "}
-                    <span className="text-steel">de {formatMoney(athlete.goal_amount)}</span>
-                  </span>
-                  <span className="text-xl font-700 text-gold">{pct}%</span>
-                </div>
+                    <span className="text-steel">recaudados</span>
+                  </div>
+                ) : (
+                  <div className="mt-3 flex items-baseline justify-between font-display">
+                    <span className="text-ink">
+                      <span className="text-xl font-700 text-celeste-deep">
+                        {formatMoney(athlete.raised_amount)}
+                      </span>{" "}
+                      <span className="text-steel">de {formatMoney(athlete.goal_amount)}</span>
+                    </span>
+                    <span className="text-xl font-700 text-gold">{pct}%</span>
+                  </div>
+                )}
               </div>
 
               {/* La historia */}
