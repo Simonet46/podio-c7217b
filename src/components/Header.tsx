@@ -44,6 +44,12 @@ export function Header() {
             >
               Quiénes somos
             </Link>
+            <Link
+              href="/para-atletas"
+              className="font-display text-sm uppercase tracking-wide text-gold transition-colors hover:text-gold-soft"
+            >
+              ¿Sos atleta?
+            </Link>
           </nav>
 
           {/* Contador + CTA */}

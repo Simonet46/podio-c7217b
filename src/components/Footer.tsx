@@ -38,6 +38,9 @@ export function Footer() {
             <Link href="/quienes-somos" className="hover:text-white">
               Quiénes somos
             </Link>
+            <Link href="/para-atletas" className="text-gold hover:text-gold-soft">
+              ¿Sos atleta? Postulate
+            </Link>
           </nav>
         </div>
 

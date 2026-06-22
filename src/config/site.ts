@@ -26,6 +26,17 @@ export function asset(path: string): string {
   return `${BASE_PATH}${path}`;
 }
 
+/**
+ * Postulación de atletas (gratis, sin backend).
+ * Pegá tu access key de https://web3forms.com (gratis, te llega por mail en 30s)
+ * y las postulaciones llegan a tu correo. Si está vacío, el formulario usa un
+ * fallback `mailto:` a APPLICATIONS_EMAIL.
+ */
+export const WEB3FORMS_ACCESS_KEY = "";
+
+/** Correo al que llegan las postulaciones (fallback mailto y referencia). */
+export const APPLICATIONS_EMAIL = "appidisko@gmail.com";
+
 /** Comisión de plataforma. 0.07 = 7%. El resto (93%) va al atleta. */
 export const PLATFORM_FEE_RATE = 0.07;
 
