@@ -1,10 +1,13 @@
 import Link from "next/link";
 import { SITE, LEGAL_DISCLAIMER, PLATFORM_FEE_RATE } from "@/config/site";
 import { Ribbon } from "./Ribbon";
+import { PartnerLogos } from "./PartnerLogos";
 
 export function Footer() {
   return (
-    <footer className="bg-ink text-white/70">
+    <>
+      <PartnerLogos />
+      <footer className="bg-ink text-white/70">
       <Ribbon />
       <div className="mx-auto max-w-container px-4 py-12 sm:px-6">
         <div className="flex flex-col gap-8 md:flex-row md:items-start md:justify-between">
@@ -53,6 +56,7 @@ export function Footer() {
           </p>
         </div>
       </div>
-    </footer>
+      </footer>
+    </>
   );
 }
