@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { SPORT_LIST } from "@/config/sports";
 import { WEB3FORMS_ACCESS_KEY, APPLICATIONS_EMAIL, SITE } from "@/config/site";
+import { MercadoPagoConnect } from "./MercadoPagoConnect";
 
 type Status = "idle" | "loading" | "ok" | "error";
 
@@ -23,7 +24,8 @@ export function AthleteApplicationForm() {
         `Ciudad / Provincia: ${data.ciudad ?? ""}`,
         `Email: ${data.email ?? ""}`,
         `Edad: ${data.edad ?? ""}`,
-        `Mercado Pago: ${data.mercadopago ?? ""}`,
+        `Foto/video: ${data.foto ?? ""}`,
+        `Mercado Pago: ${data.mercadopago || "(no vinculado)"}`,
         `Nivel y logros: ${data.logros ?? ""}`,
         `Para qué necesita apoyo: ${data.necesidad ?? ""}`,
         `Redes / links: ${data.redes ?? ""}`,
@@ -117,9 +119,18 @@ export function AthleteApplicationForm() {
           <input name="edad" type="number" min={8} max={80} required className={input} />
         </label>
         <label className={label}>
-          <span className={labelText}>Mercado Pago (alias o CVU)</span>
-          <input name="mercadopago" placeholder="tu.alias.mp" className={input} />
+          <span className={labelText}>Foto o video tuyo (link) *</span>
+          <input
+            name="foto"
+            type="url"
+            required
+            placeholder="Instagram, YouTube, Drive…"
+            className={input}
+          />
         </label>
+        <div className="sm:col-span-2">
+          <MercadoPagoConnect />
+        </div>
         <label className={`${label} sm:col-span-2`}>
           <span className={labelText}>Nivel y logros *</span>
           <textarea
