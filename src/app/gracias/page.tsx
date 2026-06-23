@@ -62,7 +62,7 @@ function GraciasContent() {
           </div>
 
           <h1 className="mt-5 font-display text-3xl font-700 uppercase tracking-tight text-ink">
-            ¡Gracias por bancar!
+            ¡Gracias por apoyar!
           </h1>
 
           {targetName ? (

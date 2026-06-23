@@ -2,7 +2,7 @@ import type { Team } from "./types";
 
 /**
  * Campañas de equipos (deportes de equipo).
- * Se puede bancar al equipo entero (se reparte entre el plantel) o a un jugador.
+ * Se puede apoyar al equipo entero (se reparte entre el plantel) o a un jugador.
  * `member_slugs` apunta a atletas del seed con `team` igual a este slug.
  * goal/raised se recalculan en la capa de datos a partir de los jugadores.
  */
@@ -46,7 +46,7 @@ export const SEED_TEAMS: Team[] = [
     discipline: "Selección femenina",
     city: "Buenos Aires",
     province: "Argentina",
-    bio: "Una de las camadas más prometedoras del hockey argentino va por su lugar en el Mundial. Entrenan doble turno, estudian o trabajan en paralelo y se bancan buena parte de los viajes. Salvo el cuerpo técnico, casi ninguna tiene un sponsor que la respalde. Tu aporte se reparte en partes iguales entre las 16 jugadoras.",
+    bio: "Una de las camadas más prometedoras del hockey argentino va por su lugar en el Mundial. Entrenan doble turno, estudian o trabajan en paralelo y se pagan buena parte de los viajes. Salvo el cuerpo técnico, casi ninguna tiene un sponsor que la respalde. Tu aporte se reparte en partes iguales entre las 16 jugadoras.",
     goal_amount: 80000,
     raised_amount: 32800,
     photo_url: "/teams/hockey-arg.webp",

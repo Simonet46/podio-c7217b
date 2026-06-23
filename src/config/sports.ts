@@ -1,6 +1,6 @@
 /**
  * Catálogo de deportes.
- * `team: true` → deporte de equipo (se puede bancar al equipo o a jugadores).
+ * `team: true` → deporte de equipo (se puede apoyar al equipo o a jugadores).
  * Cada deporte tiene un color de panel para tarjetas y heroes.
  */
 

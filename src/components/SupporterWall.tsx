@@ -1,7 +1,7 @@
 import { supportersFor, initialsOf, tierColor } from "@/lib/supporters";
 import { DIPLOMA_TIERS } from "@/config/site";
 
-/** Muro de "los que bancan": reconocimiento a la gente que aporta. */
+/** Muro de "los que apoyan": reconocimiento a la gente que aporta. */
 export function SupporterWall({
   slug,
   count,
@@ -9,7 +9,7 @@ export function SupporterWall({
 }: {
   slug: string;
   count: number;
-  /** A quién bancan, ej. "Lucía" o "el equipo". */
+  /** A quién apoyan, ej. "Lucía" o "el equipo". */
   label: string;
 }) {
   const take = Math.min(14, count);
@@ -19,7 +19,7 @@ export function SupporterWall({
   return (
     <div>
       <h2 className="font-display text-2xl font-600 uppercase tracking-wide text-ink">
-        Los que bancan a {label}
+        Los que apoyan a {label}
       </h2>
       <p className="mt-1 text-sm text-steel">
         <span className="font-600 text-ink">{count.toLocaleString("es-AR")}</span>{" "}

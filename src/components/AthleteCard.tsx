@@ -60,7 +60,7 @@ export function AthleteCard({ athlete }: { athlete: Athlete }) {
           <div className="text-right font-display leading-tight">
             <div className="text-sm">
               <span className="font-700 text-celeste-deep">{backers}</span>{" "}
-              <span className="text-steel">bancando</span>
+              <span className="text-steel">apoyando</span>
             </div>
             <div className="text-sm font-600 text-ink">
               {formatMoney(athlete.raised_amount)}
@@ -72,7 +72,7 @@ export function AthleteCard({ athlete }: { athlete: Athlete }) {
           href={`/atleta/${athlete.slug}`}
           className="mt-4 block rounded-md border border-ink bg-ink py-2.5 text-center font-display text-sm font-600 uppercase tracking-wide text-white transition-colors hover:bg-ink-2"
         >
-          Bancar a {athlete.first_name}
+          Apoyar a {athlete.first_name}
         </Link>
       </div>
     </article>

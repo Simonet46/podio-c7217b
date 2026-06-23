@@ -41,7 +41,7 @@ export function ActivityFeed({ targets }: { targets: ActivityTarget[] }) {
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-ribbon-green opacity-75" />
           <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-ribbon-green" />
         </span>
-        <span className="eyebrow text-steel">En vivo · la gente está bancando</span>
+        <span className="eyebrow text-steel">En vivo · la gente está apoyando</span>
       </div>
 
       <ul className="space-y-1">
@@ -58,7 +58,7 @@ export function ActivityFeed({ targets }: { targets: ActivityTarget[] }) {
             </span>
             <p className="min-w-0 flex-1 truncate text-sm text-ink">
               <span className="font-600">{a.name}</span>{" "}
-              <span className="text-steel">bancó a</span>{" "}
+              <span className="text-steel">apoyó a</span>{" "}
               <Link href={a.target.href} className="font-600 text-celeste-deep hover:underline">
                 {a.target.label}
               </Link>

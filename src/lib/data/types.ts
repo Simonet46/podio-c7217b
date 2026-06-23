@@ -36,7 +36,7 @@ export interface Athlete {
   scope?: "la2028" | "otros";
 }
 
-/** Campaña de un equipo (deportes de equipo). Se puede bancar entero o por jugador. */
+/** Campaña de un equipo (deportes de equipo). Se puede apoyar entero o por jugador. */
 export interface Team {
   id: string;
   slug: string;

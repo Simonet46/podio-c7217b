@@ -6,12 +6,12 @@ import { getGlobalStats } from "@/lib/data/athletes";
 import { SITE } from "@/config/site";
 
 export const metadata: Metadata = {
-  title: `Bancá a todos — ${SITE.brand}`,
+  title: `Apoyá a todos — ${SITE.brand}`,
   description:
     "Poné el monto que quieras y se reparte en partes iguales entre todos los atletas argentinos rumbo al Mundial.",
 };
 
-export default async function BancarATodosPage() {
+export default async function ApoyarATodosPage() {
   const { athleteCount } = await getGlobalStats();
 
   return (
@@ -23,7 +23,7 @@ export default async function BancarATodosPage() {
           <div className="mx-auto max-w-container px-4 py-14 sm:px-6 sm:py-20">
             <p className="eyebrow text-gold">Un aporte, todos los atletas</p>
             <h1 className="mt-3 max-w-3xl font-display text-4xl font-700 uppercase leading-[1.04] tracking-tight sm:text-6xl">
-              Bancá a todos los atletas de una
+              Apoyá a todos los atletas de una
             </h1>
             <p className="mt-4 max-w-2xl text-lg text-white/75">
               No hace falta elegir. Tu aporte se reparte en partes iguales entre
@@ -81,7 +81,7 @@ export default async function BancarATodosPage() {
                 <DonationWidget
                   target={{
                     kind: "all",
-                    title: "Bancá a todos",
+                    title: "Apoyá a todos",
                     splitCount: athleteCount,
                   }}
                 />

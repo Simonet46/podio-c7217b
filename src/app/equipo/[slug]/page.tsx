@@ -29,7 +29,7 @@ export async function generateMetadata({
   if (!team) return { title: SITE.brand };
   return {
     title: `${team.name} — ${SITE.brand}`,
-    description: `Bancá al ${team.name} o a sus jugadores, rumbo al Mundial.`,
+    description: `Apoyá al ${team.name} o a sus jugadores, rumbo al Mundial.`,
   };
 }
 
@@ -94,14 +94,14 @@ export default async function TeamPage({
                 ))}
               </div>
 
-              {/* Quiénes bancan al equipo */}
+              {/* Quiénes apoyan al equipo */}
               <div className="mt-6 rounded-xl border border-line bg-paper p-5">
                 <div className="flex items-center justify-between gap-4">
                   <div>
                     <div className="font-display text-3xl font-700 text-celeste-deep sm:text-4xl">
                       {backers}
                     </div>
-                    <div className="eyebrow mt-1 text-steel">personas bancando</div>
+                    <div className="eyebrow mt-1 text-steel">personas apoyando</div>
                   </div>
                   <div className="text-right">
                     <div className="font-display text-3xl font-700 text-ink sm:text-4xl">
@@ -126,10 +126,10 @@ export default async function TeamPage({
               {/* Roster: jugadores individuales */}
               <Reveal className="mt-8">
                 <h2 className="font-display text-2xl font-600 uppercase tracking-wide text-ink">
-                  O bancá a un jugador
+                  O apoyá a un jugador
                 </h2>
                 <p className="mt-1 text-sm text-steel">
-                  Cada jugador tiene su propia campaña. Elegí a quién bancar.
+                  Cada jugador tiene su propia campaña. Elegí a quién apoyar.
                 </p>
                 <div className="mt-4 grid gap-4 sm:grid-cols-2">
                   {members.map((m) => {
@@ -167,14 +167,14 @@ export default async function TeamPage({
                             <span className="font-700 text-celeste-deep">
                               {supporterCount(m.raised_amount)}
                             </span>{" "}
-                            bancando ·{" "}
+                            apoyando ·{" "}
                             <span className="text-ink">{formatMoney(m.raised_amount)}</span>
                           </div>
                           <Link
                             href={`/atleta/${m.slug}`}
                             className="mt-1 inline-block font-display text-xs font-600 uppercase tracking-wide text-celeste-deep hover:underline"
                           >
-                            Bancar a {m.first_name}
+                            Apoyar a {m.first_name}
                           </Link>
                         </div>
                       </div>
@@ -207,20 +207,20 @@ export default async function TeamPage({
                 </ul>
               </Reveal>
 
-              {/* Los que bancan al equipo */}
+              {/* Los que apoyan al equipo */}
               <Reveal className="mt-10">
                 <SupporterWall slug={team.slug} count={backers} label="todo el equipo" />
               </Reveal>
             </div>
 
-            {/* Widget: bancar a todo el equipo (reparto entre jugadores) */}
+            {/* Widget: apoyar a todo el equipo (reparto entre jugadores) */}
             <aside className="lg:relative">
               <div className="lg:sticky lg:top-24">
                 <DonationWidget
                   target={{
                     kind: "team",
                     slug: team.slug,
-                    title: "Bancá a todo el equipo",
+                    title: "Apoyá a todo el equipo",
                     splitCount: members.length,
                   }}
                 />

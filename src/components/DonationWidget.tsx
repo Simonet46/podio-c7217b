@@ -12,7 +12,7 @@ export interface DonationTarget {
   kind: "athlete" | "team" | "all";
   /** slug del atleta o equipo (no aplica a 'all'). */
   slug?: string;
-  /** Título del widget, ej. "Bancá a Lucía". */
+  /** Título del widget, ej. "Apoyá a Lucía". */
   title: string;
   /** Para 'team' y 'all': entre cuántos atletas se reparte el aporte. */
   splitCount?: number;

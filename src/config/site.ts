@@ -9,7 +9,7 @@ export const SITE = {
   brand: "PODIO",
   tagline: "Rumbo a LA 2028",
   description:
-    "Bancá directo a los atletas argentinos: de los que van rumbo a Los Ángeles 2028 al juvenil del barrio.",
+    "Apoyá directo a los atletas argentinos: de los que van rumbo a Los Ángeles 2028 al juvenil del barrio.",
   /** URL canónica del sitio (usada por Stripe para callbacks). */
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
 } as const;

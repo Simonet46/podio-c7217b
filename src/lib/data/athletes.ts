@@ -83,14 +83,14 @@ export async function getTeamMembers(team: Team): Promise<Athlete[]> {
     .filter((a): a is Athlete => Boolean(a));
 }
 
-/** Totales para el home y para el reparto de "Bancá a todos". */
+/** Totales para el home y para el reparto de "Apoyá a todos". */
 export async function getGlobalStats() {
   const athletes = await getAllAthletes();
   const teams = await getTeams();
   // Cada atleta (individual o jugador de equipo) cuenta una sola vez.
   // Las metas de equipo se derivan de los jugadores, así que NO se suman aparte.
   const totalRaised = athletes.reduce((s, a) => s + a.raised_amount, 0);
-  // Personas bancando: individuales + equipos (los jugadores rollupean en su equipo).
+  // Personas apoyando: individuales + equipos (los jugadores rollupean en su equipo).
   const supporterTotal =
     athletes
       .filter((a) => !a.team)

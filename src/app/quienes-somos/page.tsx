@@ -68,12 +68,12 @@ export default function QuienesSomosPage() {
           <div className="mx-auto max-w-container px-4 py-16 sm:px-6 sm:py-20">
             <p className="eyebrow text-gold">Quiénes somos</p>
             <h1 className="mt-3 max-w-3xl font-display text-4xl font-700 uppercase leading-[1.04] tracking-tight sm:text-6xl">
-              Dejamos la vida por esta camiseta. Ahora la bancamos.
+              Dejamos la vida por esta camiseta. Ahora la apoyamos.
             </h1>
             <p className="mt-5 max-w-2xl text-lg leading-relaxed text-white/75">
               Somos tres atletas que dedicamos la vida entera a un sueño: ponernos la
               celeste y blanca y representar a la Argentina en los Juegos Olímpicos. Lo
-              logramos. Y en el camino conocimos, de primera mano, lo poco que se banca
+              logramos. Y en el camino conocimos, de primera mano, lo poco que se apoya
               a quienes dejan todo por el país. {SITE.brand} es nuestra forma de
               devolver algo de eso.
             </p>
@@ -130,7 +130,7 @@ export default function QuienesSomosPage() {
                 </p>
                 <p>
                   Nosotros llegamos a los Juegos Olímpicos a fuerza de sacrificio — y
-                  de gente que, en silencio, nos bancó. {SITE.brand} nace para que la
+                  de gente que, en silencio, nos apoyó. {SITE.brand} nace para que la
                   próxima camada no esté sola: para convertir la admiración en apoyo
                   concreto, directo y transparente.
                 </p>

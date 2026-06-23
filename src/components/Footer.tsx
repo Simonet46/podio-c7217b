@@ -26,8 +26,8 @@ export function Footer() {
             <Link href="/#atletas" className="hover:text-white">
               Atletas y equipos
             </Link>
-            <Link href="/bancar-a-todos" className="hover:text-white">
-              Bancá a todos
+            <Link href="/apoyar-a-todos" className="hover:text-white">
+              Apoyá a todos
             </Link>
             <Link href="/hinchas" className="hover:text-white">
               Top hinchas

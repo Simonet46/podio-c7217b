@@ -2,7 +2,7 @@ import type { DiplomaTier } from "@/config/site";
 import { DIPLOMA_TIERS } from "@/config/site";
 
 /**
- * "Los que bancan" — modelo estilo Patreon: el foco está en la gente que aporta,
+ * "Los que apoyan" — modelo estilo Patreon: el foco está en la gente que aporta,
  * no en una meta. Para la demo, la cantidad y los nombres se derivan de forma
  * DETERMINÍSTICA del slug y del monto (mismos datos en server y cliente → sin
  * mismatch de hidratación). Cuando entre Supabase, esto sale de `donations`.
@@ -32,7 +32,7 @@ export interface Supporter {
   tier: DiplomaTier;
 }
 
-/** Personas que bancan, derivado del monto recaudado (≈ aporte promedio $50). */
+/** Personas que apoyan, derivado del monto recaudado (≈ aporte promedio $50). */
 export function supporterCount(raised: number): number {
   return Math.max(3, Math.round(raised / 50));
 }
@@ -64,11 +64,11 @@ export interface TopSupporter {
   name: string;
   /** Total aportado en el período (USD). */
   total: number;
-  /** A cuántos atletas/equipos banca. */
+  /** A cuántos atletas/equipos apoya. */
   athletes: number;
 }
 
-/** Ranking determinístico de los que más bancan (para "Top hinchas del mes"). */
+/** Ranking determinístico de los que más apoyan (para "Top hinchas del mes"). */
 export function topSupporters(n: number): TopSupporter[] {
   const out: TopSupporter[] = [];
   const used = new Set<string>();

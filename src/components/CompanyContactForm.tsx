@@ -7,7 +7,7 @@ type Status = "idle" | "loading" | "ok" | "error";
 
 const OPCIONES = [
   "Apadrinar un atleta",
-  "Bancar un equipo",
+  "Apoyar un equipo",
   "Sponsor de la plataforma",
   "A definir / quiero que me asesoren",
 ];

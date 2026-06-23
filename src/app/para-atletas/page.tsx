@@ -16,7 +16,7 @@ const STEPS: [string, string, string][] = [
   ["01", "Postulate", "Completás el formulario con tu historia y lo que necesitás. Te lleva 5 minutos."],
   ["02", "Te verificamos", "Revisamos cada postulación a mano. Somos atletas: sabemos mirar una carrera de verdad."],
   ["03", "Publicamos tu campaña", "Armamos tu perfil con tu foto, tu historia y tu meta. Listo para recibir apoyo."],
-  ["04", "Recibís el apoyo directo", "La gente te banca y la plata llega a vos. Vos te quedás con el 93%."],
+  ["04", "Recibís el apoyo directo", "La gente te apoya y la plata llega a vos. Vos te quedás con el 93%."],
 ];
 
 export default function ParaAtletasPage() {
@@ -36,7 +36,7 @@ export default function ParaAtletasPage() {
             </h1>
             <p className="mt-5 max-w-2xl text-lg leading-relaxed text-white/75">
               No importa si vas rumbo a Los Ángeles 2028 o sos una promesa juvenil del
-              interior: si sos atleta argentino y te bancás buena parte del camino, esto
+              interior: si sos atleta argentino y te costeás buena parte del camino, esto
               es para vos. Postulate, armamos tu campaña y empezás a recibir apoyo
               directo —{netPct}% para vos, {feePct}% para sostener la plataforma. Sin
               costo para el atleta.

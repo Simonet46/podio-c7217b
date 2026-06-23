@@ -10,7 +10,7 @@ import { DIPLOMA_TIERS, SITE } from "@/config/site";
 export const metadata: Metadata = {
   title: `Top hinchas — ${SITE.brand}`,
   description:
-    "El ranking de los que más bancan al deporte argentino rumbo a Los Ángeles 2028.",
+    "El ranking de los que más apoyan al deporte argentino rumbo a Los Ángeles 2028.",
 };
 
 const PODIUM_COLORS = [
@@ -33,10 +33,10 @@ export default function HinchasPage() {
           <div className="mx-auto max-w-container px-4 py-14 sm:px-6 sm:py-20">
             <p className="eyebrow text-gold">Top hinchas · este mes</p>
             <h1 className="mt-3 max-w-3xl font-display text-4xl font-700 uppercase leading-[1.04] tracking-tight sm:text-6xl">
-              Los que más bancan al deporte argentino
+              Los que más apoyan al deporte argentino
             </h1>
             <p className="mt-4 max-w-2xl text-lg text-white/75">
-              Cada aporte suma puntos. Cuanto más bancás, más alto subís. Acá están
+              Cada aporte suma puntos. Cuanto más apoyás, más alto subís. Acá están
               los que más están empujando a los atletas rumbo a Los Ángeles 2028.
             </p>
           </div>
@@ -72,7 +72,7 @@ export default function HinchasPage() {
                       {formatMoney(s.total)}
                     </div>
                     <div className="eyebrow mt-1 text-steel">
-                      banca a {s.athletes} atletas
+                      apoya a {s.athletes} atletas
                     </div>
                   </div>
                 </Reveal>
@@ -113,7 +113,7 @@ export default function HinchasPage() {
                 ¿Querés entrar al ranking?
               </h2>
               <p className="mx-auto mt-2 max-w-xl text-steel">
-                Cada aporte te suma. Bancá a un atleta o a todos y empezá a escalar.
+                Cada aporte te suma. Apoyá a un atleta o a todos y empezá a escalar.
               </p>
               <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
                 <Link
@@ -123,10 +123,10 @@ export default function HinchasPage() {
                   Elegir un atleta
                 </Link>
                 <Link
-                  href="/bancar-a-todos"
+                  href="/apoyar-a-todos"
                   className="rounded-md bg-gold px-6 py-3 font-display text-sm font-700 uppercase tracking-wide text-ink transition-transform hover:scale-[1.03]"
                 >
-                  Bancar a todos
+                  Apoyar a todos
                 </Link>
               </div>
             </div>

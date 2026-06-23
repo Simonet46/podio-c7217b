@@ -21,7 +21,7 @@ const VALORES: [string, string][] = [
 
 const FORMAS: [string, string, string][] = [
   ["Apadrinar un atleta", "Tu marca acompaña a un atleta puntual en todo su camino.", "Ideal para una historia cercana y personal."],
-  ["Bancar un equipo", "Apoyás a todo un plantel rumbo al Mundial.", "Más alcance, una comunidad entera detrás."],
+  ["Apoyar un equipo", "Apoyás a todo un plantel rumbo al Mundial.", "Más alcance, una comunidad entera detrás."],
   ["Sponsor de la plataforma", "Tu logo en todo el sitio, junto a los que ya creen.", "Máxima exposición y asociación con la movida."],
 ];
 

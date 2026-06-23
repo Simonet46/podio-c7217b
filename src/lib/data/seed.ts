@@ -238,7 +238,7 @@ export const SEED_ATHLETES: Athlete[] = [
     discipline: "Delantero · 16 años",
     city: "González Catán",
     province: "Buenos Aires",
-    bio: "Juega de 9 en el club del barrio y la rompe. Lo fueron a ver de un par de clubes grandes, pero la familia no puede bancar los viajes a las pruebas ni los botines. Sueña con ser profesional y darle una mano a los suyos.",
+    bio: "Juega de 9 en el club del barrio y la rompe. Lo fueron a ver de un par de clubes grandes, pero la familia no puede apoyar los viajes a las pruebas ni los botines. Sueña con ser profesional y darle una mano a los suyos.",
     goal_amount: 4000,
     raised_amount: 1300,
     photo_url: null,
@@ -316,7 +316,7 @@ export const SEED_ATHLETES: Athlete[] = [
 
   // ───────── Jugadores de equipos (deportes de equipo) ─────────
   // Pertenecen a un equipo (campo `team`). No aparecen sueltos en el home,
-  // sino dentro de su equipo; igual tienen perfil propio y se pueden bancar.
+  // sino dentro de su equipo; igual tienen perfil propio y se pueden apoyar.
 
   // Handball — Equipo Argentino de Handball (16)
   ...roster("handball-arg", "handball", [
@@ -403,7 +403,7 @@ function roster(
       discipline: role,
       city,
       province,
-      bio: `${first_name} es ${role.toLowerCase()} de la selección argentina de ${sportLabel}. Como gran parte del plantel, compite sin sponsors privados: la ayuda que recibe no alcanza para mucho y se banca buena parte del camino al Mundial.`,
+      bio: `${first_name} es ${role.toLowerCase()} de la selección argentina de ${sportLabel}. Como gran parte del plantel, compite sin sponsors privados: la ayuda que recibe no alcanza para mucho y se costea buena parte del camino al Mundial.`,
       goal_amount: PLAYER_GOAL,
       raised_amount: raised,
       photo_url: null,

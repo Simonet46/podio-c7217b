@@ -31,7 +31,7 @@ export async function generateMetadata({
   if (!athlete) return { title: SITE.brand };
   return {
     title: `${athlete.full_name} — ${SITE.brand}`,
-    description: `Bancá a ${athlete.full_name}, ${getSport(athlete.sport)?.label ?? athlete.sport} de ${athlete.city}, rumbo a LA 2028.`,
+    description: `Apoyá a ${athlete.full_name}, ${getSport(athlete.sport)?.label ?? athlete.sport} de ${athlete.city}, rumbo a LA 2028.`,
   };
 }
 
@@ -128,14 +128,14 @@ export default async function AthletePage({
                 ))}
               </div>
 
-              {/* Quiénes bancan (estilo Patreon: la gente, no la meta). */}
+              {/* Quiénes apoyan (estilo Patreon: la gente, no la meta). */}
               <div className="mt-6 rounded-xl border border-line bg-paper p-5">
                 <div className="flex items-center justify-between gap-4">
                   <div>
                     <div className="font-display text-3xl font-700 text-celeste-deep sm:text-4xl">
                       {backers}
                     </div>
-                    <div className="eyebrow mt-1 text-steel">personas bancando</div>
+                    <div className="eyebrow mt-1 text-steel">personas apoyando</div>
                   </div>
                   <div className="text-right">
                     <div className="font-display text-3xl font-700 text-ink sm:text-4xl">
@@ -184,7 +184,7 @@ export default async function AthletePage({
                 </ul>
               </Reveal>
 
-              {/* Los que bancan (muro de hinchas) */}
+              {/* Los que apoyan (muro de hinchas) */}
               <Reveal className="mt-10">
                 <SupporterWall
                   slug={athlete.slug}
@@ -201,7 +201,7 @@ export default async function AthletePage({
                   target={{
                     kind: "athlete",
                     slug: athlete.slug,
-                    title: `Bancá a ${athlete.first_name}`,
+                    title: `Apoyá a ${athlete.first_name}`,
                   }}
                 />
               </div>

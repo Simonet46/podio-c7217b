@@ -42,7 +42,7 @@ export function CoverBand() {
           </h2>
           <p className="mt-5 max-w-md text-lg leading-relaxed text-white/80">
             Madrugadas, rutas, viajes que pagan de su bolsillo. Detrás de cada
-            clasificación hay un atleta bancándose todo. Tu aporte les saca peso
+            clasificación hay un atleta costeándose todo. Tu aporte les saca peso
             de encima.
           </p>
           <div className="mt-7 max-w-[220px]">
@@ -52,7 +52,7 @@ export function CoverBand() {
             href="#atletas"
             className="mt-7 inline-block rounded-md bg-gold px-6 py-3 font-display text-base font-700 uppercase tracking-wide text-ink transition-transform hover:scale-[1.03]"
           >
-            Bancá a un atleta
+            Apoyá a un atleta
           </Link>
         </div>
       </div>

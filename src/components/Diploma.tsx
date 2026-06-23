@@ -126,7 +126,7 @@ export function Diploma({
       // Frase del aporte (con wrap)
       ctx.fillStyle = "rgba(255,255,255,0.85)";
       ctx.font = `26px ${body}`;
-      const phrase = `por bancar a ${targetPhrase} en su camino a Los Ángeles 2028`;
+      const phrase = `por apoyar a ${targetPhrase} en su camino a Los Ángeles 2028`;
       wrapText(ctx, phrase, cx, 752, 1180, 38);
 
       // Sello del nivel (medalla)
@@ -201,7 +201,7 @@ export function Diploma({
         </h2>
       </div>
       <p className="mt-1 text-sm text-steel">
-        Sos parte de los que bancan al deporte argentino. Descargá tu diploma y
+        Sos parte de los que apoyan al deporte argentino. Descargá tu diploma y
         compartilo.
       </p>
 

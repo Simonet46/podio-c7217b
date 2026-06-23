@@ -33,7 +33,7 @@ export default async function HomePage() {
   const activityTargets = [
     ...athletes.map((a) => ({ label: a.full_name, href: `/atleta/${a.slug}` })),
     ...teams.map((t) => ({ label: t.name, href: `/equipo/${t.slug}` })),
-    { label: "todos los atletas", href: "/bancar-a-todos" },
+    { label: "todos los atletas", href: "/apoyar-a-todos" },
   ];
 
   return (
@@ -58,7 +58,7 @@ export default async function HomePage() {
                   Financiamiento directo · Atletas argentinos
                 </p>
                 <h1 className="mt-4 max-w-2xl font-display text-4xl font-700 uppercase leading-[1.05] tracking-tight sm:text-6xl">
-                  Bancá a los atletas argentinos rumbo a{" "}
+                  Apoyá a los atletas argentinos rumbo a{" "}
                   <span className="text-gold">Los Ángeles 2028</span>
                 </h1>
                 <p className="mt-5 max-w-xl text-lg leading-relaxed text-white/75">
@@ -127,7 +127,7 @@ export default async function HomePage() {
                 <div className="flex flex-wrap gap-6 sm:gap-8">
                   <Stat
                     value={supporterTotal.toLocaleString("es-AR")}
-                    label="Personas bancando"
+                    label="Personas apoyando"
                   />
                   <Stat value={String(athleteCount)} label="Atletas en campaña" />
                   <Stat value={formatMoney(totalRaised)} label="Total recaudado" />
@@ -152,7 +152,7 @@ export default async function HomePage() {
               <div className="mb-8">
                 <p className="eyebrow text-celeste-deep">En campaña</p>
                 <h2 className="mt-2 font-display text-3xl font-700 uppercase tracking-tight text-ink sm:text-4xl">
-                  Elegí a quién bancar
+                  Elegí a quién apoyar
                 </h2>
               </div>
             </Reveal>
@@ -173,7 +173,7 @@ export default async function HomePage() {
               </h2>
               <p className="mt-2 max-w-2xl text-steel">
                 Acá entra cualquiera que la pelee: un juvenil del barrio, una promesa
-                del interior, un amateur que se banca todo. No van a un Juego Olímpico
+                del interior, un amateur que se paga todo. No van a un Juego Olímpico
                 mañana, pero merecen la misma chance.
               </p>
             </Reveal>
@@ -190,7 +190,7 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* ───────── Bancá a todos ───────── */}
+        {/* ───────── Apoyá a todos ───────── */}
         <section className="bg-ink text-white">
           <div className="mx-auto max-w-container px-4 py-16 sm:px-6">
             <Reveal>
@@ -198,7 +198,7 @@ export default async function HomePage() {
                 <div className="max-w-2xl">
                   <p className="eyebrow text-gold">¿No sabés a quién elegir?</p>
                   <h2 className="mt-3 font-display text-3xl font-700 uppercase leading-tight tracking-tight sm:text-4xl">
-                    Bancá a todos los atletas
+                    Apoyá a todos los atletas
                   </h2>
                   <p className="mt-3 text-white/75">
                     Poné el monto que quieras y se reparte en partes iguales entre
@@ -207,10 +207,10 @@ export default async function HomePage() {
                   </p>
                 </div>
                 <Link
-                  href="/bancar-a-todos"
+                  href="/apoyar-a-todos"
                   className="shrink-0 rounded-md bg-gold px-7 py-3.5 font-display text-base font-700 uppercase tracking-wide text-ink transition-transform hover:scale-[1.03]"
                 >
-                  Bancar a todos
+                  Apoyar a todos
                 </Link>
               </div>
             </Reveal>
@@ -228,7 +228,7 @@ export default async function HomePage() {
                     Top hinchas del mes
                   </h2>
                   <p className="mt-2 text-steel">
-                    Los que más están bancando al deporte argentino.
+                    Los que más están apoyando al deporte argentino.
                   </p>
                 </div>
                 <Link
@@ -258,7 +258,7 @@ export default async function HomePage() {
                         {s.name}
                       </div>
                       <div className="text-xs text-steel">
-                        banca a {s.athletes} atletas
+                        apoya a {s.athletes} atletas
                       </div>
                     </div>
                     <span className="shrink-0 font-display font-700 text-celeste-deep">
@@ -287,7 +287,7 @@ export default async function HomePage() {
                 <Step
                   n="01"
                   title="Elegís un atleta"
-                  body="Explorás los perfiles verificados de deportistas individuales en proceso de clasificación y elegís a quién querés bancar."
+                  body="Explorás los perfiles verificados de deportistas individuales en proceso de clasificación y elegís a quién querés apoyar."
                 />
               </Reveal>
               <Reveal delay={110}>

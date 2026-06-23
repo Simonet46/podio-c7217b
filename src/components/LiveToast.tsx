@@ -44,7 +44,7 @@ export function LiveToast({ targets }: { targets: ActivityTarget[] }) {
         </span>
         <p className="text-sm leading-snug text-ink">
           <span className="font-600">{current.name}</span>{" "}
-          <span className="text-steel">acaba de bancar a</span>{" "}
+          <span className="text-steel">acaba de apoyar a</span>{" "}
           <Link href={current.target.href} className="font-600 text-celeste-deep hover:underline">
             {current.target.label}
           </Link>{" "}

@@ -64,7 +64,7 @@ export function TeamCard({ team }: { team: Team }) {
           <div className="text-right font-display leading-tight">
             <div className="text-sm">
               <span className="font-700 text-celeste-deep">{backers}</span>{" "}
-              <span className="text-steel">bancando</span>
+              <span className="text-steel">apoyando</span>
             </div>
             <div className="text-sm font-600 text-ink">
               {formatMoney(team.raised_amount)}
@@ -76,7 +76,7 @@ export function TeamCard({ team }: { team: Team }) {
           href={`/equipo/${team.slug}`}
           className="mt-4 block rounded-md border border-ink bg-ink py-2.5 text-center font-display text-sm font-600 uppercase tracking-wide text-white transition-colors hover:bg-ink-2"
         >
-          Bancar al equipo
+          Apoyar al equipo
         </Link>
       </div>
     </article>

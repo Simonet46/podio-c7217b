@@ -27,10 +27,10 @@ export function Header() {
               Atletas
             </Link>
             <Link
-              href="/bancar-a-todos"
+              href="/apoyar-a-todos"
               className="font-display text-sm uppercase tracking-wide text-white/75 transition-colors hover:text-white"
             >
-              Bancá a todos
+              Apoyá a todos
             </Link>
             <Link
               href="/hinchas"
@@ -67,7 +67,7 @@ export function Header() {
               href="/#atletas"
               className="rounded-md bg-gold px-4 py-2 font-display text-sm font-600 uppercase tracking-wide text-ink transition-transform hover:scale-[1.03]"
             >
-              Bancar a un atleta
+              Apoyar a un atleta
             </Link>
           </div>
         </div>
