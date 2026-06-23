@@ -29,6 +29,10 @@ jobs:
         run: npm run build
         env:
           NEXT_PUBLIC_BASE_PATH: /podio-c7217b
+          # Supabase (públicas: la anon key va igual en el bundle del cliente).
+          # Definidas como "Variables" del repo (Settings → Secrets and variables → Actions → Variables).
+          NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
       # Evita que GitHub Pages procese con Jekyll (si no, ignora /_next).
       - run: touch ./out/.nojekyll
       - uses: actions/configure-pages@v5

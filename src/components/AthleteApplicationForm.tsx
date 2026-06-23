@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { SPORT_LIST } from "@/config/sports";
 import { WEB3FORMS_ACCESS_KEY, APPLICATIONS_EMAIL, SITE } from "@/config/site";
+import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
 import { MercadoPagoConnect } from "./MercadoPagoConnect";
 
 type Status = "idle" | "loading" | "ok" | "error";
@@ -10,49 +11,96 @@ type Status = "idle" | "loading" | "ok" | "error";
 export function AthleteApplicationForm() {
   const [status, setStatus] = useState<Status>("idle");
 
+  /** Guarda la postulación en Supabase como atleta PENDIENTE de revisión. */
+  async function saveToSupabase(data: Record<string, string>): Promise<boolean> {
+    if (!isSupabaseConfigured) return false;
+    try {
+      const supabase = await getSupabase();
+      if (!supabase) return false;
+      const { error } = await supabase.from("athlete_applications").insert({
+        full_name: data.nombre || "",
+        sport: data.deporte || "",
+        discipline: data.disciplina || null,
+        location: data.ciudad || null,
+        email: data.email || "",
+        age: data.edad ? Number(data.edad) : null,
+        media_url: data.foto || null,
+        payment_link: data.mercadopago || null,
+        achievements: data.logros || null,
+        needs: data.necesidad || null,
+        socials: data.redes || null,
+        status: "pending",
+      });
+      return !error;
+    } catch {
+      return false;
+    }
+  }
+
+  /** Notificación por email (Web3Forms) o, si no hay key, fallback a mailto. */
+  async function notifyByEmail(data: Record<string, string>): Promise<boolean> {
+    if (WEB3FORMS_ACCESS_KEY) {
+      try {
+        const res = await fetch("https://api.web3forms.com/submit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify({
+            access_key: WEB3FORMS_ACCESS_KEY,
+            subject: `Nueva postulación de atleta — ${SITE.brand}`,
+            from_name: data.nombre || "Postulante",
+            ...data,
+          }),
+        });
+        return res.ok;
+      } catch {
+        return false;
+      }
+    }
+    // Sin key → abrimos el cliente de mail (gratis, funciona igual).
+    const body = [
+      `Nombre: ${data.nombre ?? ""}`,
+      `Deporte: ${data.deporte ?? ""}`,
+      `Disciplina: ${data.disciplina ?? ""}`,
+      `Ciudad / Provincia: ${data.ciudad ?? ""}`,
+      `Email: ${data.email ?? ""}`,
+      `Edad: ${data.edad ?? ""}`,
+      `Foto/video: ${data.foto ?? ""}`,
+      `Mercado Pago: ${data.mercadopago || "(no vinculado)"}`,
+      `Nivel y logros: ${data.logros ?? ""}`,
+      `Para qué necesita apoyo: ${data.necesidad ?? ""}`,
+      `Redes / links: ${data.redes ?? ""}`,
+    ].join("\n");
+    window.location.href = `mailto:${APPLICATIONS_EMAIL}?subject=${encodeURIComponent(
+      "Postulación a " + SITE.brand,
+    )}&body=${encodeURIComponent(body)}`;
+    return true;
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
     const data = Object.fromEntries(new FormData(form).entries()) as Record<string, string>;
 
-    // Sin access key configurada → fallback por mail (funciona igual, gratis).
-    if (!WEB3FORMS_ACCESS_KEY) {
-      const body = [
-        `Nombre: ${data.nombre ?? ""}`,
-        `Deporte: ${data.deporte ?? ""}`,
-        `Disciplina: ${data.disciplina ?? ""}`,
-        `Ciudad / Provincia: ${data.ciudad ?? ""}`,
-        `Email: ${data.email ?? ""}`,
-        `Edad: ${data.edad ?? ""}`,
-        `Foto/video: ${data.foto ?? ""}`,
-        `Mercado Pago: ${data.mercadopago || "(no vinculado)"}`,
-        `Nivel y logros: ${data.logros ?? ""}`,
-        `Para qué necesita apoyo: ${data.necesidad ?? ""}`,
-        `Redes / links: ${data.redes ?? ""}`,
-      ].join("\n");
-      window.location.href = `mailto:${APPLICATIONS_EMAIL}?subject=${encodeURIComponent(
-        "Postulación a " + SITE.brand,
-      )}&body=${encodeURIComponent(body)}`;
+    setStatus("loading");
+
+    // 1) Fuente de verdad: la postulación queda en Supabase como pendiente.
+    const savedToDb = await saveToSupabase(data);
+
+    if (savedToDb) {
+      // Notificación best-effort por Web3Forms (si está configurado).
+      // No abrimos mailto: ya quedó registrada en la DB.
+      if (WEB3FORMS_ACCESS_KEY) void notifyByEmail(data);
       setStatus("ok");
+      form.reset();
       return;
     }
 
-    setStatus("loading");
-    try {
-      const res = await fetch("https://api.web3forms.com/submit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({
-          access_key: WEB3FORMS_ACCESS_KEY,
-          subject: `Nueva postulación de atleta — ${SITE.brand}`,
-          from_name: data.nombre || "Postulante",
-          ...data,
-        }),
-      });
-      if (!res.ok) throw new Error();
+    // 2) Sin DB (o falló): el email es el canal principal (Web3Forms o mailto).
+    const notified = await notifyByEmail(data);
+    if (notified) {
       setStatus("ok");
-      form.reset();
-    } catch {
+      if (WEB3FORMS_ACCESS_KEY) form.reset();
+    } else {
       setStatus("error");
     }
   }
