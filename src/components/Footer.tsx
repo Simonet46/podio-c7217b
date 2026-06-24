@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { SITE, LEGAL_DISCLAIMER, PLATFORM_FEE_RATE } from "@/config/site";
 import { Ribbon } from "./Ribbon";
+import { Wordmark } from "./Wordmark";
 import { PartnerLogos } from "./PartnerLogos";
 
 export function Footer() {
@@ -12,10 +13,8 @@ export function Footer() {
       <div className="mx-auto max-w-container px-4 py-12 sm:px-6">
         <div className="flex flex-col gap-8 md:flex-row md:items-start md:justify-between">
           <div className="max-w-md">
-            <div className="flex items-baseline gap-2.5">
-              <span className="font-display text-2xl font-700 tracking-wide text-white">
-                {SITE.brand}
-              </span>
+            <div className="flex items-baseline gap-2.5 text-white">
+              <Wordmark className="text-2xl" />
               <span className="eyebrow text-gold">{SITE.tagline}</span>
             </div>
             <p className="mt-3 text-sm leading-relaxed">{SITE.description}</p>

@@ -1,12 +1,12 @@
 /**
- * Configuración central de PODIO.
+ * Configuración central de GRANITO.
  * Marca, comisión y fecha de LA 2028 viven SOLO acá (requisito del brief).
  * Cambiá estos valores y se propagan a toda la app.
  */
 
 export const SITE = {
-  /** Nombre de marca (placeholder — cambiar acá para renombrar todo el sitio). */
-  brand: "PODIO",
+  /** Nombre de marca (cambiar acá para renombrar todo el sitio). */
+  brand: "GRANITO",
   tagline: "Rumbo a LA 2028",
   description:
     "Apoyá directo a los atletas argentinos: de los que van rumbo a Los Ángeles 2028 al juvenil del barrio.",

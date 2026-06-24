@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { SITE } from "@/config/site";
 import { Ribbon } from "./Ribbon";
+import { Wordmark } from "./Wordmark";
 import { CountdownMini } from "./Countdown";
 
 export function Header() {
@@ -9,10 +10,8 @@ export function Header() {
       <div className="bg-ink/95 backdrop-blur supports-[backdrop-filter]:bg-ink/80">
         <div className="mx-auto flex h-16 max-w-container items-center justify-between gap-4 px-4 sm:px-6">
           {/* Logo + tagline */}
-          <Link href="/" className="flex items-baseline gap-2.5">
-            <span className="font-display text-2xl font-700 tracking-wide text-white">
-              {SITE.brand}
-            </span>
+          <Link href="/" className="flex items-baseline gap-2.5 text-white">
+            <Wordmark className="text-2xl" />
             <span className="eyebrow hidden text-gold sm:inline">
               {SITE.tagline}
             </span>
