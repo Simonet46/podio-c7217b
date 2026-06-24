@@ -123,6 +123,17 @@
     animation: toastIn 0.4s cubic-bezier(0.16, 0.84, 0.44, 1);
   }
 
+  /* Brillo deslizante en la barra de oro del pódium de hinchas. */
+  @keyframes shineMove {
+    0% { background-position: -120% 0; }
+    60%, 100% { background-position: 220% 0; }
+  }
+  .podio-shine {
+    animation: shineMove 4.5s ease-in-out infinite;
+    background: linear-gradient(100deg, transparent 30%, rgba(255,255,255,.5) 50%, transparent 70%);
+    background-size: 220% 100%;
+  }
+
   /* Hero inmersivo: badges flotantes + punto que pulsa. */
   @keyframes podioFloat {
     0%,

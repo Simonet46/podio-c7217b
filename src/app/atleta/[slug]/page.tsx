@@ -7,7 +7,6 @@ import { Footer } from "@/components/Footer";
 import { DonationWidget } from "@/components/DonationWidget";
 import { Monogram } from "@/components/Monogram";
 import { Reveal } from "@/components/Reveal";
-import { SupporterStack } from "@/components/SupporterStack";
 import { SupporterWall } from "@/components/SupporterWall";
 import { SponsorLogo } from "@/components/SponsorLogo";
 import { getSponsorForSlug } from "@/lib/data/sponsors";
@@ -31,9 +30,12 @@ export async function generateMetadata({
   if (!athlete) return { title: SITE.brand };
   return {
     title: `${athlete.full_name} — ${SITE.brand}`,
-    description: `Apoyá a ${athlete.full_name}, ${getSport(athlete.sport)?.label ?? athlete.sport} de ${athlete.city}, rumbo a LA 2028.`,
+    description: `Apoyá a ${athlete.full_name}, ${getSport(athlete.sport)?.label ?? athlete.sport} de ${athlete.city}.`,
   };
 }
+
+// Colores para las barras de "Tu aporte financia" (ciclo)
+const FUND_COLORS = ["#0072CE", "#009F3D", "#DF0024", "#F4C300"];
 
 export default async function AthletePage({
   params,
@@ -49,128 +51,191 @@ export default async function AthletePage({
   const team = athlete.team ? await getTeamBySlug(athlete.team) : null;
   const sponsor = getSponsorForSlug(athlete.slug);
 
+  const hasCover = Boolean(athlete.photo_secondary_url);
+  const hasPortrait = Boolean(athlete.photo_url);
+
   return (
     <>
       <Header />
-      <main>
-        {/* ───────── Hero del atleta (color del deporte) ───────── */}
-        <section className="relative text-white" style={{ backgroundColor: color }}>
-          <div
-            className="absolute inset-0"
-            style={{ background: "linear-gradient(180deg, rgba(10,26,47,0.15), rgba(10,26,47,0.55))" }}
-            aria-hidden
-          />
-          <div className="relative mx-auto flex max-w-container flex-col gap-6 px-4 py-12 sm:px-6 sm:py-16 md:flex-row md:items-end">
-            <div className="h-28 w-28 shrink-0 overflow-hidden rounded-xl border-2 border-white/30 sm:h-36 sm:w-36">
-              {athlete.photo_url ? (
-                <Image
-                  src={asset(athlete.photo_url)}
-                  alt={athlete.full_name}
-                  width={144}
-                  height={144}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <Monogram name={athlete.full_name} color={color} className="h-full w-full" />
-              )}
+      <main className="bg-ink text-white">
+
+        {/* ── Hero ── */}
+        <section className="relative">
+
+          {/* Cover foto */}
+          <div className="relative h-[260px] overflow-hidden sm:h-[380px] lg:h-[420px]">
+            {hasCover ? (
+              <Image
+                src={asset(athlete.photo_secondary_url!)}
+                alt={`${athlete.full_name} en acción`}
+                fill
+                priority
+                className="object-cover object-top"
+              />
+            ) : (
+              <div
+                className="h-full w-full"
+                style={{
+                  background: `linear-gradient(135deg,${color}55 0%,#0A1A2F 70%)`,
+                }}
+              />
+            )}
+            {/* Gradient overlay */}
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background:
+                  "linear-gradient(180deg,rgba(10,26,47,.1) 0%,transparent 30%,rgba(10,26,47,.55) 70%,rgba(10,26,47,.95) 100%)",
+              }}
+              aria-hidden
+            />
+            {/* Cinta vertical 4 colores */}
+            <div className="absolute left-0 top-8 flex flex-col" aria-hidden>
+              {["#0072CE","#F4C300","#009F3D","#DF0024"].map((c) => (
+                <span key={c} className="w-[7px] h-10" style={{ background: c }} />
+              ))}
             </div>
-            <div>
-              <p className="eyebrow text-white/80">
-                {sport?.label ?? athlete.sport} · {athlete.discipline}
-              </p>
-              <h1 className="mt-2 font-display text-4xl font-700 uppercase leading-none tracking-tight sm:text-6xl">
-                {athlete.full_name}
-              </h1>
-              <p className="mt-2 text-white/85">
-                {athlete.city}, {athlete.province}
-              </p>
-              {athlete.next_competition && (
-                <p className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-sm text-white">
-                  <span aria-hidden>📅</span> Próxima: {athlete.next_competition}
-                </p>
-              )}
-              {team && (
-                <Link
-                  href={`/equipo/${team.slug}`}
-                  className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 font-display text-xs font-600 uppercase tracking-wide text-white transition-colors hover:bg-white/25"
-                >
-                  ← Parte de {team.name}
-                </Link>
-              )}
+            {/* Sponsor badge */}
+            {sponsor && (
+              <div className="absolute right-5 top-5 hidden sm:flex items-center gap-3 rounded-xl border border-white/[.14] px-4 py-2.5"
+                style={{ background: "rgba(8,19,31,.78)", backdropFilter: "blur(8px)" }}>
+                <span className="eyebrow text-white/60">Con el apoyo de</span>
+                <SponsorLogo sponsor={sponsor} />
+              </div>
+            )}
+            {/* Próxima competencia floating pill */}
+            {athlete.next_competition && (
+              <div
+                className="podio-float absolute bottom-7 right-5 sm:right-9 inline-flex items-center gap-2.5 rounded-full px-4 py-2 shadow-[0_14px_36px_rgba(201,162,39,.4)]"
+                style={{ background: "#C9A227" }}
+              >
+                <span className="h-1.5 w-1.5 rounded-full bg-ink" aria-hidden />
+                <span className="font-display text-[12px] font-600 uppercase tracking-wide text-ink">
+                  Próxima: {athlete.next_competition}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Fila de perfil: retrato + nombre + stats */}
+          <div className="mx-auto max-w-container px-4 sm:px-6">
+            <div className="relative z-10 -mt-12 flex flex-wrap items-end gap-5 sm:-mt-[58px]">
+              {/* Retrato superpuesto */}
+              <div
+                className="h-[110px] w-[110px] shrink-0 overflow-hidden rounded-[14px] border-[3px] border-ink shadow-[0_22px_50px_rgba(0,0,0,.5)] sm:h-[150px] sm:w-[150px] sm:rounded-[16px]"
+              >
+                {hasPortrait ? (
+                  <Image
+                    src={asset(athlete.photo_url!)}
+                    alt={athlete.full_name}
+                    width={150}
+                    height={150}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <Monogram name={athlete.full_name} color={color} className="h-full w-full" />
+                )}
+              </div>
+
+              {/* Nombre + deporte */}
+              <div className="flex-1 pb-2 min-w-0">
+                <div className="mb-2 flex flex-wrap items-center gap-2.5">
+                  <span
+                    className="font-display text-[11px] font-600 uppercase tracking-[.12em] text-white rounded-[3px] px-3 py-[5px]"
+                    style={{ background: color }}
+                  >
+                    {sport?.label ?? athlete.sport}
+                  </span>
+                  <span className="text-[14px] text-white/62">
+                    {athlete.city}, {athlete.province}
+                  </span>
+                  {team && (
+                    <Link
+                      href={`/equipo/${team.slug}`}
+                      className="font-display text-[11px] font-600 uppercase tracking-wide text-white/60 hover:text-white transition"
+                    >
+                      ← {team.name}
+                    </Link>
+                  )}
+                </div>
+                <h1 className="font-display text-4xl font-700 uppercase leading-[.9] tracking-tight sm:text-[56px] lg:text-[62px]">
+                  {athlete.full_name}
+                </h1>
+              </div>
+
+              {/* Stats */}
+              <div className="hidden sm:flex gap-7 pb-3.5">
+                <div className="text-right">
+                  <div className="font-display text-[32px] font-700 leading-none sm:text-[34px]">
+                    {backers}
+                  </div>
+                  <div className="text-[12px] text-white/55">la apoyan</div>
+                </div>
+                <div className="text-right">
+                  <div className="font-display text-[32px] font-700 leading-none text-gold sm:text-[34px]">
+                    {formatMoney(athlete.raised_amount)}
+                  </div>
+                  <div className="text-[12px] text-white/55">recaudados</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Stats mobile */}
+            <div className="mt-4 flex gap-6 sm:hidden">
+              <div>
+                <div className="font-display text-2xl font-700 text-white">{backers}</div>
+                <div className="text-[12px] text-white/55">la apoyan</div>
+              </div>
+              <div>
+                <div className="font-display text-2xl font-700 text-gold">{formatMoney(athlete.raised_amount)}</div>
+                <div className="text-[12px] text-white/55">recaudados</div>
+              </div>
             </div>
           </div>
         </section>
 
-        {/* ───────── Sponsor oficial (si tiene) ───────── */}
-        {sponsor && (
-          <div className="border-b border-line bg-paper">
-            <div className="mx-auto flex max-w-container flex-col items-center justify-center gap-2 px-4 py-4 sm:flex-row sm:gap-4 sm:px-6">
-              <span className="eyebrow text-steel">
-                Sponsor oficial de {athlete.first_name}
-              </span>
-              <SponsorLogo sponsor={sponsor} />
-            </div>
-          </div>
-        )}
+        {/* ── Cuerpo: 2 columnas ── */}
+        <section className="mx-auto max-w-container px-4 pb-20 pt-12 sm:px-6 lg:pt-14">
+          <div className="grid grid-cols-1 items-start gap-10 lg:grid-cols-[1fr_380px] lg:gap-14">
 
-        {/* ───────── Cuerpo ───────── */}
-        <section className="bg-ice">
-          <div className="mx-auto grid max-w-container gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[1fr_380px]">
-            {/* Columna izquierda */}
-            <div>
-              {/* Fila de stats */}
-              <div className="grid grid-cols-3 gap-3">
-                {athlete.stats.map(([value, label], i) => (
-                  <div
-                    key={i}
-                    className="rounded-xl border border-line bg-paper p-4 text-center"
-                  >
-                    <div className="font-display text-2xl font-700 text-ink sm:text-3xl">
-                      {value}
-                    </div>
-                    <div className="eyebrow mt-1 text-steel">{label}</div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Quiénes apoyan (estilo Patreon: la gente, no la meta). */}
-              <div className="mt-6 rounded-xl border border-line bg-paper p-5">
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <div className="font-display text-3xl font-700 text-celeste-deep sm:text-4xl">
-                      {backers}
-                    </div>
-                    <div className="eyebrow mt-1 text-steel">personas apoyando</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-display text-3xl font-700 text-ink sm:text-4xl">
-                      {formatMoney(athlete.raised_amount)}
-                    </div>
-                    <div className="eyebrow mt-1 text-steel">recaudados</div>
-                  </div>
-                </div>
-                <div className="mt-4 border-t border-line pt-4">
-                  <SupporterStack slug={athlete.slug} count={backers} max={9} />
-                </div>
-              </div>
+            {/* ── Columna izquierda ── */}
+            <div className="min-w-0 space-y-14">
 
               {/* La historia */}
-              <Reveal className="mt-8">
-                <h2 className="font-display text-2xl font-600 uppercase tracking-wide text-ink">
-                  La historia
-                </h2>
-                <p className="mt-3 leading-relaxed text-steel">{athlete.bio}</p>
+              <Reveal>
+                <p className="eyebrow mb-3 text-gold">La historia</p>
+                {athlete.stats.length > 0 && (
+                  <div className="mb-5 flex flex-wrap gap-2">
+                    {athlete.stats.map(([val, lbl], i) => (
+                      <span
+                        key={i}
+                        className="rounded-md border border-white/[.1] px-3 py-1.5 text-center"
+                        style={{ background: "#0d2238" }}
+                      >
+                        <span className="block font-display text-xl font-700 leading-none text-white">
+                          {val}
+                        </span>
+                        <span className="mt-0.5 block text-[11px] uppercase tracking-wide text-white/55">
+                          {lbl}
+                        </span>
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <p className="max-w-[620px] text-[17px] leading-[1.7] text-white/74">
+                  {athlete.bio}
+                </p>
               </Reveal>
 
-              {/* Foto secundaria (en acción), si la tiene */}
-              {athlete.photo_secondary_url && (
-                <Reveal className="mt-8">
-                  <div className="overflow-hidden rounded-2xl border border-line">
+              {/* Foto secundaria inline (si existe y hay cover también, acá va en acción) */}
+              {hasCover && athlete.photo_url && athlete.photo_secondary_url && (
+                <Reveal>
+                  <div className="overflow-hidden rounded-2xl border border-white/[.07] shadow-[0_30px_70px_rgba(0,0,0,.5)]">
                     <Image
                       src={asset(athlete.photo_secondary_url)}
                       alt={`${athlete.first_name} en acción`}
                       width={1200}
-                      height={800}
+                      height={600}
                       className="h-auto w-full object-cover"
                     />
                   </div>
@@ -178,53 +243,79 @@ export default async function AthletePage({
               )}
 
               {/* Tu aporte financia */}
-              <Reveal className="mt-8">
-                <h2 className="font-display text-2xl font-600 uppercase tracking-wide text-ink">
-                  Tu aporte financia
-                </h2>
-                <ul className="mt-4 space-y-3">
-                  {athlete.fund_items.map(([title, desc], i) => (
-                    <li
-                      key={i}
-                      className="flex gap-3 rounded-xl border border-line bg-paper p-4"
-                    >
-                      <span
-                        className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full"
-                        style={{ backgroundColor: color }}
-                        aria-hidden
-                      />
-                      <div>
-                        <div className="font-display font-600 uppercase tracking-wide text-ink">
-                          {title}
+              {athlete.fund_items.length > 0 && (
+                <Reveal>
+                  <p className="eyebrow mb-3 text-gold">A dónde va tu plata</p>
+                  <h2 className="mb-6 font-display text-[28px] font-700 uppercase leading-none sm:text-[32px]">
+                    Tu aporte financia
+                  </h2>
+                  <div className="max-w-[620px] space-y-3">
+                    {athlete.fund_items.map(([title, desc], i) => {
+                      const c = FUND_COLORS[i % FUND_COLORS.length];
+                      return (
+                        <div
+                          key={i}
+                          className="rounded-[10px] border border-white/[.07] px-5 py-[18px]"
+                          style={{ background: "#0d2238", borderLeft: `3px solid ${c}` }}
+                        >
+                          <div className="font-display text-[18px] font-600 uppercase text-white">
+                            {title}
+                          </div>
+                          <p className="mt-2 text-[13px] leading-relaxed text-white/60">{desc}</p>
                         </div>
-                        <p className="text-sm text-steel">{desc}</p>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </Reveal>
+                      );
+                    })}
+                  </div>
+                </Reveal>
+              )}
 
-              {/* Los que apoyan (muro de hinchas) */}
-              <Reveal className="mt-10">
+              {/* Muro de hinchas */}
+              <Reveal>
                 <SupporterWall
                   slug={athlete.slug}
                   count={backers}
                   label={athlete.first_name}
+                  dark
                 />
               </Reveal>
             </div>
 
-            {/* Columna derecha: widget sticky */}
-            <aside className="lg:relative">
-              <div className="lg:sticky lg:top-24">
-                <DonationWidget
-                  target={{
-                    kind: "athlete",
-                    slug: athlete.slug,
-                    title: `Apoyá a ${athlete.first_name}`,
-                  }}
-                />
+            {/* ── Columna derecha: widget sticky ── */}
+            <aside className="lg:sticky lg:top-24">
+              <DonationWidget
+                target={{
+                  kind: "athlete",
+                  slug: athlete.slug,
+                  title: `Apoyá a ${athlete.first_name}`,
+                }}
+              />
+
+              {/* Nota de confianza */}
+              <div
+                className="mt-4 flex items-start gap-3 rounded-xl border border-white/[.07] p-4"
+                style={{ background: "#0d2238" }}
+              >
+                <span className="mt-0.5 shrink-0 text-[22px]">🤝</span>
+                <p className="text-[13px] leading-relaxed text-white/70">
+                  El caso de {athlete.first_name} fue{" "}
+                  <strong className="text-white">revisado a mano</strong> por los fundadores
+                  de GRANITO, atletas como ellos.
+                </p>
               </div>
+
+              {/* Stats mobile — widget también los muestra */}
+              {athlete.next_competition && (
+                <div
+                  className="mt-4 flex items-center gap-3 rounded-xl border border-white/[.07] p-4 lg:hidden"
+                  style={{ background: "#0d2238" }}
+                >
+                  <span className="shrink-0 text-xl">📅</span>
+                  <div>
+                    <p className="eyebrow text-gold">Próxima competencia</p>
+                    <p className="mt-0.5 text-sm text-white/80">{athlete.next_competition}</p>
+                  </div>
+                </div>
+              )}
             </aside>
           </div>
         </section>
