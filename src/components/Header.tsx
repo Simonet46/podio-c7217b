@@ -2,7 +2,6 @@ import Link from "next/link";
 import { SITE } from "@/config/site";
 import { Ribbon } from "./Ribbon";
 import { Wordmark } from "./Wordmark";
-import { CountdownMini } from "./Countdown";
 
 export function Header() {
   return (
@@ -57,18 +56,13 @@ export function Header() {
             </Link>
           </nav>
 
-          {/* Contador + CTA */}
-          <div className="flex items-center gap-4">
-            <div className="hidden sm:block">
-              <CountdownMini />
-            </div>
-            <Link
-              href="/#atletas"
-              className="rounded-md bg-gold px-4 py-2 font-display text-sm font-600 uppercase tracking-wide text-ink transition-transform hover:scale-[1.03]"
-            >
-              Apoyar a un atleta
-            </Link>
-          </div>
+          {/* CTA */}
+          <Link
+            href="/#atletas"
+            className="rounded-md bg-gold px-4 py-2 font-display text-sm font-600 uppercase tracking-wide text-ink transition-transform hover:scale-[1.03]"
+          >
+            Apoyar a un atleta
+          </Link>
         </div>
       </div>
       {/* Franja de 5 colores debajo del header */}

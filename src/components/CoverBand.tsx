@@ -34,7 +34,7 @@ export function CoverBand() {
 
       <div className="mx-auto max-w-container px-4 py-24 sm:px-6 sm:py-32 md:py-44">
         <div className="max-w-xl">
-          <p className="eyebrow text-gold">El camino al podio</p>
+          <p className="eyebrow text-gold">El camino es largo</p>
           <h2 className="mt-4 font-display text-4xl font-700 uppercase leading-[1.03] tracking-tight text-white sm:text-5xl md:text-6xl">
             Hoy lo hacen
             <br />

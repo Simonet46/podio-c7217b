@@ -37,11 +37,8 @@ export function ActivityFeed({ targets }: { targets: ActivityTarget[] }) {
   return (
     <div className="rounded-2xl border border-line bg-paper p-4 shadow-sm sm:p-5">
       <div className="mb-3 flex items-center gap-2">
-        <span className="relative flex h-2.5 w-2.5">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-ribbon-green opacity-75" />
-          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-ribbon-green" />
-        </span>
-        <span className="eyebrow text-steel">En vivo · la gente está apoyando</span>
+        <span className="h-2.5 w-2.5 rounded-full bg-gold" aria-hidden />
+        <span className="eyebrow text-steel">Últimos aportes</span>
       </div>
 
       <ul className="space-y-1">

@@ -4,7 +4,6 @@ import { AthleteGrid } from "@/components/AthleteGrid";
 import { CoverBand } from "@/components/CoverBand";
 import { ActivityFeed } from "@/components/ActivityFeed";
 import { LiveToast } from "@/components/LiveToast";
-import { CountdownFull } from "@/components/Countdown";
 import { HomeHero, type HeroAthlete } from "@/components/HomeHero";
 import { getAthletes, getOtherAthletes, getTeams, getGlobalStats } from "@/lib/data/athletes";
 import { AthleteCard } from "@/components/AthleteCard";
@@ -60,24 +59,17 @@ export default async function HomePage() {
         {/* ───────── Hero inmersivo ───────── */}
         <HomeHero featured={featured} />
 
-        {/* ───────── Franja: contador + stats ───────── */}
+        {/* ───────── Franja: stats ───────── */}
         <section className="bg-ink text-white">
           <div className="mx-auto max-w-container px-4 sm:px-6">
-            <div className="flex flex-col gap-8 border-t border-white/10 py-8 lg:flex-row lg:items-end lg:justify-between">
-              <div>
-                <p className="eyebrow mb-3 text-white/55">
-                  Cuenta regresiva a la ceremonia
-                </p>
-                <CountdownFull />
-              </div>
-              <div className="flex flex-wrap gap-6 sm:gap-8">
-                <Stat
-                  value={supporterTotal.toLocaleString("es-AR")}
-                  label="Personas apoyando"
-                />
-                <Stat value={String(athleteCount)} label="Atletas en campaña" />
-                <Stat value={formatMoney(totalRaised)} label="Total recaudado" />
-              </div>
+            <div className="flex flex-wrap gap-8 border-t border-white/10 py-8 sm:gap-12">
+              <Stat
+                value={supporterTotal.toLocaleString("es-AR")}
+                label="Personas apoyando"
+              />
+              <Stat value={String(athleteCount)} label="Atletas en campaña" />
+              <Stat value={formatMoney(totalRaised)} label="Total recaudado" />
+              <Stat value="93%" label="Va directo al atleta" />
             </div>
           </div>
         </section>
@@ -151,8 +143,8 @@ export default async function HomePage() {
                 Apoyá a todo el deporte<br className="hidden sm:block" /> argentino de una
               </h2>
               <p className="mx-auto mt-5 max-w-[560px] text-lg leading-relaxed text-white/70">
-                Un aporte mensual que se reparte entre atletas que recién empiezan.
-                Vos elegís el monto, nosotros lo distribuimos a mano.
+                Distribuimos el 93% en partes iguales entre todos los atletas
+                registrados. Vos elegís el monto, nosotros lo repartimos automáticamente.
               </p>
               <Link
                 href="/apoyar-a-todos"

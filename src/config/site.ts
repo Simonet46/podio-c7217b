@@ -7,9 +7,9 @@
 export const SITE = {
   /** Nombre de marca (cambiar acá para renombrar todo el sitio). */
   brand: "GRANITO",
-  tagline: "Rumbo a LA 2028",
+  tagline: "Apoyo directo al deporte argentino",
   description:
-    "Apoyá directo a los atletas argentinos: de los que van rumbo a Los Ángeles 2028 al juvenil del barrio.",
+    "Apoyá directo a los atletas argentinos: desde el alto rendimiento hasta el juvenil del barrio. El 93% va al atleta.",
   /** URL canónica del sitio (usada por Stripe para callbacks). */
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
 } as const;
@@ -78,7 +78,5 @@ export const PRESET_AMOUNTS = {
 
 /** Disclaimer legal (footer). NO afiliación con COI/COA ni federaciones. */
 export const LEGAL_DISCLAIMER =
-  `${SITE.brand} es una plataforma independiente de financiamiento entre personas. ` +
-  "No tiene afiliación, patrocinio ni respaldo del Comité Olímpico Internacional (COI), " +
-  "del Comité Olímpico Argentino (COA), de LA28 ni de ninguna federación deportiva. " +
-  '"Los Ángeles 2028" se usa únicamente de forma descriptiva.';
+  `${SITE.brand} es una plataforma independiente y no está afiliada al COI, al COA ` +
+  "ni a ningún organismo olímpico. No utilizamos símbolos ni marcas olímpicas.";

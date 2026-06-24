@@ -10,7 +10,7 @@ import { DIPLOMA_TIERS, SITE } from "@/config/site";
 export const metadata: Metadata = {
   title: `Top hinchas — ${SITE.brand}`,
   description:
-    "El ranking de los que más apoyan al deporte argentino rumbo a Los Ángeles 2028.",
+    "El ranking de los que más apoyan al deporte argentino. Cada aporte suma.",
 };
 
 const PODIUM_COLORS = [
@@ -37,7 +37,7 @@ export default function HinchasPage() {
             </h1>
             <p className="mt-4 max-w-2xl text-lg text-white/75">
               Cada aporte suma puntos. Cuanto más apoyás, más alto subís. Acá están
-              los que más están empujando a los atletas rumbo a Los Ángeles 2028.
+              los que más están empujando al deporte argentino.
             </p>
           </div>
         </section>
