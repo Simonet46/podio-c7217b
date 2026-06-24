@@ -5,13 +5,14 @@ import { CoverBand } from "@/components/CoverBand";
 import { ActivityFeed } from "@/components/ActivityFeed";
 import { LiveToast } from "@/components/LiveToast";
 import { CountdownFull } from "@/components/Countdown";
+import { HomeHero, type HeroAthlete } from "@/components/HomeHero";
 import { getAthletes, getOtherAthletes, getTeams, getGlobalStats } from "@/lib/data/athletes";
 import { AthleteCard } from "@/components/AthleteCard";
+import { getSport } from "@/config/sports";
 import { formatMoney } from "@/lib/money";
-import { topSupporters, initialsOf } from "@/lib/supporters";
-import { PLATFORM_FEE_RATE, asset, DIPLOMA_TIERS } from "@/config/site";
+import { topSupporters, supporterCount } from "@/lib/supporters";
+import { PLATFORM_FEE_RATE, DIPLOMA_TIERS } from "@/config/site";
 import { Reveal } from "@/components/Reveal";
-import Image from "next/image";
 import Link from "next/link";
 
 export default async function HomePage() {
@@ -21,6 +22,22 @@ export default async function HomePage() {
   const { athleteCount, totalRaised, supporterTotal } = await getGlobalStats();
   const netPct = Math.round((1 - PLATFORM_FEE_RATE) * 100);
   const feePct = Math.round(PLATFORM_FEE_RATE * 100);
+
+  // Atletas destacados del hero: los 3 con más recaudado (con foto si tienen).
+  const featured: HeroAthlete[] = [...athletes]
+    .sort((a, b) => b.raised_amount - a.raised_amount)
+    .slice(0, 3)
+    .map((a) => ({
+      slug: a.slug,
+      name: a.full_name,
+      firstName: a.first_name,
+      sportLabel: getSport(a.sport)?.label ?? a.sport,
+      color: getSport(a.sport)?.color ?? "#1E6E8C",
+      location: `${a.city}, ${a.province}`,
+      nextCompetition: a.next_competition ?? null,
+      photo: a.photo_url,
+      backers: supporterCount(a.raised_amount),
+    }));
 
   const topThree = topSupporters(3);
   const podiumColors = [
@@ -40,100 +57,28 @@ export default async function HomePage() {
     <>
       <Header />
       <main>
-        {/* ───────── Hero ───────── */}
-        <section className="relative overflow-hidden bg-ink text-white">
-          <div
-            className="pointer-events-none absolute inset-0 opacity-60"
-            style={{
-              background:
-                "radial-gradient(1200px 500px at 80% -10%, rgba(108,180,228,0.18), transparent), radial-gradient(800px 400px at 0% 110%, rgba(201,162,39,0.14), transparent)",
-            }}
-            aria-hidden
-          />
-          <div className="relative mx-auto max-w-container px-4 py-16 sm:px-6 sm:py-24">
-            <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr]">
-              {/* Columna de texto */}
-              <Reveal>
-                <p className="eyebrow text-gold">
-                  Financiamiento directo · Atletas argentinos
+        {/* ───────── Hero inmersivo ───────── */}
+        <HomeHero featured={featured} />
+
+        {/* ───────── Franja: contador + stats ───────── */}
+        <section className="bg-ink text-white">
+          <div className="mx-auto max-w-container px-4 sm:px-6">
+            <div className="flex flex-col gap-8 border-t border-white/10 py-8 lg:flex-row lg:items-end lg:justify-between">
+              <div>
+                <p className="eyebrow mb-3 text-white/55">
+                  Cuenta regresiva a la ceremonia
                 </p>
-                <h1 className="mt-4 max-w-2xl font-display text-4xl font-700 uppercase leading-[1.05] tracking-tight sm:text-6xl">
-                  Apoyá a los atletas argentinos rumbo a{" "}
-                  <span className="text-gold">Los Ángeles 2028</span>
-                </h1>
-                <p className="mt-5 max-w-xl text-lg leading-relaxed text-white/75">
-                  Muchos compiten al máximo nivel autofinanciándose: viajes,
-                  entrenador, equipo. Desde los que van rumbo a LA 2028 hasta el
-                  juvenil del barrio. Tu aporte llega directo —{netPct}% para el
-                  atleta, {feePct}% para la plataforma.
-                </p>
-
-                <div className="mt-8 flex flex-wrap gap-3">
-                  <Link
-                    href="#atletas"
-                    className="rounded-md bg-gold px-6 py-3 font-display text-base font-700 uppercase tracking-wide text-ink transition-transform hover:scale-[1.03]"
-                  >
-                    Ver atletas
-                  </Link>
-                  <Link
-                    href="#como-funciona"
-                    className="rounded-md border border-white/25 px-6 py-3 font-display text-base font-600 uppercase tracking-wide text-white transition-colors hover:bg-white/10"
-                  >
-                    Cómo funciona
-                  </Link>
-                </div>
-              </Reveal>
-
-              {/* Imagen inmersiva del atleta destacado (solo desktop) */}
-              <Reveal delay={120} className="hidden lg:block">
-                <div className="relative">
-                  <div className="ribbon ribbon-tall absolute -top-3 left-6 right-6 z-10 rounded-full opacity-90" />
-                  <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-white/10 shadow-2xl">
-                    <Image
-                      src={asset("/athletes/valentina-moretti.webp")}
-                      alt="Atleta argentina rumbo a LA 2028"
-                      fill
-                      priority
-                      sizes="(max-width: 1024px) 0px, 45vw"
-                      className="object-cover"
-                    />
-                    <div
-                      className="absolute inset-0"
-                      style={{
-                        background:
-                          "linear-gradient(180deg, transparent 55%, rgba(10,26,47,0.55))",
-                      }}
-                    />
-                    <div className="absolute bottom-4 left-5">
-                      <p className="font-display text-sm font-600 uppercase tracking-wide text-white">
-                        Valentina Moretti
-                      </p>
-                      <p className="text-xs text-white/75">Vela / Kite · San Fernando</p>
-                    </div>
-                  </div>
-                </div>
-              </Reveal>
-            </div>
-
-            {/* Contador + fila de stats */}
-            <Reveal delay={80}>
-              <div className="mt-12 flex flex-col gap-8 border-t border-white/10 pt-8 lg:flex-row lg:items-end lg:justify-between">
-                <div>
-                  <p className="eyebrow mb-3 text-white/55">
-                    Cuenta regresiva a la ceremonia
-                  </p>
-                  <CountdownFull />
-                </div>
-                <div className="flex flex-wrap gap-6 sm:gap-8">
-                  <Stat
-                    value={supporterTotal.toLocaleString("es-AR")}
-                    label="Personas apoyando"
-                  />
-                  <Stat value={String(athleteCount)} label="Atletas en campaña" />
-                  <Stat value={formatMoney(totalRaised)} label="Total recaudado" />
-                </div>
+                <CountdownFull />
               </div>
-            </Reveal>
+              <div className="flex flex-wrap gap-6 sm:gap-8">
+                <Stat
+                  value={supporterTotal.toLocaleString("es-AR")}
+                  label="Personas apoyando"
+                />
+                <Stat value={String(athleteCount)} label="Atletas en campaña" />
+                <Stat value={formatMoney(totalRaised)} label="Total recaudado" />
+              </div>
+            </div>
           </div>
         </section>
 

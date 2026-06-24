@@ -122,6 +122,46 @@
   .toast-in {
     animation: toastIn 0.4s cubic-bezier(0.16, 0.84, 0.44, 1);
   }
+
+  /* Hero inmersivo: badges flotantes + punto que pulsa. */
+  @keyframes podioFloat {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-14px);
+    }
+  }
+  @keyframes podioFloat2 {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(10px);
+    }
+  }
+  @keyframes podioPulse {
+    0%,
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.35;
+      transform: scale(0.7);
+    }
+  }
+  .podio-float {
+    animation: podioFloat 7s ease-in-out infinite;
+  }
+  .podio-float2 {
+    animation: podioFloat2 6s ease-in-out infinite;
+  }
+  .podio-pulse {
+    animation: podioPulse 1.8s infinite;
+  }
 }
 
 /* prefers-reduced-motion: respetar (sin animaciones). */
