@@ -1,27 +1,62 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
+import Link from "next/link";
 import { SPORT_LIST } from "@/config/sports";
 import { WEB3FORMS_ACCESS_KEY, APPLICATIONS_EMAIL, SITE } from "@/config/site";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
-import { MercadoPagoConnect } from "./MercadoPagoConnect";
 
-type Status = "idle" | "loading" | "ok" | "error";
-type Photos = { photo_url: string | null; photo_secondary_url: string | null };
+type Step = 1 | 2 | 3 | 4 | 5; // 5 = done
 
-const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
+const MAX_BYTES = 5 * 1024 * 1024;
+
+const STEP_LABELS = ["Datos", "Historia", "Fotos", "Revisión"];
+
+/* ── Estilos reutilizables ── */
+const inputCls =
+  "w-full rounded-[10px] border border-white/[.14] bg-white/[.05] px-[15px] py-[13px] text-[15px] text-white outline-none placeholder:text-white/35 focus:border-white/40";
+const labelCls = "block text-[13px] font-500 text-white/60";
+const backBtn =
+  "mb-[18px] cursor-pointer border-0 bg-transparent p-0 text-[14px] text-white/60 transition-colors hover:text-white";
 
 export function AthleteApplicationForm() {
-  const [status, setStatus] = useState<Status>("idle");
-  const [profileFile, setProfileFile] = useState<File | null>(null);
-  const [secondaryFile, setSecondaryFile] = useState<File | null>(null);
-  const [profilePreview, setProfilePreview] = useState<string | null>(null);
-  const [secondaryPreview, setSecondaryPreview] = useState<string | null>(null);
+  const [step, setStep] = useState<Step>(1);
+
+  // Step 1
+  const [nombre, setNombre] = useState("");
+  const [email, setEmail] = useState("");
+  const [edad, setEdad] = useState("");
+  const [ciudad, setCiudad] = useState("");
+  const [deporte, setDeporte] = useState("");
+
+  // Step 2
+  const [frase, setFrase] = useState("");
+  const [historia, setHistoria] = useState("");
+  const [competencia, setCompetencia] = useState("");
+  const [fecha, setFecha] = useState("");
+
+  // Step 3
+  const [portraitFile, setPortraitFile] = useState<File | null>(null);
+  const [actionFile, setActionFile] = useState<File | null>(null);
+  const [portraitPreview, setPortraitPreview] = useState<string | null>(null);
+  const [actionPreview, setActionPreview] = useState<string | null>(null);
   const [fileMsg, setFileMsg] = useState("");
-  const formRef = useRef<HTMLFormElement>(null);
+
+  // Submit
+  const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
+
+  const sportObj = SPORT_LIST.find((s) => s.label === deporte);
+  const sportColor = sportObj?.color ?? "#C9A227";
+
+  function go(n: Step) {
+    setStep(n);
+    try {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch {}
+  }
 
   function pickFile(
-    which: "profile" | "secondary",
+    which: "portrait" | "action",
     e: React.ChangeEvent<HTMLInputElement>,
   ) {
     const file = e.target.files?.[0] ?? null;
@@ -32,18 +67,20 @@ export function AthleteApplicationForm() {
       return;
     }
     const preview = file ? URL.createObjectURL(file) : null;
-    if (which === "profile") {
-      setProfileFile(file);
-      setProfilePreview(preview);
+    if (which === "portrait") {
+      setPortraitFile(file);
+      setPortraitPreview(preview);
     } else {
-      setSecondaryFile(file);
-      setSecondaryPreview(preview);
+      setActionFile(file);
+      setActionPreview(preview);
     }
   }
 
-  /** Sube las fotos al Storage y devuelve las URLs públicas. */
-  async function uploadPhotos(): Promise<Photos> {
-    const empty: Photos = { photo_url: null, photo_secondary_url: null };
+  async function uploadPhotos() {
+    const empty = {
+      photo_url: null as string | null,
+      photo_secondary_url: null as string | null,
+    };
     if (!isSupabaseConfigured) return empty;
     const supabase = await getSupabase();
     if (!supabase) return empty;
@@ -65,36 +102,34 @@ export function AthleteApplicationForm() {
     }
 
     const [photo_url, photo_secondary_url] = await Promise.all([
-      up(profileFile),
-      up(secondaryFile),
+      up(portraitFile),
+      up(actionFile),
     ]);
     return { photo_url, photo_secondary_url };
   }
 
-  /** Guarda la postulación en Supabase como atleta PENDIENTE de revisión. */
-  async function saveToSupabase(
-    data: Record<string, string>,
-    photos: Photos,
-  ): Promise<boolean> {
+  async function saveToSupabase(photos: {
+    photo_url: string | null;
+    photo_secondary_url: string | null;
+  }) {
     if (!isSupabaseConfigured) return false;
     try {
       const supabase = await getSupabase();
       if (!supabase) return false;
+      const nextComp =
+        [competencia, fecha].filter(Boolean).join(" · ") || null;
       const { error } = await supabase.from("athlete_applications").insert({
-        full_name: data.nombre || "",
-        sport: data.deporte || "",
-        discipline: data.disciplina || null,
-        location: data.ciudad || null,
-        email: data.email || "",
-        age: data.edad ? Number(data.edad) : null,
-        next_competition: data.proxima_competencia || null,
-        media_url: data.foto || null,
+        full_name: nombre,
+        sport: deporte,
+        discipline: null,
+        location: ciudad || null,
+        email,
+        age: edad ? Number(edad) : null,
+        next_competition: nextComp,
         photo_url: photos.photo_url,
         photo_secondary_url: photos.photo_secondary_url,
-        payment_link: data.mercadopago || null,
-        achievements: data.logros || null,
-        needs: data.necesidad || null,
-        socials: data.redes || null,
+        achievements: frase || null,
+        needs: historia || null,
         status: "pending",
       });
       return !error;
@@ -103,23 +138,35 @@ export function AthleteApplicationForm() {
     }
   }
 
-  /** Notificación por email (Web3Forms) o, si no hay key, fallback a mailto. */
-  async function notifyByEmail(
-    data: Record<string, string>,
-    photos: Photos,
-  ): Promise<boolean> {
+  async function notifyByEmail(photos: {
+    photo_url: string | null;
+    photo_secondary_url: string | null;
+  }) {
+    const data = {
+      nombre,
+      email,
+      edad,
+      ciudad,
+      deporte,
+      frase,
+      historia,
+      competencia: [competencia, fecha].filter(Boolean).join(" · "),
+      foto_perfil: photos.photo_url ?? "(no subida)",
+      foto_accion: photos.photo_secondary_url ?? "(no subida)",
+    };
     if (WEB3FORMS_ACCESS_KEY) {
       try {
         const res = await fetch("https://api.web3forms.com/submit", {
           method: "POST",
-          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
           body: JSON.stringify({
             access_key: WEB3FORMS_ACCESS_KEY,
-            subject: `Nueva postulación de atleta — ${SITE.brand}`,
-            from_name: data.nombre || "Postulante",
+            subject: `Nueva postulación — ${SITE.brand}`,
+            from_name: nombre || "Postulante",
             ...data,
-            foto_perfil: photos.photo_url ?? "(no subida)",
-            foto_secundaria: photos.photo_secondary_url ?? "(no subida)",
           }),
         });
         return res.ok;
@@ -127,249 +174,531 @@ export function AthleteApplicationForm() {
         return false;
       }
     }
-    const body = [
-      `Nombre: ${data.nombre ?? ""}`,
-      `Deporte: ${data.deporte ?? ""}`,
-      `Disciplina: ${data.disciplina ?? ""}`,
-      `Ciudad / Provincia: ${data.ciudad ?? ""}`,
-      `Email: ${data.email ?? ""}`,
-      `Edad: ${data.edad ?? ""}`,
-      `Próxima competencia: ${data.proxima_competencia ?? ""}`,
-      `Foto de perfil: ${photos.photo_url ?? "(no subida)"}`,
-      `Foto secundaria: ${photos.photo_secondary_url ?? "(no subida)"}`,
-      `Video / redes: ${data.foto ?? ""}`,
-      `Mercado Pago: ${data.mercadopago || "(no vinculado)"}`,
-      `Nivel y logros: ${data.logros ?? ""}`,
-      `Para qué necesita apoyo: ${data.necesidad ?? ""}`,
-      `Redes / links: ${data.redes ?? ""}`,
-    ].join("\n");
+    const body = Object.entries(data)
+      .map(([k, v]) => `${k}: ${v}`)
+      .join("\n");
     window.location.href = `mailto:${APPLICATIONS_EMAIL}?subject=${encodeURIComponent(
       "Postulación a " + SITE.brand,
     )}&body=${encodeURIComponent(body)}`;
     return true;
   }
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const form = e.currentTarget;
-    const data = Object.fromEntries(new FormData(form).entries()) as Record<string, string>;
-
+  async function handleSubmit() {
     setStatus("loading");
-
-    // 0) Subir fotos al Storage (si Supabase está configurado).
     const photos = await uploadPhotos();
-
-    // 1) Fuente de verdad: la postulación queda en Supabase como pendiente.
-    const savedToDb = await saveToSupabase(data, photos);
-
+    const savedToDb = await saveToSupabase(photos);
     if (savedToDb) {
-      if (WEB3FORMS_ACCESS_KEY) void notifyByEmail(data, photos);
-      setStatus("ok");
-      form.reset();
+      if (WEB3FORMS_ACCESS_KEY) void notifyByEmail(photos);
+      go(5);
       return;
     }
-
-    // 2) Sin DB (o falló): el email es el canal principal (Web3Forms o mailto).
-    const notified = await notifyByEmail(data, photos);
+    const notified = await notifyByEmail(photos);
     if (notified) {
-      setStatus("ok");
-      if (WEB3FORMS_ACCESS_KEY) form.reset();
+      go(5);
     } else {
       setStatus("error");
     }
   }
 
-  if (status === "ok") {
-    return (
-      <div className="rounded-2xl border border-line bg-paper p-8 text-center">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-gold/15">
-          <svg viewBox="0 0 24 24" className="h-7 w-7 text-gold" fill="none" stroke="currentColor" strokeWidth={2.5} aria-hidden>
-            <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
+  function reset() {
+    setStep(1);
+    setNombre("");
+    setEmail("");
+    setEdad("");
+    setCiudad("");
+    setDeporte("");
+    setFrase("");
+    setHistoria("");
+    setCompetencia("");
+    setFecha("");
+    setPortraitFile(null);
+    setActionFile(null);
+    setPortraitPreview(null);
+    setActionPreview(null);
+    setStatus("idle");
+  }
+
+  /* ── Progress bar ── */
+  const progress =
+    step < 5 ? (
+      <div className="mx-auto max-w-[760px] px-4 pb-0 pt-[30px] sm:px-6">
+        <div className="flex items-center">
+          {STEP_LABELS.map((label, idx) => {
+            const n = idx + 1;
+            const done = (step as number) > n;
+            const cur = (step as number) === n;
+            const isLast = idx === STEP_LABELS.length - 1;
+            return (
+              <div key={label} className="flex flex-1 items-center last:flex-none">
+                <div className="flex flex-col items-center gap-[7px]">
+                  <div
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full font-display text-[15px] font-600 transition-all"
+                    style={{
+                      background: done || cur ? "#C9A227" : "transparent",
+                      color:
+                        done || cur ? "#0A1A2F" : "rgba(255,255,255,.5)",
+                      border: `1px solid ${done || cur ? "#C9A227" : "rgba(255,255,255,.2)"}`,
+                    }}
+                  >
+                    {done ? "✓" : n}
+                  </div>
+                  <span
+                    className="eyebrow whitespace-nowrap text-[11px]"
+                    style={{
+                      color:
+                        done || cur ? "#C9A227" : "rgba(255,255,255,.4)",
+                    }}
+                  >
+                    {label}
+                  </span>
+                </div>
+                {!isLast && (
+                  <div
+                    className="mx-[10px] mb-6 h-px flex-1"
+                    style={{
+                      background: done
+                        ? "#C9A227"
+                        : "rgba(255,255,255,.14)",
+                    }}
+                  />
+                )}
+              </div>
+            );
+          })}
         </div>
-        <h3 className="mt-4 font-display text-2xl font-700 uppercase tracking-tight text-ink">
-          ¡Postulación enviada!
-        </h3>
-        <p className="mt-2 text-steel">
-          La revisamos a mano (somos atletas, miramos cada una) y te escribimos.
-          Gracias por querer sumarte.
-        </p>
       </div>
+    ) : null;
+
+  /* ── Done ── */
+  if (step === 5) {
+    return (
+      <section className="mx-auto max-w-[620px] px-4 pb-28 pt-14 text-center sm:px-6">
+        <div
+          className="mx-auto mb-[22px] flex h-[76px] w-[76px] items-center justify-center rounded-full text-[36px]"
+          style={{
+            background: "rgba(34,197,94,.16)",
+            border: "1px solid rgba(34,197,94,.5)",
+            animation: "okPop .5s cubic-bezier(.2,.8,.2,1)",
+          }}
+        >
+          ✓
+        </div>
+        <h2 className="font-display text-[44px] font-700 uppercase leading-none tracking-tight">
+          ¡Postulación enviada!
+        </h2>
+        <p className="mx-auto mt-[14px] max-w-[460px] text-[17px] leading-relaxed text-white/70">
+          <strong className="text-white">{nombre}</strong>, recibimos tu historia.
+          Los fundadores la revisan a mano y te escriben a tu mail en 3 a 5 días.
+          Gracias por confiar en GRANITO.
+        </p>
+        <div className="mt-8 flex flex-wrap justify-center gap-3">
+          <button
+            onClick={reset}
+            className="cursor-pointer rounded-[10px] border border-white/25 bg-transparent px-[26px] py-[14px] font-display text-[15px] font-600 uppercase tracking-wide text-white transition-colors hover:border-white"
+          >
+            Postular a otro atleta
+          </button>
+          <Link
+            href="/"
+            className="rounded-[10px] bg-gold px-[26px] py-[14px] font-display text-[15px] font-600 uppercase tracking-wide text-ink transition-opacity hover:opacity-90"
+          >
+            Ver atletas
+          </Link>
+        </div>
+        <style>{`
+          @keyframes okPop {
+            from { opacity: 0; transform: scale(.8); }
+            to   { opacity: 1; transform: none; }
+          }
+        `}</style>
+      </section>
     );
   }
 
-  const input =
-    "mt-1 w-full rounded-lg border border-line bg-paper px-3 py-2.5 text-ink outline-none focus:border-celeste";
-  const label = "block text-sm";
-  const labelText = "eyebrow text-steel";
+  /* ── CTA button ── */
+  const ctaBtn = (label: string, onClick: () => void, disabled = false) => (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className="w-full cursor-pointer rounded-[10px] border-0 bg-gold py-[16px] font-display text-[16px] font-600 uppercase tracking-wide text-ink transition-all hover:-translate-y-0.5 hover:bg-[#dcb433] disabled:opacity-50"
+      style={{ boxShadow: "0 14px 34px rgba(201,162,39,.3)" }}
+    >
+      {label}
+    </button>
+  );
 
   return (
-    <form ref={formRef} onSubmit={handleSubmit} className="rounded-2xl border border-line bg-paper p-5 sm:p-6">
-      <div className="grid gap-4 sm:grid-cols-2">
-        <label className={`${label} sm:col-span-2`}>
-          <span className={labelText}>Nombre y apellido *</span>
-          <input name="nombre" required className={input} />
-        </label>
-        <label className={label}>
-          <span className={labelText}>Deporte *</span>
-          <select name="deporte" required defaultValue="" className={input}>
-            <option value="" disabled>
-              Elegí tu deporte
-            </option>
-            {SPORT_LIST.map((s) => (
-              <option key={s.key} value={s.label}>
-                {s.label}
-              </option>
-            ))}
-            <option value="Otro">Otro</option>
-          </select>
-        </label>
-        <label className={label}>
-          <span className={labelText}>Disciplina / prueba</span>
-          <input name="disciplina" placeholder="Ej. K1 1000m" className={input} />
-        </label>
-        <label className={label}>
-          <span className={labelText}>Ciudad / Provincia *</span>
-          <input name="ciudad" required className={input} />
-        </label>
-        <label className={label}>
-          <span className={labelText}>Email de contacto *</span>
-          <input name="email" type="email" required className={input} />
-        </label>
-        <label className={label}>
-          <span className={labelText}>Edad *</span>
-          <input name="edad" type="number" min={8} max={80} required className={input} />
-        </label>
-        <label className={label}>
-          <span className={labelText}>Próxima competencia</span>
-          <input
-            name="proxima_competencia"
-            placeholder="Ej. Panamericano, septiembre 2026"
-            className={input}
-          />
-        </label>
+    <>
+      {progress}
 
-        {/* ─── Fotos ─── */}
-        <div className="sm:col-span-2">
-          <span className={labelText}>Tus fotos</span>
-          <p className="mt-1 text-xs text-steel">
-            Subí una foto de perfil (vertical, tu cara/medio cuerpo) y, si tenés,
-            una foto secundaria en acción. JPG o PNG, hasta 5 MB. Nosotros revisamos
-            y elegimos cuáles se publican.
-          </p>
-          <div className="mt-3 grid gap-4 sm:grid-cols-2">
-            <PhotoInput
-              label="Foto de perfil"
-              preview={profilePreview}
-              onChange={(e) => pickFile("profile", e)}
-            />
-            <PhotoInput
-              label="Foto secundaria (en acción)"
-              preview={secondaryPreview}
-              onChange={(e) => pickFile("secondary", e)}
-            />
+      {/* ── Step 1: ¿Quién sos? ── */}
+      {step === 1 && (
+        <section className="mx-auto max-w-[760px] px-4 pb-24 pt-[30px] sm:px-6">
+          <h2 className="mb-6 font-display text-[32px] font-700 uppercase leading-none tracking-tight">
+            ¿Quién sos?
+          </h2>
+
+          <div className="mb-[18px] grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className={labelCls}>Nombre y apellido</label>
+              <input
+                value={nombre}
+                onChange={(e) => setNombre(e.target.value)}
+                placeholder="Tu nombre"
+                className={`${inputCls} mt-[7px]`}
+              />
+            </div>
+            <div>
+              <label className={labelCls}>Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="tu@email.com"
+                className={`${inputCls} mt-[7px]`}
+              />
+            </div>
           </div>
-          {fileMsg && <p className="mt-2 text-sm text-ribbon-red">{fileMsg}</p>}
-        </div>
 
-        <div className="sm:col-span-2">
-          <MercadoPagoConnect />
-        </div>
-        <label className={`${label} sm:col-span-2`}>
-          <span className={labelText}>Video o redes (link, opcional)</span>
-          <input
-            name="foto"
-            type="url"
-            placeholder="Instagram, YouTube, Drive…"
-            className={input}
-          />
-        </label>
-        <label className={`${label} sm:col-span-2`}>
-          <span className={labelText}>Nivel y logros *</span>
-          <textarea
-            name="logros"
-            required
-            rows={3}
-            placeholder="Contanos tu palmarés y dónde estás hoy en tu camino competitivo."
-            className={input}
-          />
-        </label>
-        <div className={`${label} sm:col-span-2`}>
-          <span className={labelText}>¿Para qué necesitás el apoyo? *</span>
-          <p className="mt-1 text-xs text-steel">
-            Este texto lo van a leer las personas que quieran apoyarte. Contá tu
-            situación con detalle: cuanto más claro, más fácil es que te ayuden.
-          </p>
-          <textarea
-            name="necesidad"
-            required
-            rows={5}
-            placeholder="Ej.: Tu apoyo me permite pagarle a mi entrenador y a mi fisioterapeuta, comprar suplementos y vitaminas para recuperarme y rendir mejor, y costear los viajes, la estadía y la inscripción a las competencias clasificatorias. Hoy me banco casi todo solo: cada aporte me acerca a poder dedicarme 100% a entrenar y competir donde tengo que estar."
-            className={`${input} mt-2`}
-          />
-        </div>
-        <label className={`${label} sm:col-span-2`}>
-          <span className={labelText}>Redes / links (Instagram, prensa, video)</span>
-          <input name="redes" placeholder="@tu_usuario · enlaces" className={input} />
-        </label>
-      </div>
+          <div
+            className="mb-6 grid gap-4"
+            style={{ gridTemplateColumns: "160px 1fr" }}
+          >
+            <div>
+              <label className={labelCls}>Edad</label>
+              <input
+                value={edad}
+                onChange={(e) => setEdad(e.target.value)}
+                inputMode="numeric"
+                placeholder="Ej: 22"
+                className={`${inputCls} mt-[7px]`}
+              />
+            </div>
+            <div>
+              <label className={labelCls}>¿De dónde sos?</label>
+              <input
+                value={ciudad}
+                onChange={(e) => setCiudad(e.target.value)}
+                placeholder="Ciudad, provincia"
+                className={`${inputCls} mt-[7px]`}
+              />
+            </div>
+          </div>
 
-      {status === "error" && (
-        <p className="mt-3 text-sm text-ribbon-red">
-          No se pudo enviar. Probá de nuevo o escribinos a {APPLICATIONS_EMAIL}.
-        </p>
+          <div className="mb-8">
+            <div className={`${labelCls} mb-3`}>
+              ¿Qué deporte hacés?{" "}
+              <span className="text-white/35">· cada deporte tiene su color</span>
+            </div>
+            <div className="flex flex-wrap gap-2.5">
+              {[
+                ...SPORT_LIST,
+                { key: "otro", label: "Otro", color: "#C9A227" } as const,
+              ].map((s) => {
+                const active = s.label === deporte;
+                return (
+                  <button
+                    key={s.key}
+                    type="button"
+                    onClick={() => setDeporte(s.label)}
+                    className="cursor-pointer rounded-full font-display text-[13px] font-600 uppercase tracking-wide text-white transition-all"
+                    style={{
+                      padding: "11px 18px",
+                      border: `1px solid ${active ? s.color : "rgba(255,255,255,.16)"}`,
+                      background: active ? s.color : "transparent",
+                    }}
+                  >
+                    {s.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {ctaBtn("Continuar", () => go(2), !nombre || !email || !deporte)}
+        </section>
       )}
 
-      <button
-        type="submit"
-        disabled={status === "loading"}
-        className="mt-5 w-full rounded-lg bg-gold py-3.5 font-display text-base font-700 uppercase tracking-wide text-ink transition-transform hover:scale-[1.02] disabled:opacity-60"
-      >
-        {status === "loading" ? "Enviando…" : "Enviar postulación"}
-      </button>
-      <p className="mt-3 text-center text-xs text-steel">
-        Revisamos cada postulación a mano antes de publicar. Sin costo para el atleta.
-        Si sos menor de edad, te contactamos junto a tu madre, padre o tutor.
-      </p>
-    </form>
+      {/* ── Step 2: Tu historia ── */}
+      {step === 2 && (
+        <section className="mx-auto max-w-[760px] px-4 pb-24 pt-[30px] sm:px-6">
+          <button type="button" className={backBtn} onClick={() => go(1)}>
+            ← Atrás
+          </button>
+          <h2 className="mb-2 font-display text-[32px] font-700 uppercase leading-none tracking-tight">
+            Tu historia
+          </h2>
+          <p className="mb-6 text-[15px] text-white/60">
+            Lo que más conecta con la gente. Contá de dónde venís, qué te falta
+            y a dónde querés llegar.
+          </p>
+
+          <div className="mb-[18px]">
+            <label className={labelCls}>Una frase que te defina</label>
+            <input
+              value={frase}
+              onChange={(e) => setFrase(e.target.value)}
+              placeholder="Ej: Remo desde los 11 en el Delta, sola y sin estructura."
+              className={`${inputCls} mt-[7px]`}
+            />
+          </div>
+
+          <div className="mb-[18px]">
+            <label className={labelCls}>Tu historia</label>
+            <textarea
+              value={historia}
+              onChange={(e) => setHistoria(e.target.value)}
+              rows={6}
+              placeholder="Contá tu camino: cómo empezaste, qué lograste, qué te cuesta hoy y qué necesitás para dar el salto."
+              className={`${inputCls} mt-[7px] resize-none leading-relaxed`}
+            />
+          </div>
+
+          <div className="mb-8 grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className={labelCls}>Próxima competencia</label>
+              <input
+                value={competencia}
+                onChange={(e) => setCompetencia(e.target.value)}
+                placeholder="Ej: Panamericano"
+                className={`${inputCls} mt-[7px]`}
+              />
+            </div>
+            <div>
+              <label className={labelCls}>¿Cuándo?</label>
+              <input
+                value={fecha}
+                onChange={(e) => setFecha(e.target.value)}
+                placeholder="Ej: Septiembre 2026"
+                className={`${inputCls} mt-[7px]`}
+              />
+            </div>
+          </div>
+
+          {ctaBtn("Continuar", () => go(3))}
+        </section>
+      )}
+
+      {/* ── Step 3: Tus fotos ── */}
+      {step === 3 && (
+        <section className="mx-auto max-w-[760px] px-4 pb-24 pt-[30px] sm:px-6">
+          <button type="button" className={backBtn} onClick={() => go(2)}>
+            ← Atrás
+          </button>
+          <h2 className="mb-2 font-display text-[32px] font-700 uppercase leading-none tracking-tight">
+            Tus fotos
+          </h2>
+          <p className="mb-6 text-[15px] text-white/60">
+            Las fotos son lo que enamora a tus hinchas. Subí las mejores que
+            tengas. JPG o PNG, hasta 5 MB.
+          </p>
+
+          <div className="mb-4 grid gap-4 sm:grid-cols-2">
+            <PhotoSlot
+              label="Retrato"
+              preview={portraitPreview}
+              onChange={(e) => pickFile("portrait", e)}
+            />
+            <PhotoSlot
+              label="Foto en acción"
+              preview={actionPreview}
+              onChange={(e) => pickFile("action", e)}
+            />
+          </div>
+
+          {fileMsg && (
+            <p className="mb-4 text-[13px]" style={{ color: "#DF0024" }}>
+              {fileMsg}
+            </p>
+          )}
+
+          <div className="mt-6">{ctaBtn("Revisar y enviar", () => go(4))}</div>
+        </section>
+      )}
+
+      {/* ── Step 4: Revisión ── */}
+      {step === 4 && (
+        <section className="mx-auto max-w-[760px] px-4 pb-24 pt-[30px] sm:px-6">
+          <button type="button" className={backBtn} onClick={() => go(3)}>
+            ← Atrás
+          </button>
+          <h2 className="mb-2 font-display text-[32px] font-700 uppercase leading-none tracking-tight">
+            Así te van a ver
+          </h2>
+          <p className="mb-6 text-[15px] text-white/60">
+            Un vistazo de tu tarjeta de atleta. Después de enviarla, la revisamos
+            a mano.
+          </p>
+
+          <div className="flex flex-wrap gap-[22px]">
+            {/* Preview card */}
+            <div
+              className="w-[280px] shrink-0 overflow-hidden rounded-[14px] shadow-[0_24px_56px_rgba(0,0,0,.5)]"
+              style={{
+                background: "#0d2238",
+                borderTop: `3px solid ${sportColor}`,
+              }}
+            >
+              <div className="relative h-[300px]">
+                {portraitPreview ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={portraitPreview}
+                    alt=""
+                    className="h-full w-full object-cover object-top"
+                  />
+                ) : (
+                  <div
+                    className="h-full w-full"
+                    style={{
+                      background: `linear-gradient(135deg,${sportColor}55,#0A1A2F)`,
+                    }}
+                  />
+                )}
+                <div
+                  className="pointer-events-none absolute inset-0"
+                  style={{
+                    background:
+                      "linear-gradient(180deg,transparent 42%,rgba(13,34,56,.96))",
+                  }}
+                />
+                <div
+                  className="absolute left-3.5 top-3.5 rounded-[3px] px-2.5 py-1 font-display text-[11px] font-600 uppercase tracking-[.1em] text-white"
+                  style={{ background: sportColor }}
+                >
+                  {deporte || "Deporte"}
+                </div>
+                <div className="absolute bottom-3.5 left-4 right-4">
+                  <div className="font-display text-[24px] font-600 uppercase leading-none">
+                    {nombre || "Tu nombre"}
+                  </div>
+                  <div className="mt-[3px] text-[12px] text-white/65">
+                    {ciudad || "Ciudad"}
+                  </div>
+                </div>
+              </div>
+              {frase && (
+                <div className="px-4 py-3.5">
+                  <p className="text-[13px] italic leading-relaxed text-white/72">
+                    {frase}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Info + submit */}
+            <div className="flex min-w-[260px] flex-1 flex-col gap-3">
+              {(competencia || fecha) && (
+                <div
+                  className="rounded-[10px] border border-white/[.08] px-[18px] py-4"
+                  style={{ background: "#0d2238" }}
+                >
+                  <div className="mb-1 text-[12px] text-white/50">
+                    Próxima competencia
+                  </div>
+                  <div className="font-display text-[18px] font-600 uppercase">
+                    {[competencia, fecha].filter(Boolean).join(" · ")}
+                  </div>
+                </div>
+              )}
+              {historia && (
+                <div
+                  className="rounded-[10px] border border-white/[.08] px-[18px] py-4"
+                  style={{ background: "#0d2238" }}
+                >
+                  <div className="mb-1.5 text-[12px] text-white/50">
+                    Tu historia
+                  </div>
+                  <p className="line-clamp-4 text-[14px] leading-relaxed text-white/75">
+                    {historia}
+                  </p>
+                </div>
+              )}
+
+              {/* Trust note */}
+              <div
+                className="flex items-center gap-3 rounded-[12px] border border-gold/25 px-[18px] py-4"
+                style={{
+                  background: "linear-gradient(135deg,#102a44,#0b1f34)",
+                }}
+              >
+                <span className="shrink-0 text-[22px]">🤝</span>
+                <p className="text-[13px] leading-relaxed text-white/75">
+                  Los fundadores —atletas como vos—{" "}
+                  <strong className="text-white">
+                    revisan cada postulación a mano
+                  </strong>
+                  . Te escribimos en 3 a 5 días.
+                </p>
+              </div>
+
+              {status === "error" && (
+                <p className="text-[13px]" style={{ color: "#DF0024" }}>
+                  No se pudo enviar. Probá de nuevo o escribinos a{" "}
+                  {APPLICATIONS_EMAIL}.
+                </p>
+              )}
+
+              {ctaBtn(
+                status === "loading" ? "Enviando…" : "Enviar mi postulación",
+                handleSubmit,
+                status === "loading",
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+    </>
   );
 }
 
-function PhotoInput({
+function PhotoSlot({
   label,
   preview,
-  required,
   onChange,
 }: {
   label: string;
   preview: string | null;
-  required?: boolean;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }) {
   return (
     <label className="block cursor-pointer">
-      <span className="eyebrow text-steel">{label}</span>
-      <div className="mt-1 flex items-center gap-3 rounded-lg border border-dashed border-line bg-ice/40 p-3 transition-colors hover:border-celeste">
-        <div className="h-16 w-16 shrink-0 overflow-hidden rounded-md bg-line/40">
-          {preview ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={preview} alt="" className="h-full w-full object-cover" />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center text-steel">
-              <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth={1.8} aria-hidden>
-                <path d="M4 16l4-4 4 4 4-6 4 6M4 20h16V4H4z" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </div>
-          )}
-        </div>
-        <div className="min-w-0 text-sm text-steel">
-          {preview ? "Cambiar foto" : "Elegí una imagen"}
-        </div>
+      <div className="mb-2 text-[13px] font-500 text-white/60">{label}</div>
+      <div
+        className="relative h-[230px] w-full overflow-hidden rounded-[12px] border border-dashed border-white/20 transition-colors hover:border-white/40"
+        style={{ background: "rgba(255,255,255,.03)" }}
+      >
+        {preview ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={preview} alt="" className="h-full w-full object-cover" />
+        ) : (
+          <div className="flex h-full flex-col items-center justify-center gap-2 text-white/30">
+            <svg
+              viewBox="0 0 24 24"
+              className="h-8 w-8"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={1.5}
+              aria-hidden
+            >
+              <path
+                d="M4 16l4-4 4 4 4-6 4 6M4 20h16V4H4z"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            <span className="text-[13px]">Subir foto</span>
+          </div>
+        )}
+        {preview && (
+          <div className="absolute bottom-2 right-2 rounded bg-black/50 px-2 py-0.5 text-[11px] text-white/80">
+            Cambiar
+          </div>
+        )}
       </div>
       <input
         type="file"
         accept="image/jpeg,image/png,image/webp"
-        required={required}
         onChange={onChange}
         className="hidden"
       />
