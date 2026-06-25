@@ -87,7 +87,7 @@ export function Diploma({
       ctx.fillStyle = "rgba(255,255,255,0.5)";
       ctx.font = `600 18px ${display}`;
       cany.letterSpacing = "3px";
-      ctx.fillText("RUMBO A LA 2028", 230, 156);
+      ctx.fillText("APOYO AL DEPORTE", 230, 156);
       cany.letterSpacing = "0px";
 
       ctx.textAlign = "center";
@@ -126,7 +126,7 @@ export function Diploma({
       // Frase del aporte (con wrap)
       ctx.fillStyle = "rgba(255,255,255,0.85)";
       ctx.font = `26px ${body}`;
-      const phrase = `por apoyar a ${targetPhrase} en su camino a Los Ángeles 2028`;
+      const phrase = `por apoyar a ${targetPhrase} en su camino`;
       wrapText(ctx, phrase, cx, 752, 1180, 38);
 
       // Sello del nivel (medalla)
@@ -189,36 +189,50 @@ export function Diploma({
   }
 
   return (
-    <div className="mt-8 overflow-hidden rounded-2xl border border-line bg-paper p-5 text-left sm:p-6">
+    <div
+      className="mt-8 overflow-hidden rounded-2xl p-5 text-left sm:p-6"
+      style={{
+        background: "#0d2238",
+        border: `2px solid ${tier.color}55`,
+        boxShadow: `0 0 40px ${tier.color}18`,
+      }}
+    >
       <div className="flex items-center gap-2">
         <span
           className="inline-block h-3 w-3 rounded-full"
           style={{ backgroundColor: tier.color }}
           aria-hidden
         />
-        <h2 className="font-display text-xl font-700 uppercase tracking-wide text-ink">
+        <h2 className="font-display text-xl font-700 uppercase tracking-wide text-white">
           Tu diploma de apoyo · Nivel {tier.label}
         </h2>
       </div>
-      <p className="mt-1 text-sm text-steel">
+      <p className="mt-1 text-sm text-white/55">
         Sos parte de los que apoyan al deporte argentino. Descargá tu diploma y
         compartilo.
       </p>
 
       <label className="mt-4 block">
-        <span className="eyebrow text-steel">Tu nombre (para el diploma)</span>
+        <span className="eyebrow text-white/45">Tu nombre (para el diploma)</span>
         <input
           type="text"
           value={name}
           maxLength={40}
           onChange={(e) => setName(e.target.value)}
           placeholder="Escribí tu nombre"
-          className="mt-1 w-full rounded-lg border border-line px-3 py-2.5 font-display text-lg text-ink outline-none focus:border-celeste"
+          className="mt-1 w-full rounded-lg px-3 py-2.5 font-display text-lg text-white outline-none transition-colors"
+          style={{
+            background: "rgba(255,255,255,.06)",
+            border: "1px solid rgba(255,255,255,.14)",
+          }}
         />
       </label>
 
       {/* Vista previa del diploma */}
-      <div className="mt-4 overflow-hidden rounded-xl border border-line shadow-sm">
+      <div
+        className="mt-4 overflow-hidden rounded-xl"
+        style={{ border: `1px solid ${tier.color}44` }}
+      >
         <canvas
           ref={canvasRef}
           width={W}
@@ -230,7 +244,8 @@ export function Diploma({
 
       <button
         onClick={download}
-        className="mt-4 w-full rounded-lg bg-ink py-3.5 font-display text-base font-700 uppercase tracking-wide text-white transition-colors hover:bg-ink-2"
+        className="mt-4 w-full rounded-lg py-3.5 font-display text-base font-700 uppercase tracking-wide text-ink transition-all hover:-translate-y-0.5"
+        style={{ background: tier.color }}
       >
         Descargar diploma
       </button>

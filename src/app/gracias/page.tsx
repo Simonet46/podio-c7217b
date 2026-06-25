@@ -5,17 +5,13 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { Ribbon } from "@/components/Ribbon";
 import { Diploma } from "@/components/Diploma";
 import { SEED_ATHLETES } from "@/lib/data/seed";
 import { SEED_TEAMS } from "@/lib/data/teams";
 import { breakdown, formatMoney } from "@/lib/money";
+import { DIPLOMA_TIERS, diplomaTier } from "@/config/site";
 import type { DonationType } from "@/lib/data/types";
 
-/**
- * Página de éxito post-aporte (modo demo, sitio estático).
- * Lee kind/slug/amount/type/split de la URL del lado del cliente.
- */
 function GraciasContent() {
   const sp = useSearchParams();
   const kind = sp.get("kind") ?? "athlete";
@@ -33,123 +29,167 @@ function GraciasContent() {
   const team =
     kind === "team" && slug ? SEED_TEAMS.find((t) => t.slug === slug) ?? null : null;
 
-  // Texto del destinatario y de la línea "recibe".
   const targetName =
     kind === "all"
       ? `los ${split} atletas`
       : kind === "team"
         ? team?.name ?? "todo el equipo"
         : athlete?.full_name ?? null;
+
   const isSplit = kind === "all" || kind === "team";
   const perEach = split > 0 ? net / split : net;
 
+  const tierKey = amount > 0 ? diplomaTier(amount) : "bronce";
+  const tier = DIPLOMA_TIERS[tierKey];
+  const displayName = athlete?.full_name ?? team?.name ?? targetName ?? "el deporte argentino";
+
   return (
-    <div className="mx-auto max-w-xl px-4 py-20 sm:px-6">
-      <div className="overflow-hidden rounded-2xl border border-line bg-paper shadow-sm">
-        <Ribbon tall />
-        <div className="p-8 text-center sm:p-10">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gold/15">
-            <svg
-              viewBox="0 0 24 24"
-              className="h-8 w-8 text-gold"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2.5}
-              aria-hidden
-            >
-              <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
+    <div className="mx-auto max-w-[860px] px-4 pb-20 pt-10 sm:px-6">
+      {/* ── Encabezado ── */}
+      <div className="mb-8 text-center">
+        <div
+          className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full text-3xl"
+          style={{
+            background: "rgba(34,197,94,.16)",
+            border: "1px solid rgba(34,197,94,.5)",
+          }}
+        >
+          ✓
+        </div>
+        <h1 className="font-display text-[44px] font-700 uppercase leading-none tracking-tight">
+          ¡Ya sos parte!
+        </h1>
+        {targetName && (
+          <p className="mx-auto mt-3 max-w-[480px] text-[17px] leading-[1.55] text-white/70">
+            Tu aporte{perMonth ? " mensual" : ""} a{" "}
+            <strong className="text-white">{targetName}</strong> se registró.
+            Te ganaste tu diploma de hincha.
+          </p>
+        )}
+      </div>
+
+      {/* ── Resumen de aporte ── */}
+      {amount > 0 && (
+        <div
+          className="mb-6 rounded-xl p-5"
+          style={{
+            background: "#0d2238",
+            border: "1px solid rgba(255,255,255,.08)",
+          }}
+        >
+          <div className="flex flex-col gap-2.5">
+            <Row label="Tu aporte" value={`${formatMoney(amount, { cents: true })}${perMonth ? " / mes" : ""}`} />
+            <div className="h-px" style={{ background: "rgba(255,255,255,.07)" }} />
+            {isSplit ? (
+              <Row
+                label={perMonth ? "Cada atleta recibe / mes" : `Cada atleta recibe (entre ${split})`}
+                value={formatMoney(perEach, { cents: true })}
+                accent
+              />
+            ) : (
+              <Row
+                label={perMonth ? "El atleta recibe / mes" : "El atleta recibe (neto del 7%)"}
+                value={formatMoney(net, { cents: true })}
+                accent
+              />
+            )}
+            <Row label="Tipo" value={perMonth ? "Mensual" : "Único"} />
           </div>
 
-          <h1 className="mt-5 font-display text-3xl font-700 uppercase tracking-tight text-ink">
-            ¡Gracias por apoyar!
-          </h1>
-
-          {targetName ? (
-            <p className="mt-3 text-steel">
-              Tu aporte {perMonth ? "mensual " : ""}a{" "}
-              <span className="font-600 text-ink">{targetName}</span> se registró
-              correctamente.
-            </p>
-          ) : (
-            <p className="mt-3 text-steel">Tu aporte se registró correctamente.</p>
-          )}
-
-          {amount > 0 && (
-            <dl className="mt-6 space-y-2 rounded-xl bg-ice p-5 text-left">
-              <div className="flex justify-between">
-                <dt className="text-steel">Tu aporte</dt>
-                <dd className="font-display font-600 text-ink">
-                  {formatMoney(amount, { cents: true })}
-                  {perMonth && " / mes"}
-                </dd>
-              </div>
-              <div className="flex justify-between">
-                <dt className="text-steel">
-                  {isSplit
-                    ? perMonth
-                      ? "Cada atleta recibe / mes"
-                      : `Cada atleta recibe (de ${split})`
-                    : perMonth
-                      ? "El atleta recibe / mes"
-                      : "El atleta recibe (neto del 7%)"}
-                </dt>
-                <dd className="font-display text-lg font-700 text-celeste-deep">
-                  {formatMoney(perEach, { cents: true })}
-                </dd>
-              </div>
-              <div className="flex justify-between">
-                <dt className="text-steel">Tipo</dt>
-                <dd className="font-display font-600 uppercase text-ink">
-                  {perMonth ? "Mensual" : "Único"}
-                </dd>
-              </div>
-            </dl>
-          )}
-
-          <p className="mt-5 rounded-lg bg-ice px-4 py-3 text-xs text-steel">
-            Esto es una demo: todavía no se procesa un cobro real. Próximamente,
-            pagos seguros vía Stripe.
-          </p>
-
-          {amount > 0 && (
-            <Diploma
-              amount={amount}
-              monthly={perMonth}
-              targetPhrase={
-                kind === "all"
-                  ? "todos los atletas argentinos"
-                  : targetName ?? "el deporte argentino"
-              }
-            />
-          )}
-
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
-            {athlete && (
-              <Link
-                href={`/atleta/${athlete.slug}`}
-                className="rounded-md border border-ink px-5 py-2.5 font-display text-sm font-600 uppercase tracking-wide text-ink transition-colors hover:bg-ink hover:text-white"
-              >
-                Volver al perfil
-              </Link>
-            )}
-            {team && (
-              <Link
-                href={`/equipo/${team.slug}`}
-                className="rounded-md border border-ink px-5 py-2.5 font-display text-sm font-600 uppercase tracking-wide text-ink transition-colors hover:bg-ink hover:text-white"
-              >
-                Volver al equipo
-              </Link>
-            )}
-            <Link
-              href="/#atletas"
-              className="rounded-md bg-gold px-5 py-2.5 font-display text-sm font-700 uppercase tracking-wide text-ink transition-transform hover:scale-[1.03]"
+          {/* Barra 93/7 */}
+          <div className="mt-4">
+            <div className="mb-1 flex items-center justify-between text-[13px]">
+              <span className="text-white/65">Para {isSplit ? "los atletas" : "el atleta"} <span className="text-white/45">(93%)</span></span>
+              <span className="font-display font-700 text-gold">{formatMoney(net, { cents: true })}</span>
+            </div>
+            <div
+              className="flex h-2 overflow-hidden rounded-full"
+              style={{ background: "rgba(255,255,255,.08)" }}
             >
-              Ver más campañas
-            </Link>
+              <div className="h-full rounded-full" style={{ width: "93%", background: "#C9A227" }} />
+            </div>
           </div>
         </div>
+      )}
+
+      {/* ── Nota demo ── */}
+      <div
+        className="mb-8 rounded-lg px-4 py-3 text-center text-xs text-white/45"
+        style={{ background: "rgba(255,255,255,.05)", border: "1px solid rgba(255,255,255,.08)" }}
+      >
+        Esto es una demo — el cobro real se procesa próximamente vía Stripe.
       </div>
+
+      {/* ── Diploma ── */}
+      {amount > 0 && (
+        <>
+          <div className="mb-4 text-center">
+            <div
+              className="mb-1 inline-flex items-center gap-2 rounded-full px-3 py-1 font-display text-[11px] font-600 uppercase tracking-[.1em]"
+              style={{ background: `${tier.color}22`, color: tier.color, border: `1px solid ${tier.color}55` }}
+            >
+              <span className="h-2 w-2 rounded-full" style={{ background: tier.color }} />
+              Nivel {tier.label}
+            </div>
+          </div>
+          <Diploma
+            amount={amount}
+            monthly={perMonth}
+            targetPhrase={
+              kind === "all"
+                ? "todos los atletas argentinos"
+                : displayName
+            }
+          />
+        </>
+      )}
+
+      {/* ── Acciones ── */}
+      <div className="mt-8 flex flex-wrap justify-center gap-3">
+        {athlete && (
+          <Link
+            href={`/atleta/${athlete.slug}`}
+            className="rounded-md border border-white/25 px-6 py-3 font-display text-sm font-600 uppercase tracking-wide text-white transition-colors hover:border-white"
+          >
+            Volver al perfil
+          </Link>
+        )}
+        {team && (
+          <Link
+            href={`/equipo/${team.slug}`}
+            className="rounded-md border border-white/25 px-6 py-3 font-display text-sm font-600 uppercase tracking-wide text-white transition-colors hover:border-white"
+          >
+            Volver al equipo
+          </Link>
+        )}
+        <Link
+          href="/#atletas"
+          className="rounded-md bg-gold px-6 py-3 font-display text-sm font-700 uppercase tracking-wide text-ink transition-transform hover:-translate-y-0.5"
+        >
+          Apoyar a otro atleta
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+function Row({
+  label,
+  value,
+  accent,
+}: {
+  label: string;
+  value: string;
+  accent?: boolean;
+}) {
+  return (
+    <div className="flex items-baseline justify-between gap-3">
+      <span className="text-[13px] text-white/65">{label}</span>
+      <span
+        className={`font-display text-[15px] tabular-nums ${accent ? "font-700 text-gold" : "font-600 text-white"}`}
+      >
+        {value}
+      </span>
     </div>
   );
 }
@@ -158,7 +198,7 @@ export default function GraciasPage() {
   return (
     <>
       <Header />
-      <main className="bg-ice">
+      <main className="bg-ink text-white">
         <Suspense fallback={<div className="min-h-[50vh]" />}>
           <GraciasContent />
         </Suspense>

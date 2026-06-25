@@ -252,9 +252,13 @@ export default async function EmpresasPage() {
         >
           <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-center gap-10 px-6 py-6">
             <span className="eyebrow text-white/45">Marcas que ya apoyan</span>
-            <div className="font-display text-[15px] font-600 uppercase tracking-[.08em] text-white/70">
-              DS Connect
-            </div>
+            <Image
+              src="/logos/ds-connect.png"
+              alt="DS Connect"
+              width={64}
+              height={64}
+              className="h-16 w-16 object-contain opacity-85"
+            />
             {[1, 2, 3].map((i) => (
               <div
                 key={i}
