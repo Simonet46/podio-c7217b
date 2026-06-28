@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Reveal } from "@/components/Reveal";
@@ -57,6 +58,24 @@ export default function ParaAtletasPage() {
                   <div className="font-display text-[34px] font-700 leading-none">$0</div>
                   <div className="text-[13px] text-white/55">cuesta postularte</div>
                 </div>
+              </div>
+            </Reveal>
+
+            {/* Tabs Atleta / Equipo */}
+            <Reveal delay={160}>
+              <div className="mt-8 inline-flex rounded-full border border-white/12 p-1">
+                <span
+                  className="rounded-full px-5 py-2.5 font-display text-[13px] font-600 uppercase tracking-wide text-ink"
+                  style={{ background: "#C9A227" }}
+                >
+                  Soy atleta
+                </span>
+                <Link
+                  href="/para-equipos"
+                  className="rounded-full px-5 py-2.5 font-display text-[13px] font-600 uppercase tracking-wide text-white/60 transition-colors hover:text-white"
+                >
+                  Somos un equipo
+                </Link>
               </div>
             </Reveal>
           </div>

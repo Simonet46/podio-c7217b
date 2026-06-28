@@ -29,6 +29,8 @@ type Application = {
   photo_url: string | null;
   photo_secondary_url: string | null;
   payment_link: string | null;
+  payment_mp: string | null;
+  payment_paypal: string | null;
   achievements: string | null;
   needs: string | null;
   socials: string | null;
@@ -46,6 +48,20 @@ type AthleteRow = {
   province: string | null;
   raised_amount: number | null;
   verified: boolean | null;
+};
+
+type TeamApp = {
+  id: string;
+  team_name: string;
+  sport: string;
+  competition: string | null;
+  fundraising_start: string | null;
+  fundraising_end: string | null;
+  contact_name: string | null;
+  email: string;
+  notes: string | null;
+  status: string;
+  created_at: string;
 };
 
 type Phase = "loading" | "noenv" | "login" | "denied" | "ready";
@@ -75,6 +91,9 @@ type Draft = {
   next_competition: string;
   photo_url: string | null;
   photo_secondary_url: string | null;
+  socials: string;
+  payment_mp: string;
+  payment_paypal: string;
   stats: [string, string][];
   fund_items: [string, string][];
 };
@@ -153,6 +172,9 @@ function buildDraft(app: Application): Draft {
     next_competition: app.next_competition ?? "",
     photo_url: app.photo_url,
     photo_secondary_url: app.photo_secondary_url,
+    socials: app.socials ?? "",
+    payment_mp: app.payment_mp ?? "",
+    payment_paypal: app.payment_paypal ?? "",
     stats: [["", ""], ["", ""], ["", ""]],
     fund_items: [["", ""], ["", ""], ["", ""]],
   };
@@ -248,6 +270,7 @@ export function BackofficeApp() {
   const [active, setActive] = useState<Section>("Resumen");
   const [filter, setFilter] = useState<StatusFilter>("pending");
   const [allApps, setAllApps] = useState<Application[]>([]);
+  const [teamApps, setTeamApps] = useState<TeamApp[]>([]);
   const [athletes, setAthletes] = useState<AthleteRow[]>([]);
   const [selectedAppId, setSelectedAppId] = useState<string | null>(null);
   const [loadingList, setLoadingList] = useState(false);
@@ -283,12 +306,14 @@ export function BackofficeApp() {
     const supa = sb();
     if (!supa) return;
     setLoadingList(true);
-    const [appsRes, athRes] = await Promise.all([
+    const [appsRes, athRes, teamRes] = await Promise.all([
       supa.from("athlete_applications").select("*").order("created_at", { ascending: false }),
       supa.from("athletes").select("id,slug,full_name,sport,city,province,raised_amount,verified").order("raised_amount", { ascending: false }),
+      supa.from("team_applications").select("*").order("created_at", { ascending: false }),
     ]);
     if (!appsRes.error && appsRes.data) setAllApps(appsRes.data as Application[]);
     if (!athRes.error && athRes.data) setAthletes(athRes.data as AthleteRow[]);
+    if (!teamRes.error && teamRes.data) setTeamApps(teamRes.data as TeamApp[]);
     setLoadingList(false);
   }, []);
 
@@ -326,6 +351,7 @@ export function BackofficeApp() {
     await sb()?.auth.signOut();
     setAllApps([]);
     setAthletes([]);
+    setTeamApps([]);
     setDraft(null);
   }
 
@@ -372,6 +398,9 @@ export function BackofficeApp() {
         next_competition: draft.next_competition || null,
         photo_url: draft.photo_url,
         photo_secondary_url: draft.photo_secondary_url,
+        socials: draft.socials || null,
+        payment_mp: draft.payment_mp || null,
+        payment_paypal: draft.payment_paypal || null,
         stats,
         fund_items: fund,
       })
@@ -635,6 +664,7 @@ export function BackofficeApp() {
               onReject={handleReject}
               onMoreInfo={askMoreInfo}
               busy={busy}
+              teamApps={teamApps}
             />
           )}
 
@@ -843,6 +873,7 @@ function PostulacionesSection({
   onReject,
   onMoreInfo,
   busy,
+  teamApps,
 }: {
   filter: StatusFilter;
   counts: Record<StatusFilter, number>;
@@ -855,6 +886,7 @@ function PostulacionesSection({
   onReject: (app: Application) => void;
   onMoreInfo: (app: Application) => void;
   busy: boolean;
+  teamApps: TeamApp[];
 }) {
   const filters: { key: StatusFilter; label: string }[] = [
     { key: "pending", label: "Pendientes" },
@@ -938,8 +970,16 @@ function PostulacionesSection({
               {/* contacto */}
               <div className="mt-3.5 flex flex-wrap gap-2.5">
                 <a href={`mailto:${selected.email}`} className="flex items-center gap-2 rounded-[9px] px-3 py-2 text-[13px] font-500" style={{ background: "#0a1828", border: "1px solid rgba(255,255,255,.08)", color: C.celeste, textDecoration: "none" }}>✉ {selected.email}</a>
-                {selected.socials && <span className="flex items-center gap-2 rounded-[9px] px-3 py-2 text-[13px] font-500" style={{ background: "#0a1828", border: "1px solid rgba(255,255,255,.08)", color: "rgba(255,255,255,.8)" }}>@ {selected.socials}</span>}
+                {selected.socials && <span className="flex items-center gap-2 rounded-[9px] px-3 py-2 text-[13px] font-500" style={{ background: "#0a1828", border: "1px solid rgba(255,255,255,.08)", color: "rgba(255,255,255,.8)" }}>◎ {selected.socials}</span>}
               </div>
+
+              {/* cobros */}
+              {(selected.payment_mp || selected.payment_paypal) && (
+                <div className="mt-2.5 flex flex-wrap gap-2.5">
+                  {selected.payment_mp && <span className="flex items-center gap-2 rounded-[9px] px-3 py-2 text-[13px] font-500" style={{ background: "rgba(0,159,61,.1)", border: "1px solid rgba(0,159,61,.3)", color: "#5fd98a" }}>💳 MP · {selected.payment_mp}</span>}
+                  {selected.payment_paypal && <span className="flex items-center gap-2 rounded-[9px] px-3 py-2 text-[13px] font-500" style={{ background: "rgba(0,114,206,.1)", border: "1px solid rgba(0,114,206,.3)", color: "#6cb4e4" }}>🅿 PayPal · {selected.payment_paypal}</span>}
+                </div>
+              )}
 
               {/* dato rápido */}
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, margin: "22px 0" }}>
@@ -961,14 +1001,19 @@ function PostulacionesSection({
                 </>
               )}
 
-              {/* documentación / media */}
-              <Label>Material adjunto</Label>
-              <div className="mb-6 flex flex-col gap-1.5">
-                <DocRow ok={!!selected.photo_url} name="Foto de perfil" />
-                <DocRow ok={!!selected.photo_secondary_url} name="Foto de acción" />
-                <DocRow ok={!!selected.media_url} name="Video / redes" href={selected.media_url} />
-                <DocRow ok={!!selected.payment_link} name="Link de Mercado Pago" href={selected.payment_link} />
+              {/* fotos (reales, clickeables) */}
+              <Label>Fotos</Label>
+              <div className="mb-4 grid grid-cols-2 gap-2.5">
+                <PhotoThumb url={selected.photo_url} label="Perfil" />
+                <PhotoThumb url={selected.photo_secondary_url} label="Acción" />
               </div>
+
+              {/* links */}
+              {selected.media_url && (
+                <div className="mb-6">
+                  <DocRow ok name="Video / redes" href={selected.media_url} />
+                </div>
+              )}
 
               {/* acciones (reales) */}
               {selected.status === "pending" ? (
@@ -990,6 +1035,46 @@ function PostulacionesSection({
           </div>
         )}
       </div>
+
+      {/* ── Equipos postulados ── */}
+      <div className="mt-9">
+        <div className="mb-3 flex items-center gap-2.5">
+          <h2 className="m-0 font-display text-[19px] font-600">Equipos postulados</h2>
+          <span className="rounded-full px-2.5 py-0.5 font-display text-[12px] font-600" style={{ background: "rgba(255,255,255,.08)", color: "rgba(255,255,255,.65)" }}>
+            {teamApps.length}
+          </span>
+        </div>
+        {teamApps.length === 0 ? (
+          <div className="rounded-[13px] px-6 py-10 text-center text-[13px]" style={{ border: `1px dashed ${C.border}`, color: C.txtDim }}>
+            Todavía no hay equipos postulados.
+          </div>
+        ) : (
+          <section style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, overflow: "hidden" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1.6fr 1fr 1.4fr 1.4fr 1fr", gap: 12, padding: "13px 22px", borderBottom: `1px solid rgba(255,255,255,.06)` }}>
+              {["Equipo", "Deporte", "Competencia", "Recaudación", "Contacto"].map((h) => (
+                <span key={h} className="text-[11px] font-600 uppercase tracking-[.06em]" style={{ color: C.txtFaint }}>{h}</span>
+              ))}
+            </div>
+            {teamApps.map((t) => (
+              <div key={t.id} style={{ display: "grid", gridTemplateColumns: "1.6fr 1fr 1.4fr 1.4fr 1fr", gap: 12, alignItems: "center", padding: "14px 22px", borderBottom: `1px solid ${C.borderSoft}` }}>
+                <div className="min-w-0">
+                  <div className="truncate text-[14px] font-600">{t.team_name}</div>
+                  <div className="text-[11px]" style={{ color: C.txtFaint }}>{timeAgo(t.created_at)}</div>
+                </div>
+                <div><SportPill label={t.sport} /></div>
+                <div className="truncate text-[13px]" style={{ color: "rgba(255,255,255,.7)" }}>{t.competition ?? "—"}</div>
+                <div className="text-[12px]" style={{ color: C.txtDim }}>
+                  {t.fundraising_start || t.fundraising_end
+                    ? `${t.fundraising_start ?? "?"} → ${t.fundraising_end ?? "?"}`
+                    : "—"}
+                </div>
+                <a href={`mailto:${t.email}`} className="truncate text-[13px]" style={{ color: C.celeste }}>{t.email}</a>
+              </div>
+            ))}
+          </section>
+        )}
+      </div>
+
       <ResponsiveCSS />
     </>
   );
@@ -1219,6 +1304,15 @@ function ApprovalModal({
   busy: boolean;
   onClose: () => void;
 }) {
+  const [uploading, setUploading] = useState<"primary" | "secondary" | null>(null);
+  async function pickPhoto(which: "primary" | "secondary", file: File) {
+    setUploading(which);
+    const url = await uploadToStorage(file);
+    setUploading(null);
+    if (!url) return;
+    if (which === "primary") setDraft({ ...draft, photo_url: url });
+    else setDraft({ ...draft, photo_secondary_url: url });
+  }
   return (
     <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 80, background: "rgba(4,10,18,.72)", backdropFilter: "blur(5px)", WebkitBackdropFilter: "blur(5px)", display: "flex", alignItems: "flex-start", justifyContent: "center", overflowY: "auto", padding: 24 }}>
       <form
@@ -1242,10 +1336,19 @@ function ApprovalModal({
         <div className="mt-5">
           <span className="eyebrow" style={{ color: C.txtFaint }}>Fotos (aprobá o quitá)</span>
           <div className="mt-2 grid grid-cols-2 gap-3">
-            <ApprovePhoto title="Foto de perfil" url={draft.photo_url} onRemove={() => setDraft({ ...draft, photo_url: null })} onMakePrimary={null} />
+            <ApprovePhoto
+              title="Foto de perfil"
+              url={draft.photo_url}
+              busy={uploading === "primary"}
+              onPick={(f) => pickPhoto("primary", f)}
+              onRemove={() => setDraft({ ...draft, photo_url: null })}
+              onMakePrimary={null}
+            />
             <ApprovePhoto
               title="Foto secundaria"
               url={draft.photo_secondary_url}
+              busy={uploading === "secondary"}
+              onPick={(f) => pickPhoto("secondary", f)}
               onRemove={() => setDraft({ ...draft, photo_secondary_url: null })}
               onMakePrimary={draft.photo_secondary_url ? () => setDraft({ ...draft, photo_url: draft.photo_secondary_url, photo_secondary_url: draft.photo_url }) : null}
             />
@@ -1264,7 +1367,9 @@ function ApprovalModal({
               {SPORT_LIST.map((s) => <option key={s.key} value={s.key} style={{ background: C.sidebar }}>{s.label}</option>)}
             </select>
           </label>
-          <DText label="Disciplina *" required value={draft.discipline} onChange={(v) => setDraft({ ...draft, discipline: v })} hint="Su prueba o puesto." />
+          {draft.sport === "atletismo" && (
+            <DText label="Prueba (atletismo)" value={draft.discipline} onChange={(v) => setDraft({ ...draft, discipline: v })} hint="Ej: 400m con vallas, salto en largo…" />
+          )}
           <DText label="Próxima competencia" value={draft.next_competition} onChange={(v) => setDraft({ ...draft, next_competition: v })} />
           <DText label="Ciudad" value={draft.city} onChange={(v) => setDraft({ ...draft, city: v })} />
           <DText label="Provincia" value={draft.province} onChange={(v) => setDraft({ ...draft, province: v })} />
@@ -1283,6 +1388,10 @@ function ApprovalModal({
             <span className="eyebrow" style={{ color: C.txtFaint }}>Historia / bio</span>
             <textarea rows={4} value={draft.bio} onChange={(e) => setDraft({ ...draft, bio: e.target.value })} style={{ ...inputDark, resize: "vertical" }} />
           </label>
+
+          <DText label="Instagram / redes" value={draft.socials} onChange={(v) => setDraft({ ...draft, socials: v })} hint="Usuario o link." />
+          <DText label="Mercado Pago" value={draft.payment_mp} onChange={(v) => setDraft({ ...draft, payment_mp: v })} hint="Alias, CVU o email." />
+          <DText label="PayPal" value={draft.payment_paypal} onChange={(v) => setDraft({ ...draft, payment_paypal: v })} hint="Email o link de PayPal.me." wide />
 
           <DPairEditor title="Stats (valor / etiqueta)" rows={draft.stats} placeholders={["Valor (ej. #2)", "Etiqueta (ej. Ranking)"]} onChange={(stats) => setDraft({ ...draft, stats })} />
           <DPairEditor title="Tu aporte financia (título / descripción)" rows={draft.fund_items} placeholders={["Título", "Descripción"]} onChange={(fund_items) => setDraft({ ...draft, fund_items })} />
@@ -1377,6 +1486,24 @@ function Label({ children }: { children: React.ReactNode }) {
   return <div className="mb-2 text-[11px] uppercase tracking-[.04em]" style={{ color: C.txtFaint }}>{children}</div>;
 }
 
+function PhotoThumb({ url, label }: { url: string | null; label: string }) {
+  return (
+    <div>
+      <div className="mb-1.5 text-[11px] uppercase tracking-[.04em]" style={{ color: C.txtFaint }}>{label}</div>
+      <div className="aspect-[3/4] w-full overflow-hidden rounded-[10px]" style={{ background: "#0a1828", border: `1px solid rgba(255,255,255,.08)` }}>
+        {url ? (
+          <a href={url} target="_blank" rel="noopener noreferrer" title="Abrir en grande">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={url} alt={label} className="h-full w-full object-cover transition-transform hover:scale-105" />
+          </a>
+        ) : (
+          <div className="flex h-full w-full items-center justify-center text-[12px]" style={{ color: C.txtFaint }}>Sin foto</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function DocRow({ ok, name, href }: { ok: boolean; name: string; href?: string | null }) {
   const inner = (
     <div className="flex items-center gap-2.5 rounded-[9px] px-3 py-2.5" style={{ background: "#0a1828", border: `1px solid rgba(255,255,255,.06)` }}>
@@ -1397,24 +1524,68 @@ function SettingRow({ label, value, color }: { label: string; value: string; col
   );
 }
 
-function ApprovePhoto({ title, url, onRemove, onMakePrimary }: { title: string; url: string | null; onRemove: () => void; onMakePrimary: (() => void) | null }) {
+/** Sube un archivo al bucket público athlete-media y devuelve su URL. */
+async function uploadToStorage(file: File): Promise<string | null> {
+  const supa = sb();
+  if (!supa) return null;
+  const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+  const id =
+    typeof crypto !== "undefined" && crypto.randomUUID
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.round(Math.random() * 1e6)}`;
+  const path = `applications/${id}.${ext}`;
+  const { error } = await supa.storage
+    .from("athlete-media")
+    .upload(path, file, { contentType: file.type, upsert: false });
+  if (error) return null;
+  return supa.storage.from("athlete-media").getPublicUrl(path).data.publicUrl;
+}
+
+function ApprovePhoto({
+  title,
+  url,
+  busy,
+  onPick,
+  onRemove,
+  onMakePrimary,
+}: {
+  title: string;
+  url: string | null;
+  busy: boolean;
+  onPick: (file: File) => void;
+  onRemove: () => void;
+  onMakePrimary: (() => void) | null;
+}) {
   return (
     <div className="rounded-xl p-3" style={{ background: "#0a1828", border: `1px solid rgba(255,255,255,.08)` }}>
       <span className="eyebrow" style={{ color: C.txtFaint }}>{title}</span>
       <div className="mt-2 aspect-[3/4] w-full overflow-hidden rounded-lg" style={{ background: "rgba(255,255,255,.04)" }}>
-        {url ? (
+        {busy ? (
+          <div className="flex h-full w-full items-center justify-center text-xs" style={{ color: C.gold }}>Subiendo…</div>
+        ) : url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={url} alt={title} className="h-full w-full object-cover" />
         ) : (
           <div className="flex h-full w-full items-center justify-center text-xs" style={{ color: C.txtFaint }}>Sin foto</div>
         )}
       </div>
-      {url && (
-        <div className="mt-2 flex flex-wrap gap-2">
-          <button type="button" onClick={onRemove} className="rounded-md px-2 py-1 text-xs" style={{ border: `1px solid rgba(255,255,255,.12)`, color: C.redBright }}>Quitar</button>
-          {onMakePrimary && <button type="button" onClick={onMakePrimary} className="rounded-md px-2 py-1 text-xs" style={{ border: `1px solid rgba(255,255,255,.12)`, color: C.celeste }}>Usar como perfil</button>}
-        </div>
-      )}
+      <div className="mt-2 flex flex-wrap gap-2">
+        <label className="cursor-pointer rounded-md px-2 py-1 text-xs" style={{ border: `1px solid rgba(255,255,255,.12)`, color: C.gold }}>
+          {url ? "Reemplazar" : "Subir"}
+          <input
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) onPick(f);
+              e.target.value = "";
+            }}
+          />
+        </label>
+        {url && <button type="button" onClick={onRemove} className="rounded-md px-2 py-1 text-xs" style={{ border: `1px solid rgba(255,255,255,.12)`, color: C.redBright }}>Quitar</button>}
+        {url && onMakePrimary && <button type="button" onClick={onMakePrimary} className="rounded-md px-2 py-1 text-xs" style={{ border: `1px solid rgba(255,255,255,.12)`, color: C.celeste }}>Usar como perfil</button>}
+      </div>
     </div>
   );
 }

@@ -28,12 +28,17 @@ export function AthleteApplicationForm() {
   const [edad, setEdad] = useState("");
   const [ciudad, setCiudad] = useState("");
   const [deporte, setDeporte] = useState("");
+  const [deporteOtro, setDeporteOtro] = useState(""); // si elige "Otro"
+  const [disciplina, setDisciplina] = useState(""); // solo atletismo
 
   // Step 2
   const [frase, setFrase] = useState("");
   const [historia, setHistoria] = useState("");
   const [competencia, setCompetencia] = useState("");
   const [fecha, setFecha] = useState("");
+  const [instagram, setInstagram] = useState("");
+  const [mpAccount, setMpAccount] = useState("");
+  const [paypalAccount, setPaypalAccount] = useState("");
 
   // Step 3
   const [portraitFile, setPortraitFile] = useState<File | null>(null);
@@ -47,6 +52,10 @@ export function AthleteApplicationForm() {
 
   const sportObj = SPORT_LIST.find((s) => s.label === deporte);
   const sportColor = sportObj?.color ?? "#C9A227";
+  const esOtro = deporte === "Otro";
+  const esAtletismo = deporte === "Atletismo";
+  // El deporte que se guarda: si eligió "Otro", el texto libre que escribió.
+  const deporteEfectivo = esOtro ? deporteOtro.trim() : deporte;
 
   function go(n: Step) {
     setStep(n);
@@ -120,8 +129,8 @@ export function AthleteApplicationForm() {
         [competencia, fecha].filter(Boolean).join(" · ") || null;
       const { error } = await supabase.from("athlete_applications").insert({
         full_name: nombre,
-        sport: deporte,
-        discipline: null,
+        sport: deporteEfectivo,
+        discipline: esAtletismo ? disciplina || null : null,
         location: ciudad || null,
         email,
         age: edad ? Number(edad) : null,
@@ -130,6 +139,9 @@ export function AthleteApplicationForm() {
         photo_secondary_url: photos.photo_secondary_url,
         achievements: frase || null,
         needs: historia || null,
+        socials: instagram || null,
+        payment_mp: mpAccount || null,
+        payment_paypal: paypalAccount || null,
         status: "pending",
       });
       return !error;
@@ -147,7 +159,11 @@ export function AthleteApplicationForm() {
       email,
       edad,
       ciudad,
-      deporte,
+      deporte: deporteEfectivo,
+      disciplina: esAtletismo ? disciplina : "",
+      instagram,
+      mercado_pago: mpAccount,
+      paypal: paypalAccount,
       frase,
       historia,
       competencia: [competencia, fecha].filter(Boolean).join(" · "),
@@ -207,10 +223,15 @@ export function AthleteApplicationForm() {
     setEdad("");
     setCiudad("");
     setDeporte("");
+    setDeporteOtro("");
+    setDisciplina("");
     setFrase("");
     setHistoria("");
     setCompetencia("");
     setFecha("");
+    setInstagram("");
+    setMpAccount("");
+    setPaypalAccount("");
     setPortraitFile(null);
     setActionFile(null);
     setPortraitPreview(null);
@@ -385,7 +406,7 @@ export function AthleteApplicationForm() {
             </div>
           </div>
 
-          <div className="mb-8">
+          <div className="mb-6">
             <div className={`${labelCls} mb-3`}>
               ¿Qué deporte hacés?{" "}
               <span className="text-white/35">· cada deporte tiene su color</span>
@@ -413,9 +434,42 @@ export function AthleteApplicationForm() {
                 );
               })}
             </div>
+
+            {/* Si eligió "Otro": que escriba su deporte */}
+            {esOtro && (
+              <div className="mt-4">
+                <label className={labelCls}>¿Cuál es tu deporte?</label>
+                <input
+                  value={deporteOtro}
+                  onChange={(e) => setDeporteOtro(e.target.value)}
+                  placeholder="Ej: Escalada, Tiro deportivo, Skateboarding…"
+                  className={`${inputCls} mt-[7px]`}
+                />
+              </div>
+            )}
+
+            {/* Disciplina: solo tiene sentido en atletismo (pruebas) */}
+            {esAtletismo && (
+              <div className="mt-4">
+                <label className={labelCls}>
+                  Tu prueba{" "}
+                  <span className="text-white/35">· en qué competís</span>
+                </label>
+                <input
+                  value={disciplina}
+                  onChange={(e) => setDisciplina(e.target.value)}
+                  placeholder="Ej: 400m con vallas, Salto en largo, Maratón…"
+                  className={`${inputCls} mt-[7px]`}
+                />
+              </div>
+            )}
           </div>
 
-          {ctaBtn("Continuar", () => go(2), !nombre || !email || !deporte)}
+          {ctaBtn(
+            "Continuar",
+            () => go(2),
+            !nombre || !email || !deporte || (esOtro && !deporteOtro.trim()),
+          )}
         </section>
       )}
 
@@ -472,6 +526,54 @@ export function AthleteApplicationForm() {
                 placeholder="Ej: Septiembre 2026"
                 className={`${inputCls} mt-[7px]`}
               />
+            </div>
+          </div>
+
+          {/* ── Redes ── */}
+          <div className="mb-[18px]">
+            <label className={labelCls}>
+              Instagram{" "}
+              <span className="text-white/35">· usuario o link</span>
+            </label>
+            <input
+              value={instagram}
+              onChange={(e) => setInstagram(e.target.value)}
+              placeholder="Ej: @tunombre o instagram.com/tunombre"
+              className={`${inputCls} mt-[7px]`}
+            />
+          </div>
+
+          {/* ── Cómo te apoyan (cobros) ── */}
+          <div
+            className="mb-8 rounded-[12px] border border-white/[.08] p-[18px]"
+            style={{ background: "#0d2238" }}
+          >
+            <div className="mb-1 font-display text-[15px] font-600 uppercase tracking-wide">
+              ¿Dónde recibís el apoyo?
+            </div>
+            <p className="mb-4 text-[13px] leading-relaxed text-white/55">
+              El 93% de cada aporte va directo a vos. Cargá al menos una cuenta;
+              podés sumar las dos.
+            </p>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className={labelCls}>Mercado Pago</label>
+                <input
+                  value={mpAccount}
+                  onChange={(e) => setMpAccount(e.target.value)}
+                  placeholder="Alias, CVU o email"
+                  className={`${inputCls} mt-[7px]`}
+                />
+              </div>
+              <div>
+                <label className={labelCls}>PayPal</label>
+                <input
+                  value={paypalAccount}
+                  onChange={(e) => setPaypalAccount(e.target.value)}
+                  placeholder="Email o link de PayPal.me"
+                  className={`${inputCls} mt-[7px]`}
+                />
+              </div>
             </div>
           </div>
 
@@ -566,7 +668,7 @@ export function AthleteApplicationForm() {
                   className="absolute left-3.5 top-3.5 rounded-[3px] px-2.5 py-1 font-display text-[11px] font-600 uppercase tracking-[.1em] text-white"
                   style={{ background: sportColor }}
                 >
-                  {deporte || "Deporte"}
+                  {deporteEfectivo || "Deporte"}
                 </div>
                 <div className="absolute bottom-3.5 left-4 right-4">
                   <div className="font-display text-[24px] font-600 uppercase leading-none">
