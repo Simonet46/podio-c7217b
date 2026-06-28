@@ -48,6 +48,7 @@ type AthleteRow = {
   province: string | null;
   raised_amount: number | null;
   verified: boolean | null;
+  mp_connected: boolean | null;
 };
 
 type TeamApp = {
@@ -308,7 +309,7 @@ export function BackofficeApp() {
     setLoadingList(true);
     const [appsRes, athRes, teamRes] = await Promise.all([
       supa.from("athlete_applications").select("*").order("created_at", { ascending: false }),
-      supa.from("athletes").select("id,slug,full_name,sport,city,province,raised_amount,verified").order("raised_amount", { ascending: false }),
+      supa.from("athletes").select("id,slug,full_name,sport,city,province,raised_amount,verified,mp_connected").order("raised_amount", { ascending: false }),
       supa.from("team_applications").select("*").order("created_at", { ascending: false }),
     ]);
     if (!appsRes.error && appsRes.data) setAllApps(appsRes.data as Application[]);
@@ -442,6 +443,27 @@ export function BackofficeApp() {
       error
         ? "No se pudo disparar la publicación (¿está configurada la función trigger-rebuild?): " + error.message
         : "🚀 Publicación disparada. El sitio se actualiza en ~1-2 min.",
+    );
+  }
+
+  /** Genera el link de conexión de Mercado Pago de un atleta y lo abre. */
+  async function genMpLink(athlete: AthleteRow) {
+    const supa = sb();
+    if (!supa) return;
+    setToast(`Generando link de Mercado Pago de ${athlete.full_name}…`);
+    const { data, error } = await supa.functions.invoke("mp-connect-link", {
+      body: { athlete_id: athlete.id },
+    });
+    if (error || !data?.url) {
+      setToast("No se pudo generar el link de MP: " + (error?.message ?? "error desconocido"));
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(data.url);
+    } catch {}
+    window.open(data.url, "_blank", "noopener");
+    setToast(
+      `Link de Mercado Pago de ${athlete.full_name} abierto en otra pestaña (y copiado al portapapeles). El atleta tiene que autorizar con SU cuenta de Mercado Pago.`,
     );
   }
 
@@ -669,7 +691,7 @@ export function BackofficeApp() {
           )}
 
           {/* ===== ATLETAS ===== */}
-          {active === "Atletas" && <AtletasSection athletes={athletes} loading={loadingList} />}
+          {active === "Atletas" && <AtletasSection athletes={athletes} loading={loadingList} onConnect={genMpLink} />}
 
           {/* ===== APORTES ===== */}
           {active === "Aportes" && <AportesSection />}
@@ -1081,11 +1103,20 @@ function PostulacionesSection({
 }
 
 // ── Atletas (real) ───────────────────────────────────────────────────────
-function AtletasSection({ athletes, loading }: { athletes: AthleteRow[]; loading: boolean }) {
+function AtletasSection({
+  athletes,
+  loading,
+  onConnect,
+}: {
+  athletes: AthleteRow[];
+  loading: boolean;
+  onConnect: (a: AthleteRow) => void;
+}) {
+  const cols = "2fr 1.1fr 1.3fr .8fr 1fr .8fr 1.2fr";
   return (
     <section style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, overflow: "hidden" }}>
-      <div style={{ display: "grid", gridTemplateColumns: "2fr 1.2fr 1.4fr .85fr 1.1fr .85fr", gap: 12, padding: "13px 24px", borderBottom: `1px solid rgba(255,255,255,.06)` }}>
-        {["Atleta", "Deporte", "Ubicación", "Hinchas", "$/mes", "Estado"].map((h, i) => (
+      <div style={{ display: "grid", gridTemplateColumns: cols, gap: 12, padding: "13px 24px", borderBottom: `1px solid rgba(255,255,255,.06)` }}>
+        {["Atleta", "Deporte", "Ubicación", "Hinchas", "$/mes", "Estado", "Cobros"].map((h, i) => (
           <span key={h} className="text-[11px] font-600 uppercase tracking-[.06em]" style={{ color: C.txtFaint, textAlign: i >= 3 ? "right" : "left" }}>{h}</span>
         ))}
       </div>
@@ -1097,7 +1128,7 @@ function AtletasSection({ athletes, loading }: { athletes: AthleteRow[]; loading
         const loc = [a.city, a.province].filter(Boolean).join(", ") || "—";
         const raised = a.raised_amount ?? 0;
         return (
-          <div key={a.id} style={{ display: "grid", gridTemplateColumns: "2fr 1.2fr 1.4fr .85fr 1.1fr .85fr", gap: 12, alignItems: "center", padding: "14px 24px", borderBottom: `1px solid ${C.borderSoft}` }}>
+          <div key={a.id} style={{ display: "grid", gridTemplateColumns: cols, gap: 12, alignItems: "center", padding: "14px 24px", borderBottom: `1px solid ${C.borderSoft}` }}>
             <div className="flex min-w-0 items-center gap-3">
               <Avatar name={a.full_name} color={color} ring />
               <span className="truncate text-[14px] font-600">{a.full_name}</span>
@@ -1110,6 +1141,22 @@ function AtletasSection({ athletes, loading }: { athletes: AthleteRow[]; loading
               <span className="rounded-full px-2.5 py-[3px] font-display text-[10px] font-600 uppercase tracking-[.04em]" style={a.verified ? { background: "rgba(34,197,94,.14)", color: C.greenBright } : { background: "rgba(255,255,255,.08)", color: C.txtDim }}>
                 {a.verified ? "Activo" : "Borrador"}
               </span>
+            </div>
+            <div className="flex justify-end">
+              {a.mp_connected ? (
+                <span className="rounded-full px-2.5 py-[3px] font-display text-[10px] font-600 uppercase tracking-[.04em]" style={{ background: "rgba(34,197,94,.14)", color: C.greenBright }}>
+                  ✓ MP
+                </span>
+              ) : (
+                <button
+                  onClick={() => onConnect(a)}
+                  className="rounded-full px-3 py-[5px] font-display text-[11px] font-600 uppercase tracking-[.04em] transition-colors"
+                  style={{ background: "rgba(108,180,228,.12)", border: `1px solid rgba(108,180,228,.4)`, color: C.celeste }}
+                  title="Generar el link para que el atleta conecte su Mercado Pago"
+                >
+                  Conectar MP
+                </button>
+              )}
             </div>
           </div>
         );

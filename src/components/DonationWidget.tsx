@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { DonationType } from "@/lib/data/types";
 import { PRESET_AMOUNTS, PLATFORM_FEE_RATE } from "@/config/site";
 import { breakdown, formatMoney } from "@/lib/money";
+import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
 import { Ribbon } from "./Ribbon";
 
 /** A quién va el aporte. */
@@ -56,10 +57,32 @@ export function DonationWidget({ target }: { target: DonationTarget }) {
     setCustom("");
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (amount <= 0 || loading) return;
     setLoading(true);
-    // Modo demo (sitio estático): redirige a gracias sin cobro real.
+
+    // Aporte a un atleta individual con Mercado Pago conectado → checkout real
+    // (split 93/7). Si el atleta no conectó MP o algo falla, cae al modo demo.
+    if (target.kind === "athlete" && target.slug && isSupabaseConfigured) {
+      try {
+        const supabase = await getSupabase();
+        if (supabase) {
+          const { data } = await supabase.functions.invoke(
+            "mp-create-preference",
+            { body: { slug: target.slug, amount, type } },
+          );
+          const url = data?.init_point ?? data?.sandbox_init_point;
+          if (url) {
+            window.location.href = url;
+            return;
+          }
+        }
+      } catch {
+        // sin conexión o error → cae al modo demo de abajo
+      }
+    }
+
+    // Fallback (atleta sin MP, equipos, "apoyá a todos", o sin Supabase): demo.
     const params = new URLSearchParams({
       kind: target.kind,
       amount: String(amount),
@@ -213,7 +236,7 @@ export function DonationWidget({ target }: { target: DonationTarget }) {
         </button>
 
         <p className="mt-3 text-center text-xs text-white/35">
-          Pago seguro · procesado vía Stripe Connect
+          Pago seguro · procesado vía Mercado Pago
         </p>
       </div>
     </div>
