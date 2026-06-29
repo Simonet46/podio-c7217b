@@ -1,8 +1,7 @@
 // Edge Function: mp-oauth-callback
 // MP redirige acá tras la autorización (?code=...&state=...). El `state` firmado
 // puede ser de un ATLETA (kind "mp-connect") o de una POSTULACIÓN (kind
-// "mp-connect-app", cuando el atleta conecta su MP durante el registro).
-// Intercambia el code por el token y lo guarda en la tabla que corresponda.
+// "mp-connect-app", cuando el atleta conecta su MP durante el registro, en popup).
 //
 // Secrets: MP_CLIENT_ID, MP_CLIENT_SECRET, MP_REDIRECT_URI, STATE_SECRET,
 //          SUPABASE_SERVICE_ROLE_KEY, (opcional) SITE_URL.
@@ -26,9 +25,15 @@ Deno.serve(async (req) => {
   const okKind =
     payload && (payload.kind === "mp-connect" || payload.kind === "mp-connect-app");
   if (!code || !payload || !okKind) {
-    const reason = !code ? "sin_code" : "link_invalido_o_vencido";
-    return redirect(`${SITE_URL}/?mp=error&reason=${encodeURIComponent(reason)}`);
+    return redirect(`${SITE_URL}/?mp=error&reason=link_invalido_o_vencido`);
   }
+
+  const isApp = payload.kind === "mp-connect-app";
+  // El flujo de postulación vuelve a una página "popup" que se cierra sola.
+  const okTarget = isApp ? `${SITE_URL}/mp-listo/?mp=ok` : `${SITE_URL}/?mp=ok`;
+  const errTarget = (reason: string) =>
+    (isApp ? `${SITE_URL}/mp-listo/?mp=error` : `${SITE_URL}/?mp=error`) +
+    `&reason=${encodeURIComponent(reason)}`;
 
   // Intercambiar el code por el token del vendedor.
   const res = await fetch("https://api.mercadopago.com/oauth/token", {
@@ -46,7 +51,7 @@ Deno.serve(async (req) => {
   if (!res.ok) {
     const detail = await res.text();
     console.error("MP token exchange falló:", res.status, detail);
-    return redirect(`${SITE_URL}/?mp=error&reason=${encodeURIComponent("mp:" + detail.slice(0, 220))}`);
+    return redirect(errTarget("mp:" + detail.slice(0, 220)));
   }
 
   const tok = await res.json();
@@ -65,38 +70,32 @@ Deno.serve(async (req) => {
   };
 
   const supa = serviceClient();
-  let upErr: { message: string } | null = null;
 
-  if (payload.kind === "mp-connect-app") {
-    // Conexión durante el registro: se ata a la POSTULACIÓN.
-    const r = await supa
+  if (isApp) {
+    const { error } = await supa
       .from("application_mp_accounts")
       .upsert({ application_id: payload.application_id, ...row });
-    upErr = r.error;
-    if (!upErr) {
-      await supa
-        .from("athlete_applications")
-        .update({ mp_connected: true })
-        .eq("id", payload.application_id);
-      return redirect(`${SITE_URL}/?mp=ok&ctx=postulacion`);
+    if (error) {
+      console.error("No se pudo guardar el token (app):", error.message);
+      return redirect(errTarget("db:" + error.message.slice(0, 150)));
     }
-  } else {
-    // Conexión de un atleta ya dado de alta.
-    const r = await supa
-      .from("athlete_mp_accounts")
-      .upsert({ athlete_id: payload.athlete_id, ...row });
-    upErr = r.error;
-    if (!upErr) {
-      await supa
-        .from("athletes")
-        .update({ mp_connected: true })
-        .eq("id", payload.athlete_id);
-      return redirect(`${SITE_URL}/?mp=ok`);
-    }
+    await supa
+      .from("athlete_applications")
+      .update({ mp_connected: true })
+      .eq("id", payload.application_id);
+    return redirect(okTarget);
   }
 
-  console.error("No se pudo guardar el token:", upErr?.message);
-  return redirect(
-    `${SITE_URL}/?mp=error&reason=${encodeURIComponent("db:" + (upErr?.message ?? "").slice(0, 150))}`,
-  );
+  const { error } = await supa
+    .from("athlete_mp_accounts")
+    .upsert({ athlete_id: payload.athlete_id, ...row });
+  if (error) {
+    console.error("No se pudo guardar el token (atleta):", error.message);
+    return redirect(errTarget("db:" + error.message.slice(0, 150)));
+  }
+  await supa
+    .from("athletes")
+    .update({ mp_connected: true })
+    .eq("id", payload.athlete_id);
+  return redirect(okTarget);
 });

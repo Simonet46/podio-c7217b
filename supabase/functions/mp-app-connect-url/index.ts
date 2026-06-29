@@ -23,7 +23,7 @@ Deno.serve(async (req) => {
     .eq("id", application_id)
     .single();
   if (!app) return json({ error: "Postulación no encontrada." }, 404);
-  if (app.status !== "pending") {
+  if (app.status !== "pending" && app.status !== "draft") {
     return json({ error: "Esta postulación ya no admite conexión." }, 409);
   }
 
