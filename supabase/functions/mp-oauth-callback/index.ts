@@ -24,11 +24,13 @@ Deno.serve(async (req) => {
   }>(state);
   const okKind =
     payload && (payload.kind === "mp-connect" || payload.kind === "mp-connect-app");
+  const isApp = payload?.kind === "mp-connect-app";
   if (!code || !payload || !okKind) {
-    return redirect(`${SITE_URL}/?mp=error&reason=link_invalido_o_vencido`);
+    const base = isApp ? `${SITE_URL}/mp-listo/` : `${SITE_URL}/`;
+    const reason = !code ? "mp_no_devolvio_code" : "link_invalido_o_vencido";
+    return redirect(`${base}?mp=error&reason=${encodeURIComponent(reason)}`);
   }
 
-  const isApp = payload.kind === "mp-connect-app";
   // El flujo de postulación vuelve a una página "popup" que se cierra sola.
   const okTarget = isApp ? `${SITE_URL}/mp-listo/?mp=ok` : `${SITE_URL}/?mp=ok`;
   const errTarget = (reason: string) =>
