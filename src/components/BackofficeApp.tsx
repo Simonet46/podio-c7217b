@@ -35,6 +35,7 @@ type Application = {
   needs: string | null;
   socials: string | null;
   status: string;
+  mp_connected: boolean | null;
   created_at: string;
   athlete_id: string | null;
 };
@@ -422,11 +423,18 @@ export function BackofficeApp() {
       .from("athlete_applications")
       .update({ status: "approved", athlete_id: data.id, reviewed_at: new Date().toISOString() })
       .eq("id", draft.appId);
+
+    // Migra la conexión de Mercado Pago que la atleta hizo en el registro (si la hizo).
+    const { data: mpMigrated } = await supa.rpc("claim_application_mp", {
+      p_app_id: draft.appId,
+      p_athlete_id: data.id,
+    });
+
     setBusy(false);
     setToast(
       e2
         ? "Atleta creado, pero no se pudo marcar la postulación: " + e2.message
-        : `¡${draft.full_name} dado de alta! Acordate de "Publicar ahora" para que salga online.`,
+        : `¡${draft.full_name} dado de alta!${mpMigrated ? " Su Mercado Pago quedó conectado ✓." : ""} Acordate de "Publicar ahora" para que salga online.`,
     );
     setDraft(null);
     loadApps();
@@ -1028,6 +1036,30 @@ function PostulacionesSection({
               <div className="mb-4 grid grid-cols-2 gap-2.5">
                 <PhotoThumb url={selected.photo_url} label="Perfil" />
                 <PhotoThumb url={selected.photo_secondary_url} label="Acción" />
+              </div>
+
+              {/* Cobros (Mercado Pago) */}
+              <Label>Cobros</Label>
+              <div className="mb-6 flex flex-col gap-1.5">
+                <div
+                  className="flex items-center gap-2.5 rounded-[9px] px-3 py-2.5"
+                  style={{ background: "#0a1828", border: `1px solid rgba(255,255,255,.06)` }}
+                >
+                  <span style={{ color: selected.mp_connected ? C.greenBright : C.gold, fontSize: 14 }}>
+                    {selected.mp_connected ? "✓" : "◔"}
+                  </span>
+                  <span className="flex-1 text-[13px]" style={{ color: "rgba(255,255,255,.8)" }}>
+                    Mercado Pago
+                  </span>
+                  <span className="text-[12px] font-600" style={{ color: selected.mp_connected ? C.greenBright : C.gold }}>
+                    {selected.mp_connected ? "Conectado por la atleta" : "Sin conectar"}
+                  </span>
+                </div>
+                {selected.payment_mp && (
+                  <div className="px-1 text-[11px]" style={{ color: C.txtFaint }}>
+                    Alias/CVU que cargó: {selected.payment_mp}
+                  </div>
+                )}
               </div>
 
               {/* links */}

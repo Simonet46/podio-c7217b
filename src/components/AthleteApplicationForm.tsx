@@ -54,6 +54,8 @@ export function AthleteApplicationForm() {
 
   // Submit
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
+  const [appId, setAppId] = useState<string | null>(null); // id de la postulación creada
+  const [connecting, setConnecting] = useState(false); // conexión MP en curso
 
   const esMenor = edad.trim() !== "" && Number(edad) < 18;
   const consentimientoOk = acepta && (!esMenor || aceptaTutor);
@@ -128,14 +130,14 @@ export function AthleteApplicationForm() {
   async function saveToSupabase(photos: {
     photo_url: string | null;
     photo_secondary_url: string | null;
-  }) {
-    if (!isSupabaseConfigured) return false;
+  }): Promise<string | null> {
+    if (!isSupabaseConfigured) return null;
     try {
       const supabase = await getSupabase();
-      if (!supabase) return false;
+      if (!supabase) return null;
       const nextComp =
         [competencia, fecha].filter(Boolean).join(" · ") || null;
-      const { error } = await supabase.from("athlete_applications").insert({
+      const { data, error } = await supabase.from("athlete_applications").insert({
         full_name: nombre,
         sport: deporteEfectivo,
         discipline: esAtletismo ? disciplina || null : null,
@@ -156,10 +158,10 @@ export function AthleteApplicationForm() {
         image_consent: acepta,
         is_minor_guardian: esMenor ? aceptaTutor : false,
         status: "pending",
-      });
-      return !error;
+      }).select("id").single();
+      return error ? null : (data?.id ?? null);
     } catch {
-      return false;
+      return null;
     }
   }
 
@@ -215,8 +217,9 @@ export function AthleteApplicationForm() {
   async function handleSubmit() {
     setStatus("loading");
     const photos = await uploadPhotos();
-    const savedToDb = await saveToSupabase(photos);
-    if (savedToDb) {
+    const newId = await saveToSupabase(photos);
+    if (newId) {
+      setAppId(newId);
       if (WEB3FORMS_ACCESS_KEY) void notifyByEmail(photos);
       go(5);
       return;
@@ -227,6 +230,25 @@ export function AthleteApplicationForm() {
     } else {
       setStatus("error");
     }
+  }
+
+  /** Inicia la conexión de Mercado Pago del atleta (durante el registro). */
+  async function connectMP() {
+    if (!appId || connecting) return;
+    setConnecting(true);
+    try {
+      const supabase = await getSupabase();
+      if (supabase) {
+        const { data } = await supabase.functions.invoke("mp-app-connect-url", {
+          body: { application_id: appId },
+        });
+        if (data?.url) {
+          window.location.href = data.url;
+          return;
+        }
+      }
+    } catch {}
+    setConnecting(false);
   }
 
   function reset() {
@@ -252,6 +274,8 @@ export function AthleteApplicationForm() {
     setAcepta(false);
     setAceptaTutor(false);
     setStatus("idle");
+    setAppId(null);
+    setConnecting(false);
   }
 
   /* ── Progress bar ── */
@@ -327,6 +351,33 @@ export function AthleteApplicationForm() {
           Los fundadores la revisan a mano y te escriben a tu mail en 3 a 5 días.
           Gracias por confiar en GRANITO.
         </p>
+
+        {appId && (
+          <div
+            className="mx-auto mt-7 max-w-[460px] rounded-[14px] p-5 text-left"
+            style={{ background: "#0d2238", border: "1px solid rgba(0,158,227,.4)" }}
+          >
+            <div className="font-display text-[18px] font-600 uppercase leading-none text-white">
+              Último paso: conectá tu Mercado Pago
+            </div>
+            <p className="mt-2 text-[14px] leading-relaxed text-white/65">
+              Para recibir los aportes directo en tu cuenta (el 93% es tuyo),
+              conectá tu Mercado Pago con tu propia cuenta. Toma 30 segundos.
+            </p>
+            <button
+              onClick={connectMP}
+              disabled={connecting}
+              className="mt-4 w-full cursor-pointer rounded-[10px] border-0 py-[14px] font-display text-[15px] font-700 uppercase tracking-wide text-white transition-all hover:-translate-y-0.5 disabled:opacity-60"
+              style={{ background: "#009ee3", boxShadow: "0 12px 28px rgba(0,158,227,.3)" }}
+            >
+              {connecting ? "Redirigiendo…" : "Conectar Mercado Pago"}
+            </button>
+            <p className="mt-2.5 text-center text-[12px] text-white/40">
+              Si preferís lo hacés más adelante — pero sin esto no podés recibir aportes.
+            </p>
+          </div>
+        )}
+
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <button
             onClick={reset}
