@@ -18,6 +18,18 @@ export default function BienvenidaPage() {
     }
 
     async function activar() {
+      // Si Supabase redirigió con error (link vencido o ya usado), viene en el hash.
+      const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+      if (hash.get("error")) {
+        setEstado("error");
+        setErrorMsg(
+          hash.get("error_code") === "otp_expired"
+            ? "El link de acceso venció o ya fue usado. Pedí uno nuevo con tu email desde el botón de abajo."
+            : "No pudimos validar el link. Pedí uno nuevo con tu email desde el botón de abajo.",
+        );
+        return;
+      }
+
       const supabase = await getSupabase();
       if (!supabase) { setEstado("error"); setErrorMsg("Error interno."); return; }
 
@@ -29,7 +41,7 @@ export default function BienvenidaPage() {
       if (error || !session) {
         setEstado("error");
         setErrorMsg(
-          "El link de activación expiró o ya fue usado. Pedile al equipo de GRANITO que te reenvíen el acceso.",
+          "El link de activación expiró o ya fue usado. Pedí uno nuevo con tu email desde el botón de abajo.",
         );
         return;
       }
@@ -104,10 +116,13 @@ export default function BienvenidaPage() {
             </p>
           </div>
           <a
-            href="/"
+            href="/mi-perfil/"
             className="rounded-[10px] px-7 py-3.5 font-display text-[15px] font-600 uppercase tracking-wide text-ink"
             style={{ background: "#C9A227" }}
           >
+            Pedir un link nuevo
+          </a>
+          <a href="/" className="text-[13px] text-white/40 underline hover:text-white/70">
             Ir al inicio
           </a>
         </div>

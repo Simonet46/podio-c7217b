@@ -36,6 +36,15 @@ type PendingChange = {
   created_at: string;
 };
 
+type Aporte = {
+  id: string;
+  amount: number;
+  net_amount: number | null;
+  type: string;
+  status: string;
+  created_at: string;
+};
+
 type AuthState = "loading" | "none" | "ok";
 
 type EditForm = {
@@ -56,6 +65,7 @@ export default function MiPerfilPage() {
   const [loginBusy, setLoginBusy] = useState(false);
   const [connectingMp, setConnectingMp] = useState(false);
   const [mpJustConnected, setMpJustConnected] = useState(false);
+  const [aportes, setAportes] = useState<Aporte[]>([]);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editForm, setEditForm] = useState<EditForm>({ bio: "", next_competition: "", socials: "", supporter_message: "" });
   const [editBusy, setEditBusy] = useState(false);
@@ -96,13 +106,15 @@ export default function MiPerfilPage() {
       setAtleta(a as Atleta);
 
       // Cargar datos paralelos.
-      const [{ data: mp }, { data: changes }] = await Promise.all([
+      const [{ data: mp }, { data: changes }, { data: dons }] = await Promise.all([
         supabase.from("athlete_mp_accounts").select("mp_user_id").eq("athlete_id", a.id).maybeSingle(),
         supabase.from("profile_change_requests").select("id,changes,status,created_at").eq("athlete_id", a.id).eq("status", "pending").maybeSingle(),
+        supabase.from("donations").select("id,amount,net_amount,type,status,created_at").eq("athlete_id", a.id).order("created_at", { ascending: false }).limit(10),
       ]);
 
       setMpConectado(!!mp?.mp_user_id);
       setPendingChange(changes as PendingChange | null);
+      setAportes((dons as Aporte[]) ?? []);
       setAuthState("ok");
     }
     init();
@@ -115,7 +127,7 @@ export default function MiPerfilPage() {
     const supabase = await getSupabase();
     await supabase?.auth.signInWithOtp({
       email: loginEmail,
-      options: { emailRedirectTo: `${SITE_URL}/bienvenida` },
+      options: { emailRedirectTo: `${SITE_URL}/bienvenida/` },
     });
     setLoginSent(true);
     setLoginBusy(false);
@@ -401,6 +413,44 @@ export default function MiPerfilPage() {
               >
                 {connectingMp ? "Abriendo…" : "Conectar Mercado Pago"}
               </button>
+            </div>
+          )}
+        </Card>
+
+        {/* Últimos aportes */}
+        <Card title="Últimos aportes" className="mb-4">
+          {aportes.length === 0 ? (
+            <p className="text-[14px] text-white/45">
+              Todavía no recibiste aportes. Compartí tu perfil público para que empiecen a llegar.
+            </p>
+          ) : (
+            <div className="flex flex-col">
+              {aportes.map((d) => (
+                <div
+                  key={d.id}
+                  className="flex items-center justify-between gap-3 border-b border-white/[.06] py-3 last:border-0"
+                >
+                  <div>
+                    <p className="text-[14px] text-white/80">
+                      {d.type === "monthly" ? "Aporte mensual" : "Aporte único"}
+                    </p>
+                    <p className="text-[12px] text-white/40">
+                      {new Date(d.created_at).toLocaleDateString("es-AR", { day: "numeric", month: "long", year: "numeric" })}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-display text-[16px] font-700" style={{ color: "#C9A227" }}>
+                      {formatMoney(d.net_amount ?? d.amount)}
+                    </p>
+                    <p className="text-[11px]" style={{ color: d.status === "completed" ? "#22c55e" : d.status === "pending" ? "#C9A227" : "#f87171" }}>
+                      {d.status === "completed" ? "Acreditado" : d.status === "pending" ? "Pendiente" : d.status === "refunded" ? "Reembolsado" : "Falló"}
+                    </p>
+                  </div>
+                </div>
+              ))}
+              <p className="mt-3 text-[12px] text-white/35">
+                Los montos son netos (ya descontada la comisión de la plataforma). Mercado Pago puede demorar la liberación del dinero.
+              </p>
             </div>
           )}
         </Card>
