@@ -8,10 +8,23 @@ site_url = "https://simonet46.github.io/podio-c7217b"
 # Lista blanca de redirects permitidos (sin esto, los links caen en localhost).
 additional_redirect_urls = ["https://simonet46.github.io/podio-c7217b/**"]
 
-[auth.email.template.invite]
-subject = "Bienvenido/a a GRANITO 🥇 Tu cuenta de atleta está lista"
-content_path = "./supabase/templates/invite.html"
+# Valores que ya están así en remoto — los fijamos para que el push no los
+# pise con los defaults del CLI.
+[auth.email]
+enable_confirmations = true
+max_frequency = "1m0s"
+otp_length = 8
 
-[auth.email.template.magic_link]
-subject = "Tu link de acceso a GRANITO"
-content_path = "./supabase/templates/magic_link.html"
+[auth.mfa.totp]
+enroll_enabled = true
+verify_enabled = true
+
+# NOTA: los templates de email custom (supabase/templates/*.html) requieren
+# SMTP propio (p. ej. Resend) — el plan free con el mailer default no permite
+# modificarlos. Cuando haya SMTP, agregar:
+#   [auth.email.template.invite]
+#   subject = "Bienvenido/a a GRANITO 🥇 Tu cuenta de atleta está lista"
+#   content_path = "./supabase/templates/invite.html"
+#   [auth.email.template.magic_link]
+#   subject = "Tu link de acceso a GRANITO"
+#   content_path = "./supabase/templates/magic_link.html"
