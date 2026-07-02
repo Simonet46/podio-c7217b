@@ -1,0 +1,17 @@
+# Config remota de Supabase (se aplica con `supabase config push`).
+# Solo declaramos lo que queremos pisar; el resto queda como está en el dashboard.
+project_id = "ruugpxfgpbtajrxbabvg"
+
+[auth]
+# A dónde redirigen los magic links si no traen redirect_to explícito.
+site_url = "https://simonet46.github.io/podio-c7217b"
+# Lista blanca de redirects permitidos (sin esto, los links caen en localhost).
+additional_redirect_urls = ["https://simonet46.github.io/podio-c7217b/**"]
+
+[auth.email.template.invite]
+subject = "Bienvenido/a a GRANITO 🥇 Tu cuenta de atleta está lista"
+content_path = "./supabase/templates/invite.html"
+
+[auth.email.template.magic_link]
+subject = "Tu link de acceso a GRANITO"
+content_path = "./supabase/templates/magic_link.html"
