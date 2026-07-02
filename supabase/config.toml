@@ -14,6 +14,9 @@ additional_redirect_urls = ["https://simonet46.github.io/podio-c7217b/**"]
 enable_confirmations = true
 max_frequency = "1m0s"
 otp_length = 8
+# Los magic links duran 24 h (el default de 1 h dejaba links muertos si el
+# atleta no abría el email enseguida).
+otp_expiry = 86400
 
 [auth.mfa.totp]
 enroll_enabled = true
