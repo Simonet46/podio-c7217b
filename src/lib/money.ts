@@ -1,8 +1,8 @@
 import { CURRENCY, PLATFORM_FEE_RATE } from "@/config/site";
 
-/** Formatea un monto en USD para el donante internacional. */
+/** Formatea un monto en pesos argentinos (es-AR: $ 25.000). */
 export function formatMoney(amount: number, opts?: { cents?: boolean }): string {
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat("es-AR", {
     style: "currency",
     currency: CURRENCY,
     minimumFractionDigits: opts?.cents ? 2 : 0,
@@ -19,11 +19,6 @@ export function breakdown(amount: number) {
   const fee = Math.round(safe * PLATFORM_FEE_RATE * 100) / 100;
   const net = Math.round((safe - fee) * 100) / 100;
   return { amount: safe, fee, net };
-}
-
-/** Comisión en centavos para Stripe `application_fee_amount`. */
-export function feeInCents(amount: number): number {
-  return Math.round(amount * PLATFORM_FEE_RATE * 100);
 }
 
 /** Porcentaje de avance hacia la meta (0–100, recortado). */

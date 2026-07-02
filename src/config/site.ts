@@ -10,7 +10,7 @@ export const SITE = {
   tagline: "Apoyo directo al deporte argentino",
   description:
     "Apoyá directo a los atletas argentinos: desde el alto rendimiento hasta el juvenil del barrio. El 93% va al atleta.",
-  /** URL canónica del sitio (usada por Stripe para callbacks). */
+  /** URL canónica del sitio (usada para callbacks de pago). */
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
 } as const;
 
@@ -42,7 +42,7 @@ export const APPLICATIONS_EMAIL = "appidisko@gmail.com";
 /** Comisión de plataforma. 0.07 = 7%. El resto (93%) va al atleta. */
 export const PLATFORM_FEE_RATE = 0.07;
 
-/** Niveles del diploma de apoyo según el monto del aporte (USD). */
+/** Niveles del diploma de apoyo según el monto del aporte (ARS). */
 export type DiplomaTier = "bronce" | "plata" | "oro";
 
 export const DIPLOMA_TIERS: Record<
@@ -50,8 +50,8 @@ export const DIPLOMA_TIERS: Record<
   { label: string; min: number; color: string; accent: string }
 > = {
   bronce: { label: "Bronce", min: 1, color: "#C17A3F", accent: "#E0A06A" },
-  plata: { label: "Plata", min: 50, color: "#9AA6B2", accent: "#D7DEE6" },
-  oro: { label: "Oro", min: 100, color: "#C9A227", accent: "#E4C76A" },
+  plata: { label: "Plata", min: 10000, color: "#9AA6B2", accent: "#D7DEE6" },
+  oro: { label: "Oro", min: 25000, color: "#C9A227", accent: "#E4C76A" },
 };
 
 /** Devuelve el nivel de diploma para un monto. */
@@ -67,13 +67,13 @@ export function diplomaTier(amount: number): DiplomaTier {
  */
 export const LA2028_DATE = new Date("2028-07-14T00:00:00Z");
 
-/** Moneda mostrada al donante internacional. */
-export const CURRENCY = "USD" as const;
+/** Moneda de los aportes. Mercado Pago cobra en pesos argentinos. */
+export const CURRENCY = "ARS" as const;
 
-/** Montos preset del widget de donación. */
+/** Montos preset del widget de donación (ARS). */
 export const PRESET_AMOUNTS = {
-  once: [25, 50, 100],
-  monthly: [10, 25, 50],
+  once: [5000, 10000, 25000],
+  monthly: [3000, 5000, 10000],
 } as const;
 
 /** Disclaimer legal (footer). NO afiliación con COI/COA ni federaciones. */

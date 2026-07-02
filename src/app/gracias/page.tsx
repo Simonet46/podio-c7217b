@@ -112,14 +112,6 @@ function GraciasContent() {
         </div>
       )}
 
-      {/* ── Nota demo ── */}
-      <div
-        className="mb-8 rounded-lg px-4 py-3 text-center text-xs text-white/45"
-        style={{ background: "rgba(255,255,255,.05)", border: "1px solid rgba(255,255,255,.08)" }}
-      >
-        Esto es una demo — el cobro real se procesa próximamente vía Stripe.
-      </div>
-
       {/* ── Diploma ── */}
       {amount > 0 && (
         <>
