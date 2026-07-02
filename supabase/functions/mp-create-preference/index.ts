@@ -61,7 +61,9 @@ Deno.serve(async (req) => {
       failure: `${SITE_URL}/atleta/${encodeURIComponent(slug)}?mp=error`,
     },
     auto_return: "approved",
-    notification_url: `${supabaseUrl}/functions/v1/mp-webhook`,
+    // Incluye el athlete_id para que el webhook sepa con qué token de
+    // vendedor consultar el pago (el token de plataforma no puede leerlo).
+    notification_url: `${supabaseUrl}/functions/v1/mp-webhook?athlete=${athlete.id}`,
     external_reference: `${athlete.id}:${t}`,
     metadata: { athlete_id: athlete.id, type: t, amount: amt, fee },
   };
