@@ -66,20 +66,43 @@ type TeamApp = {
   created_at: string;
 };
 
+type MpInfo = {
+  id: number;
+  nickname: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  email: string | null;
+  identification: { type: string; number: string } | null;
+};
+type MpModalState = { athlete: AthleteRow; info: MpInfo | null; error: string | null } | null;
+
 type Phase = "loading" | "noenv" | "login" | "denied" | "ready";
 type StatusFilter = "pending" | "approved" | "rejected";
 type Section =
   | "Resumen"
   | "Postulaciones"
   | "Atletas"
+  | "Cambios"
   | "Aportes"
   | "Pagos"
   | "Hinchas"
   | "Empresas"
   | "Ajustes";
 
+type ProfileChangeRequest = {
+  id: string;
+  athlete_id: string;
+  athlete_name: string;
+  changes: Record<string, string>;
+  previous_values: Record<string, string>;
+  status: string;
+  admin_note: string | null;
+  created_at: string;
+};
+
 type Draft = {
   appId: string;
+  email: string;
   slug: string;
   full_name: string;
   first_name: string;
@@ -161,6 +184,7 @@ function buildDraft(app: Application): Draft {
   const bio = [app.achievements, app.needs].filter(Boolean).join("\n\n");
   return {
     appId: app.id,
+    email: app.email ?? "",
     slug: slugify(app.full_name),
     full_name: app.full_name,
     first_name: app.full_name.split(" ")[0] ?? app.full_name,
@@ -243,6 +267,7 @@ const NAV_MAIN: { label: Section; icon: string }[] = [
   { label: "Resumen", icon: "◧" },
   { label: "Postulaciones", icon: "◔" },
   { label: "Atletas", icon: "◉" },
+  { label: "Cambios", icon: "✎" },
   { label: "Aportes", icon: "◈" },
   { label: "Pagos", icon: "◇" },
 ];
@@ -255,6 +280,7 @@ const PAGE_META: Record<Section, { t: string; s: string }> = {
   Resumen: { t: "Resumen general", s: "Lo que pasó esta semana" },
   Postulaciones: { t: "Postulaciones", s: "Revisá cada caso a mano, uno por uno" },
   Atletas: { t: "Atletas", s: "Atletas publicados en la plataforma" },
+  Cambios: { t: "Cambios de perfil", s: "Pedidos de edición enviados por atletas" },
   Aportes: { t: "Aportes", s: "Movimientos recientes" },
   Pagos: { t: "Pagos", s: "Distribución mensual a los atletas" },
   Hinchas: { t: "Hinchas", s: "Las personas que apoyan" },
@@ -280,6 +306,8 @@ export function BackofficeApp() {
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState("");
   const [publishing, setPublishing] = useState(false);
+  const [mpModal, setMpModal] = useState<MpModalState>(null);
+  const [profileChanges, setProfileChanges] = useState<ProfileChangeRequest[]>([]);
 
   // ── Sesión ────────────────────────────────────────────────────────────
   const resolveSession = useCallback(async () => {
@@ -308,14 +336,26 @@ export function BackofficeApp() {
     const supa = sb();
     if (!supa) return;
     setLoadingList(true);
-    const [appsRes, athRes, teamRes] = await Promise.all([
+    const [appsRes, athRes, teamRes, changesRes] = await Promise.all([
       supa.from("athlete_applications").select("*").order("created_at", { ascending: false }),
       supa.from("athletes").select("id,slug,full_name,sport,city,province,raised_amount,verified,mp_connected").order("raised_amount", { ascending: false }),
       supa.from("team_applications").select("*").order("created_at", { ascending: false }),
+      supa
+        .from("profile_change_requests")
+        .select("id,athlete_id,changes,previous_values,status,admin_note,created_at,athletes(full_name)")
+        .order("created_at", { ascending: false }),
     ]);
     if (!appsRes.error && appsRes.data) setAllApps(appsRes.data as Application[]);
     if (!athRes.error && athRes.data) setAthletes(athRes.data as AthleteRow[]);
     if (!teamRes.error && teamRes.data) setTeamApps(teamRes.data as TeamApp[]);
+    if (!changesRes.error && changesRes.data) {
+      setProfileChanges(
+        (changesRes.data as unknown as Array<{ id: string; athlete_id: string; changes: Record<string, string>; previous_values: Record<string, string>; status: string; admin_note: string | null; created_at: string; athletes: { full_name: string } | null }>).map((r) => ({
+          ...r,
+          athlete_name: r.athletes?.full_name ?? "Atleta desconocido",
+        })),
+      );
+    }
     setLoadingList(false);
   }, []);
 
@@ -387,6 +427,7 @@ export function BackofficeApp() {
         slug: draft.slug,
         full_name: draft.full_name,
         first_name: draft.first_name,
+        email: draft.email || null,
         sport: draft.sport,
         discipline: draft.discipline,
         city: draft.city,
@@ -430,11 +471,20 @@ export function BackofficeApp() {
       p_athlete_id: data.id,
     });
 
+    // Invitar al atleta por email para que active su cuenta.
+    let inviteOk = false;
+    if (draft.email) {
+      const { error: inviteErr } = await supa.functions.invoke("invite-athlete", {
+        body: { athlete_id: data.id },
+      });
+      inviteOk = !inviteErr;
+    }
+
     setBusy(false);
     setToast(
       e2
         ? "Atleta creado, pero no se pudo marcar la postulación: " + e2.message
-        : `¡${draft.full_name} dado de alta!${mpMigrated ? " Su Mercado Pago quedó conectado ✓." : ""} Acordate de "Publicar ahora" para que salga online.`,
+        : `¡${draft.full_name} dado de alta!${mpMigrated ? " MP conectado ✓." : ""}${inviteOk ? ` Invitación enviada a ${draft.email}.` : draft.email ? " (No se pudo enviar la invitación.)" : ""}  Acordate de "Publicar ahora".`,
     );
     setDraft(null);
     loadApps();
@@ -452,6 +502,38 @@ export function BackofficeApp() {
         ? "No se pudo disparar la publicación (¿está configurada la función trigger-rebuild?): " + error.message
         : "🚀 Publicación disparada. El sitio se actualiza en ~1-2 min.",
     );
+  }
+
+  async function handleToggleStatus(athlete: AthleteRow) {
+    const supa = sb();
+    if (!supa) return;
+    const next = !athlete.verified;
+    const msg = next
+      ? `¿Reactivar a ${athlete.full_name}?`
+      : `¿Suspender a ${athlete.full_name}? No podrá recibir aportes.`;
+    if (!confirm(msg)) return;
+    const { error } = await supa.from("athletes").update({ verified: next }).eq("id", athlete.id);
+    if (error) { setToast("Error: " + error.message); return; }
+    setToast(`${athlete.full_name} ${next ? "reactivado ✓" : "suspendido."}`);
+    loadApps();
+  }
+
+  async function handleViewMpInfo(athlete: AthleteRow) {
+    const supa = sb();
+    if (!supa) return;
+    setMpModal({ athlete, info: null, error: null });
+    const { data, error } = await supa.functions.invoke("mp-account-info", {
+      body: { athlete_id: athlete.id },
+    });
+    if (error) {
+      setMpModal({ athlete, info: null, error: error.message });
+      return;
+    }
+    if (data?.error) {
+      setMpModal({ athlete, info: null, error: data.error });
+      return;
+    }
+    setMpModal({ athlete, info: data as MpInfo, error: null });
   }
 
   /** Genera el link de conexión de Mercado Pago de un atleta y lo abre. */
@@ -581,7 +663,11 @@ export function BackofficeApp() {
         <nav className="bo-scroll" style={{ flex: 1, overflowY: "auto", padding: 14 }}>
           <div className="px-3 pb-1.5 pt-2 font-display text-[10px] font-600 uppercase tracking-[.16em]" style={{ color: "rgba(255,255,255,.32)" }}>Gestión</div>
           {NAV_MAIN.map((n) => (
-            <NavItem key={n.label} item={n} active={active === n.label} badge={n.label === "Postulaciones" && counts.pending ? String(counts.pending) : null} onClick={() => setActive(n.label)} />
+            <NavItem key={n.label} item={n} active={active === n.label} badge={
+              n.label === "Postulaciones" && counts.pending ? String(counts.pending) :
+              n.label === "Cambios" && profileChanges.filter((c) => c.status === "pending").length ? String(profileChanges.filter((c) => c.status === "pending").length) :
+              null
+            } onClick={() => setActive(n.label)} />
           ))}
           <div className="px-3 pb-1.5 pt-4 font-display text-[10px] font-600 uppercase tracking-[.16em]" style={{ color: "rgba(255,255,255,.32)" }}>Plataforma</div>
           {NAV_SEC.map((n) => (
@@ -699,7 +785,30 @@ export function BackofficeApp() {
           )}
 
           {/* ===== ATLETAS ===== */}
-          {active === "Atletas" && <AtletasSection athletes={athletes} loading={loadingList} onConnect={genMpLink} />}
+          {active === "Atletas" && <AtletasSection athletes={athletes} loading={loadingList} onConnect={genMpLink} onToggleStatus={handleToggleStatus} onViewMpInfo={handleViewMpInfo} />}
+
+          {/* ===== CAMBIOS DE PERFIL ===== */}
+          {active === "Cambios" && (
+            <CambiosSection
+              items={profileChanges}
+              loading={loadingList}
+              onApprove={async (item) => {
+                const supa = sb();
+                if (!supa) return;
+                await supa.from("athletes").update(item.changes).eq("id", item.athlete_id);
+                await supa.from("profile_change_requests").update({ status: "approved" }).eq("id", item.id);
+                setProfileChanges((prev) => prev.map((c) => c.id === item.id ? { ...c, status: "approved" } : c));
+                setToast(`✓ Cambios de ${item.athlete_name} aprobados y publicados.`);
+              }}
+              onReject={async (item, note) => {
+                const supa = sb();
+                if (!supa) return;
+                await supa.from("profile_change_requests").update({ status: "rejected", admin_note: note || null }).eq("id", item.id);
+                setProfileChanges((prev) => prev.map((c) => c.id === item.id ? { ...c, status: "rejected", admin_note: note || null } : c));
+                setToast(`Cambios de ${item.athlete_name} rechazados.`);
+              }}
+            />
+          )}
 
           {/* ===== APORTES ===== */}
           {active === "Aportes" && <AportesSection />}
@@ -722,6 +831,9 @@ export function BackofficeApp() {
       {draft && (
         <ApprovalModal draft={draft} setDraft={setDraft} onSubmit={handleApprove} busy={busy} onClose={() => setDraft(null)} />
       )}
+
+      {/* ===== Modal de info de MP ===== */}
+      {mpModal && <MpInfoModal modal={mpModal} onClose={() => setMpModal(null)} />}
 
       <style>{`
         .bo-scroll::-webkit-scrollbar{width:9px;height:9px}
@@ -1139,10 +1251,14 @@ function AtletasSection({
   athletes,
   loading,
   onConnect,
+  onToggleStatus,
+  onViewMpInfo,
 }: {
   athletes: AthleteRow[];
   loading: boolean;
   onConnect: (a: AthleteRow) => void;
+  onToggleStatus: (a: AthleteRow) => void;
+  onViewMpInfo: (a: AthleteRow) => void;
 }) {
   const cols = "2fr 1.1fr 1.3fr .8fr 1fr .8fr 1.2fr";
   return (
@@ -1169,16 +1285,28 @@ function AtletasSection({
             <div className="text-[13px]" style={{ color: "rgba(255,255,255,.6)" }}>{loc}</div>
             <div className="text-right font-display text-[16px] font-600">{supporterCount(raised)}</div>
             <div className="text-right font-display text-[15px] font-600" style={{ color: C.gold }}>{formatMoney(raised)}</div>
-            <div className="text-right">
-              <span className="rounded-full px-2.5 py-[3px] font-display text-[10px] font-600 uppercase tracking-[.04em]" style={a.verified ? { background: "rgba(34,197,94,.14)", color: C.greenBright } : { background: "rgba(255,255,255,.08)", color: C.txtDim }}>
-                {a.verified ? "Activo" : "Borrador"}
-              </span>
+            <div className="flex justify-end">
+              <button
+                onClick={() => onToggleStatus(a)}
+                title={a.verified ? "Suspender atleta" : "Reactivar atleta"}
+                className="rounded-full px-2.5 py-[3px] font-display text-[10px] font-600 uppercase tracking-[.04em] transition-opacity hover:opacity-70"
+                style={a.verified
+                  ? { background: "rgba(34,197,94,.14)", color: C.greenBright, border: "none", cursor: "pointer" }
+                  : { background: "rgba(223,0,36,.12)", color: C.redBright, border: "none", cursor: "pointer" }}
+              >
+                {a.verified ? "Activo" : "Suspendido"}
+              </button>
             </div>
             <div className="flex justify-end">
               {a.mp_connected ? (
-                <span className="rounded-full px-2.5 py-[3px] font-display text-[10px] font-600 uppercase tracking-[.04em]" style={{ background: "rgba(34,197,94,.14)", color: C.greenBright }}>
+                <button
+                  onClick={() => onViewMpInfo(a)}
+                  title="Ver datos de la cuenta de Mercado Pago del atleta"
+                  className="rounded-full px-2.5 py-[3px] font-display text-[10px] font-600 uppercase tracking-[.04em] transition-opacity hover:opacity-70"
+                  style={{ background: "rgba(34,197,94,.14)", color: C.greenBright, border: "none", cursor: "pointer" }}
+                >
                   ✓ MP
-                </span>
+                </button>
               ) : (
                 <button
                   onClick={() => onConnect(a)}
@@ -1746,6 +1874,69 @@ function ResponsiveCSS() {
   );
 }
 
+// ── Modal de info de Mercado Pago ────────────────────────────────────────
+function MpInfoModal({ modal, onClose }: { modal: NonNullable<MpModalState>; onClose: () => void }) {
+  const { athlete, info, error } = modal;
+  return (
+    <div
+      onClick={onClose}
+      style={{ position: "fixed", inset: 0, zIndex: 90, background: "rgba(4,10,18,.78)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{ width: "100%", maxWidth: 440, background: C.surface, border: "1px solid rgba(255,255,255,.1)", borderRadius: 20, padding: 28, boxShadow: "0 30px 90px rgba(0,0,0,.65)" }}
+      >
+        <div className="mb-5 flex items-start justify-between gap-3">
+          <div>
+            <div className="font-display text-[11px] uppercase tracking-[.14em]" style={{ color: C.gold }}>Cuenta de Mercado Pago</div>
+            <h2 className="m-0 mt-1 font-display text-[22px] font-600 leading-tight">{athlete.full_name}</h2>
+          </div>
+          <button onClick={onClose} className="mt-1 flex-none text-xl leading-none" style={{ color: C.txtDim, background: "none", border: "none", cursor: "pointer" }}>✕</button>
+        </div>
+
+        {!info && !error && (
+          <div className="py-8 text-center text-[13px]" style={{ color: C.txtDim }}>Consultando datos de MP…</div>
+        )}
+
+        {error && (
+          <div className="rounded-xl px-4 py-3 text-[13px]" style={{ background: "rgba(223,0,36,.1)", border: "1px solid rgba(223,0,36,.3)", color: C.redBright }}>
+            {error}
+          </div>
+        )}
+
+        {info && (
+          <>
+            <div className="mb-4 rounded-xl px-4 py-3 text-[13px] leading-relaxed" style={{ background: "rgba(34,197,94,.08)", border: "1px solid rgba(34,197,94,.22)", color: C.greenBright }}>
+              ✓ El atleta autorizó esta cuenta mediante OAuth — solo quien se logueó en MP pudo conectarla.
+            </div>
+            <div className="flex flex-col gap-2">
+              <MpInfoRow label="Nombre" value={[info.first_name, info.last_name].filter(Boolean).join(" ") || "—"} />
+              <MpInfoRow label="Email de MP" value={info.email ?? "—"} />
+              {info.identification && (
+                <MpInfoRow label={info.identification.type} value={info.identification.number} />
+              )}
+              {info.nickname && <MpInfoRow label="Alias" value={info.nickname} />}
+              <MpInfoRow label="ID de Mercado Pago" value={String(info.id)} dim />
+            </div>
+            <p className="mt-4 text-[12px] leading-relaxed" style={{ color: C.txtFaint }}>
+              Verificá que el nombre y documento coincidan con los de la postulación. Si no coinciden, contactate con el atleta antes de aprobar pagos.
+            </p>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function MpInfoRow({ label, value, dim }: { label: string; value: string; dim?: boolean }) {
+  return (
+    <div className="rounded-[9px] px-3.5 py-2.5" style={{ background: "#0a1828", border: "1px solid rgba(255,255,255,.07)" }}>
+      <div className="mb-1 text-[10px] uppercase tracking-[.06em]" style={{ color: C.txtFaint }}>{label}</div>
+      <div className="text-[14px] font-600" style={{ color: dim ? C.txtDim : "#fff" }}>{value}</div>
+    </div>
+  );
+}
+
 function timeAgo(iso: string): string {
   const then = new Date(iso).getTime();
   const now = Date.now();
@@ -1756,4 +1947,217 @@ function timeAgo(iso: string): string {
   const days = Math.round(hrs / 24);
   if (days === 1) return "ayer";
   return `hace ${days} d`;
+}
+
+// ── Cambios de perfil ─────────────────────────────────────────────────────
+const FIELD_LABELS: Record<string, string> = {
+  bio: "Historia / Bio",
+  next_competition: "Próxima competencia",
+  socials: "Instagram",
+  supporter_message: "Mensaje para donadores",
+};
+
+function CambiosSection({
+  items,
+  loading,
+  onApprove,
+  onReject,
+}: {
+  items: ProfileChangeRequest[];
+  loading: boolean;
+  onApprove: (item: ProfileChangeRequest) => Promise<void>;
+  onReject: (item: ProfileChangeRequest, note: string) => Promise<void>;
+}) {
+  const [busy, setBusy] = useState<string | null>(null);
+  const [rejectModal, setRejectModal] = useState<ProfileChangeRequest | null>(null);
+  const [rejectNote, setRejectNote] = useState("");
+
+  if (loading) {
+    return <div className="py-16 text-center text-[14px]" style={{ color: C.txtDim }}>Cargando…</div>;
+  }
+
+  const pending = items.filter((i) => i.status === "pending");
+  const reviewed = items.filter((i) => i.status !== "pending");
+
+  async function approve(item: ProfileChangeRequest) {
+    setBusy(item.id);
+    await onApprove(item);
+    setBusy(null);
+  }
+
+  async function reject(item: ProfileChangeRequest) {
+    setBusy(item.id + "-reject");
+    await onReject(item, rejectNote);
+    setBusy(null);
+    setRejectModal(null);
+    setRejectNote("");
+  }
+
+  return (
+    <>
+      {pending.length === 0 && reviewed.length === 0 && (
+        <div className="py-20 text-center text-[15px]" style={{ color: C.txtDim }}>
+          No hay cambios de perfil enviados aún.
+        </div>
+      )}
+
+      {pending.length > 0 && (
+        <section className="mb-6">
+          <div className="mb-3 font-display text-[12px] font-600 uppercase tracking-[.1em]" style={{ color: C.gold }}>
+            Pendientes de revisión ({pending.length})
+          </div>
+          <div className="flex flex-col gap-4">
+            {pending.map((item) => (
+              <ChangeCard
+                key={item.id}
+                item={item}
+                busy={busy === item.id}
+                rejectBusy={busy === item.id + "-reject"}
+                onApprove={() => approve(item)}
+                onReject={() => { setRejectNote(""); setRejectModal(item); }}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {reviewed.length > 0 && (
+        <section>
+          <div className="mb-3 font-display text-[12px] font-600 uppercase tracking-[.1em]" style={{ color: C.txtFaint }}>
+            Revisados
+          </div>
+          <div className="flex flex-col gap-3">
+            {reviewed.map((item) => (
+              <ChangeCard key={item.id} item={item} busy={false} rejectBusy={false} onApprove={() => Promise.resolve()} onReject={() => {}} readOnly />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Modal de rechazo */}
+      {rejectModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          style={{ background: "rgba(0,0,0,.75)" }}
+          onClick={(e) => { if (e.target === e.currentTarget) setRejectModal(null); }}
+        >
+          <div className="w-full max-w-[440px] rounded-[18px] p-6" style={{ background: C.surface, border: `1px solid ${C.border}` }}>
+            <h3 className="mb-4 font-display text-[18px] font-700 uppercase leading-none text-white">Rechazar cambio</h3>
+            <p className="mb-4 text-[14px]" style={{ color: C.txtDim }}>
+              ¿Querés dejarle una nota al atleta explicando el motivo? (opcional)
+            </p>
+            <textarea
+              rows={3}
+              value={rejectNote}
+              onChange={(e) => setRejectNote(e.target.value)}
+              placeholder="Ej: La foto que enviaste no cumple con los requisitos…"
+              className="mb-4 w-full resize-none rounded-[10px] p-3 text-[14px] text-white outline-none placeholder:text-white/30"
+              style={{ background: C.sidebar, border: `1px solid rgba(255,255,255,.12)` }}
+            />
+            <div className="flex gap-3">
+              <button
+                onClick={() => setRejectModal(null)}
+                className="flex-1 rounded-[10px] py-3 font-display text-[13px] font-600 uppercase tracking-wide"
+                style={{ border: `1px solid rgba(255,255,255,.15)`, color: C.txtDim }}
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => reject(rejectModal)}
+                disabled={busy === rejectModal.id + "-reject"}
+                className="flex-1 rounded-[10px] py-3 font-display text-[13px] font-600 uppercase tracking-wide text-white disabled:opacity-50"
+                style={{ background: C.red }}
+              >
+                {busy === rejectModal.id + "-reject" ? "Rechazando…" : "Rechazar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+function ChangeCard({
+  item,
+  busy,
+  rejectBusy,
+  onApprove,
+  onReject,
+  readOnly,
+}: {
+  item: ProfileChangeRequest;
+  busy: boolean;
+  rejectBusy: boolean;
+  onApprove: () => void;
+  onReject: () => void;
+  readOnly?: boolean;
+}) {
+  const statusColor = item.status === "approved" ? C.greenBright : item.status === "rejected" ? C.redBright : C.gold;
+  const statusLabel = item.status === "approved" ? "Aprobado" : item.status === "rejected" ? "Rechazado" : "Pendiente";
+
+  return (
+    <div className="rounded-[14px] p-5" style={{ background: C.surface, border: `1px solid ${C.border}` }}>
+      {/* Header */}
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <div>
+          <div className="font-display text-[16px] font-600 leading-tight text-white">{item.athlete_name}</div>
+          <div className="mt-0.5 text-[12px]" style={{ color: C.txtFaint }}>{timeAgo(item.created_at)}</div>
+        </div>
+        <span
+          className="shrink-0 rounded-full px-2.5 py-1 font-display text-[11px] font-600 uppercase tracking-wide"
+          style={{ background: `${statusColor}18`, color: statusColor, border: `1px solid ${statusColor}40` }}
+        >
+          {statusLabel}
+        </span>
+      </div>
+
+      {/* Diff */}
+      <div className="mb-4 flex flex-col gap-2">
+        {Object.entries(item.changes).map(([field, newVal]) => (
+          <div key={field} className="rounded-[10px] p-3" style={{ background: C.sidebar, border: `1px solid rgba(255,255,255,.06)` }}>
+            <div className="mb-1.5 font-display text-[10px] font-600 uppercase tracking-[.08em]" style={{ color: C.txtFaint }}>
+              {FIELD_LABELS[field] ?? field}
+            </div>
+            {item.previous_values?.[field] !== undefined && (
+              <div className="mb-1.5 rounded-[6px] px-2 py-1 text-[12px] line-through" style={{ background: "rgba(220,38,38,.1)", color: "rgba(255,90,110,.7)" }}>
+                {item.previous_values[field] || <em>vacío</em>}
+              </div>
+            )}
+            <div className="rounded-[6px] px-2 py-1 text-[13px] leading-relaxed" style={{ background: "rgba(34,197,94,.08)", color: "#86efac" }}>
+              {newVal || <em>vacío</em>}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {item.admin_note && (
+        <div className="mb-3 rounded-[8px] px-3 py-2 text-[12px] italic" style={{ background: "rgba(255,255,255,.04)", color: C.txtFaint }}>
+          Nota: {item.admin_note}
+        </div>
+      )}
+
+      {/* Actions */}
+      {!readOnly && item.status === "pending" && (
+        <div className="flex gap-2.5">
+          <button
+            onClick={onReject}
+            disabled={busy || rejectBusy}
+            className="flex-1 rounded-[10px] py-2.5 font-display text-[13px] font-600 uppercase tracking-wide text-white disabled:opacity-40"
+            style={{ background: "rgba(223,0,36,.2)", border: `1px solid rgba(223,0,36,.35)` }}
+          >
+            Rechazar
+          </button>
+          <button
+            onClick={onApprove}
+            disabled={busy || rejectBusy}
+            className="flex-1 rounded-[10px] py-2.5 font-display text-[13px] font-600 uppercase tracking-wide disabled:opacity-40"
+            style={{ background: C.green, color: "#fff" }}
+          >
+            {busy ? "Aprobando…" : "Aprobar y publicar"}
+          </button>
+        </div>
+      )}
+    </div>
+  );
 }
