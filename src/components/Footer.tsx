@@ -62,8 +62,9 @@ export function Footer() {
           <p className="mt-3 text-xs text-white/35">
             La plataforma retiene una comisión del{" "}
             {Math.round(PLATFORM_FEE_RATE * 100)}% para operar; el resto va
-            directo al atleta. Pagos procesados de forma segura vía Stripe
-            Connect (modelo pass-through: la plataforma no custodia los fondos).
+            directo al atleta. Pagos procesados de forma segura por Mercado
+            Pago: el aporte llega directo a la cuenta del atleta, la plataforma
+            no custodia los fondos.
           </p>
           <p className="mt-3 text-xs text-white/35">
             © {SITE.brand} — Hecho en Argentina.

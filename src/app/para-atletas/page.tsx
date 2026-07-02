@@ -78,6 +78,15 @@ export default function ParaAtletasPage() {
                 </Link>
               </div>
             </Reveal>
+
+            <Reveal delay={200}>
+              <p className="mt-6 text-[14px] text-white/50">
+                ¿Ya tenés cuenta de atleta?{" "}
+                <Link href="/mi-perfil" className="font-600 text-gold underline underline-offset-4 hover:text-gold-soft">
+                  Entrá a tu perfil
+                </Link>
+              </p>
+            </Reveal>
           </div>
         </section>
 

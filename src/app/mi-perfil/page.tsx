@@ -48,6 +48,7 @@ type Aporte = {
 type AuthState = "loading" | "none" | "ok";
 
 type EditForm = {
+  photo_url: string;
   bio: string;
   next_competition: string;
   socials: string;
@@ -67,9 +68,10 @@ export default function MiPerfilPage() {
   const [mpJustConnected, setMpJustConnected] = useState(false);
   const [aportes, setAportes] = useState<Aporte[]>([]);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [editForm, setEditForm] = useState<EditForm>({ bio: "", next_competition: "", socials: "", supporter_message: "" });
+  const [editForm, setEditForm] = useState<EditForm>({ photo_url: "", bio: "", next_competition: "", socials: "", supporter_message: "" });
   const [editBusy, setEditBusy] = useState(false);
   const [editError, setEditError] = useState("");
+  const [photoUploading, setPhotoUploading] = useState(false);
 
   // Escuchar postMessage del popup de MP.
   useEffect(() => {
@@ -142,6 +144,7 @@ export default function MiPerfilPage() {
   function openEditModal() {
     if (!atleta) return;
     setEditForm({
+      photo_url: atleta.photo_url ?? "",
       bio: atleta.bio ?? "",
       next_competition: atleta.next_competition ?? "",
       socials: atleta.socials ?? "",
@@ -149,6 +152,32 @@ export default function MiPerfilPage() {
     });
     setEditError("");
     setShowEditModal(true);
+  }
+
+  async function handlePhotoSelect(file: File) {
+    if (!atleta || photoUploading) return;
+    if (file.size > 5 * 1024 * 1024) {
+      setEditError("La foto no puede pesar más de 5 MB.");
+      return;
+    }
+    setPhotoUploading(true);
+    setEditError("");
+    try {
+      const supabase = await getSupabase();
+      const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+      const path = `profiles/${atleta.id}-${Date.now()}.${ext}`;
+      const { error } = await supabase!.storage
+        .from("athlete-media")
+        .upload(path, file, { contentType: file.type, upsert: false });
+      if (error) {
+        setEditError("No se pudo subir la foto. Intentá de nuevo.");
+        return;
+      }
+      const url = supabase!.storage.from("athlete-media").getPublicUrl(path).data.publicUrl;
+      setEditForm((f) => ({ ...f, photo_url: url }));
+    } finally {
+      setPhotoUploading(false);
+    }
   }
 
   async function handleEditSubmit(e: React.FormEvent) {
@@ -160,7 +189,7 @@ export default function MiPerfilPage() {
     // Solo enviamos los campos que cambiaron.
     const changes: Record<string, string> = {};
     const previous: Record<string, string> = {};
-    (["bio", "next_competition", "socials", "supporter_message"] as (keyof EditForm)[]).forEach((k) => {
+    (["photo_url", "bio", "next_competition", "socials", "supporter_message"] as (keyof EditForm)[]).forEach((k) => {
       const current = (atleta[k as keyof Atleta] as string | null) ?? "";
       if (editForm[k] !== current) {
         changes[k] = editForm[k];
@@ -511,6 +540,8 @@ export default function MiPerfilPage() {
           form={editForm}
           busy={editBusy}
           errorMsg={editError}
+          photoUploading={photoUploading}
+          onPhotoSelect={handlePhotoSelect}
           onChange={(field, val) => setEditForm((f) => ({ ...f, [field]: val }))}
           onSubmit={handleEditSubmit}
           onClose={() => setShowEditModal(false)}
@@ -599,6 +630,8 @@ function EditModal({
   form,
   busy,
   errorMsg,
+  photoUploading,
+  onPhotoSelect,
   onChange,
   onSubmit,
   onClose,
@@ -606,6 +639,8 @@ function EditModal({
   form: EditForm;
   busy: boolean;
   errorMsg: string;
+  photoUploading: boolean;
+  onPhotoSelect: (file: File) => void;
   onChange: (field: keyof EditForm, val: string) => void;
   onSubmit: (e: React.FormEvent) => void;
   onClose: () => void;
@@ -634,6 +669,38 @@ function EditModal({
         </p>
 
         <form onSubmit={onSubmit} className="flex flex-col gap-5">
+          <EditField label="Foto de perfil">
+            <div className="flex items-center gap-4">
+              <div
+                className="flex h-[64px] w-[64px] shrink-0 items-center justify-center overflow-hidden rounded-full text-[22px] text-white/30"
+                style={{ background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.12)" }}
+              >
+                {form.photo_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={form.photo_url} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  "?"
+                )}
+              </div>
+              <label
+                className="cursor-pointer rounded-[10px] border border-white/25 px-4 py-2.5 font-display text-[12px] font-600 uppercase tracking-wide text-white/80 transition hover:border-white/50"
+              >
+                {photoUploading ? "Subiendo…" : form.photo_url ? "Cambiar foto" : "Subir foto"}
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="hidden"
+                  disabled={photoUploading}
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) onPhotoSelect(f);
+                    e.target.value = "";
+                  }}
+                />
+              </label>
+            </div>
+          </EditField>
+
           <EditField label="Historia / Bio">
             <textarea
               rows={4}
@@ -690,7 +757,7 @@ function EditModal({
             </button>
             <button
               type="submit"
-              disabled={busy}
+              disabled={busy || photoUploading}
               className="flex-1 rounded-[10px] py-3 font-display text-[14px] font-600 uppercase tracking-wide text-ink disabled:opacity-50"
               style={{ background: "#C9A227" }}
             >

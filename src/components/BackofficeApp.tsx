@@ -1962,11 +1962,34 @@ function timeAgo(iso: string): string {
 
 // ── Cambios de perfil ─────────────────────────────────────────────────────
 const FIELD_LABELS: Record<string, string> = {
+  photo_url: "Foto de perfil",
   bio: "Historia / Bio",
   next_competition: "Próxima competencia",
   socials: "Instagram",
   supporter_message: "Mensaje para donadores",
 };
+
+/** Muestra un valor del diff: las fotos como imagen, el resto como texto. */
+function DiffValue({ field, value, removed }: { field: string; value: string; removed?: boolean }) {
+  if (field === "photo_url" && value) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={value}
+        alt={removed ? "Foto anterior" : "Foto nueva"}
+        style={{
+          width: 88,
+          height: 88,
+          objectFit: "cover",
+          borderRadius: 10,
+          opacity: removed ? 0.55 : 1,
+          filter: removed ? "grayscale(60%)" : "none",
+        }}
+      />
+    );
+  }
+  return <>{value || <em>vacío</em>}</>;
+}
 
 function CambiosSection({
   items,
@@ -2131,12 +2154,15 @@ function ChangeCard({
               {FIELD_LABELS[field] ?? field}
             </div>
             {item.previous_values?.[field] !== undefined && (
-              <div className="mb-1.5 rounded-[6px] px-2 py-1 text-[12px] line-through" style={{ background: "rgba(220,38,38,.1)", color: "rgba(255,90,110,.7)" }}>
-                {item.previous_values[field] || <em>vacío</em>}
+              <div
+                className="mb-1.5 rounded-[6px] px-2 py-1 text-[12px]"
+                style={{ background: "rgba(220,38,38,.1)", color: "rgba(255,90,110,.7)", textDecoration: field === "photo_url" ? "none" : "line-through" }}
+              >
+                <DiffValue field={field} value={item.previous_values[field]} removed />
               </div>
             )}
             <div className="rounded-[6px] px-2 py-1 text-[13px] leading-relaxed" style={{ background: "rgba(34,197,94,.08)", color: "#86efac" }}>
-              {newVal || <em>vacío</em>}
+              <DiffValue field={field} value={newVal} />
             </div>
           </div>
         ))}
