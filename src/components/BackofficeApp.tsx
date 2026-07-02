@@ -1918,8 +1918,19 @@ function MpInfoModal({ modal, onClose }: { modal: NonNullable<MpModalState>; onC
               {info.nickname && <MpInfoRow label="Alias" value={info.nickname} />}
               <MpInfoRow label="ID de Mercado Pago" value={String(info.id)} dim />
             </div>
+            {info.nickname && (
+              <a
+                href={`https://www.mercadolibre.com.ar/perfil/${encodeURIComponent(info.nickname)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-4 flex items-center justify-center gap-2 rounded-[10px] py-3 font-display text-[13px] font-600 uppercase tracking-[.04em] transition-opacity hover:opacity-80"
+                style={{ background: "rgba(108,180,228,.12)", border: "1px solid rgba(108,180,228,.4)", color: C.celeste, textDecoration: "none" }}
+              >
+                Ver perfil público en Mercado Libre ↗
+              </a>
+            )}
             <p className="mt-4 text-[12px] leading-relaxed" style={{ color: C.txtFaint }}>
-              Verificá que el nombre y documento coincidan con los de la postulación. Si no coinciden, contactate con el atleta antes de aprobar pagos.
+              El nombre y documento fueron verificados por Mercado Pago (KYC con validación facial contra RENAPER) — nadie los tipeó a mano. Verificá que coincidan con los de la postulación. El perfil de Mercado Libre comparte la misma cuenta: si la persona tiene historial ahí, vas a ver su reputación; si nunca usó ML puede aparecer vacío.
             </p>
           </>
         )}
