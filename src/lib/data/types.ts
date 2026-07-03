@@ -17,6 +17,8 @@ export interface Athlete {
   province: string;
   bio: string;
   goal_amount: number;
+  /** Opt-in: si es true, el perfil muestra una barra de meta de recaudación. */
+  show_goal?: boolean;
   raised_amount: number;
   photo_url: string | null;
   /** Foto secundaria (en acción) opcional, mostrada en el perfil. */
@@ -56,8 +58,15 @@ export interface Team {
   stats: StatPair[];
   fund_items: FundItem[];
   verified: boolean;
-  /** Slugs de los jugadores (atletas) que integran el equipo. */
-  member_slugs: string[];
+  /** Selección nacional: se muestra como distintivo del país. */
+  national?: boolean;
+  /** Color del equipo (para el escudo/acentos). */
+  color?: string;
+  /**
+   * Slugs de jugadores fijos (legacy/demo). En las selecciones nacionales la
+   * membresía es dinámica: los jugadores son los atletas con `team === slug`.
+   */
+  member_slugs?: string[];
   created_at: string;
 }
 

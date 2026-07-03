@@ -4,14 +4,11 @@ import type { Team } from "@/lib/data/types";
 import { getSport } from "@/config/sports";
 import { asset } from "@/config/site";
 import { formatMoney } from "@/lib/money";
-import { supporterCount } from "@/lib/supporters";
 import { Monogram } from "./Monogram";
-import { SupporterStack } from "./SupporterStack";
 
 export function TeamCard({ team }: { team: Team }) {
   const sport = getSport(team.sport);
-  const color = sport?.color ?? "#1B7A4B";
-  const backers = supporterCount(team.raised_amount);
+  const color = team.color ?? sport?.color ?? "#1B7A4B";
 
   return (
     <article className="group flex flex-col overflow-hidden rounded-xl border border-line bg-paper shadow-sm transition-shadow hover:shadow-md">
@@ -35,10 +32,10 @@ export function TeamCard({ team }: { team: Team }) {
             className="h-full w-full transition-transform duration-500 group-hover:scale-105"
           />
         )}
-        {/* Doble badge: EQUIPO + deporte */}
+        {/* Badge: Selección Argentina + deporte */}
         <div className="absolute left-3 top-3 flex gap-1.5">
           <span className="rounded-full bg-gold px-2.5 py-1 font-display text-[0.7rem] font-700 uppercase tracking-wide text-ink">
-            Equipo
+            🇦🇷 Selección
           </span>
           <span
             className="rounded-full px-2.5 py-1 font-display text-[0.7rem] font-600 uppercase tracking-wide text-white"
@@ -55,28 +52,20 @@ export function TeamCard({ team }: { team: Team }) {
             {team.name}
           </Link>
         </h3>
-        <p className="mt-0.5 text-sm text-steel">
-          {team.discipline} · {team.member_slugs.length}+ jugadores
-        </p>
+        <p className="mt-0.5 text-sm text-steel">{team.discipline}</p>
 
-        <div className="mt-4 flex items-center justify-between gap-2">
-          <SupporterStack slug={team.slug} count={backers} />
-          <div className="text-right font-display leading-tight">
-            <div className="text-sm">
-              <span className="font-700 text-celeste-deep">{backers}</span>{" "}
-              <span className="text-steel">apoyando</span>
-            </div>
-            <div className="text-sm font-600 text-ink">
-              {formatMoney(team.raised_amount)}
-            </div>
+        {team.raised_amount > 0 && (
+          <div className="mt-4 text-right font-display leading-tight">
+            <span className="text-sm font-600 text-ink">{formatMoney(team.raised_amount)}</span>{" "}
+            <span className="text-sm text-steel">entre el plantel</span>
           </div>
-        </div>
+        )}
 
         <Link
           href={`/equipo/${team.slug}`}
           className="mt-4 block rounded-md border border-ink bg-ink py-2.5 text-center font-display text-sm font-600 uppercase tracking-wide text-white transition-colors hover:bg-ink-2"
         >
-          Apoyar al equipo
+          Conocé la selección
         </Link>
       </div>
     </article>

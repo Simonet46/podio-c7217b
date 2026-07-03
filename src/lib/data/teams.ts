@@ -1,103 +1,114 @@
 import type { Team } from "./types";
 
+/** Datos estáticos de una selección por su slug (sin totales). Para badges. */
+export function getTeamMeta(slug: string | undefined | null): Team | undefined {
+  if (!slug) return undefined;
+  return SEED_TEAMS.find((t) => t.slug === slug);
+}
+
 /**
- * Campañas de equipos (deportes de equipo).
- * Se puede apoyar al equipo entero (se reparte entre el plantel) o a un jugador.
- * `member_slugs` apunta a atletas del seed con `team` igual a este slug.
- * goal/raised se recalculan en la capa de datos a partir de los jugadores.
+ * Selecciones nacionales argentinas.
+ * Los jugadores NO están hardcodeados: la membresía es dinámica — son los
+ * atletas cuyo campo `team` coincide con el `slug` de la selección (se asignan
+ * desde el backoffice). El recaudado del equipo es la suma real de sus
+ * jugadores. No hay pago "al equipo": el aporte va directo a cada jugador
+ * (Mercado Pago acredita a una sola cuenta por pago), y la página es el lugar
+ * donde el hincha elige a quién bancar.
  */
 export const SEED_TEAMS: Team[] = [
   {
-    id: "handball-arg",
-    slug: "handball-arg",
-    name: "Equipo Argentino de Handball",
+    id: "los-gladiadores",
+    slug: "los-gladiadores",
+    name: "Los Gladiadores",
     sport: "handball",
-    discipline: "Selección masculina",
-    city: "Buenos Aires",
+    discipline: "Selección Argentina de Handball · Masculino",
+    city: "Argentina",
     province: "Argentina",
-    bio: "El handball argentino se ganó un lugar entre la elite a pura garra, casi siempre con menos recursos que sus rivales europeos. El cuerpo técnico cobra un sueldo; los jugadores, en su mayoría, no tienen sponsors privados y la ayuda que reciben no alcanza. Tu aporte se reparte en partes iguales entre los 16 jugadores del plantel.",
-    goal_amount: 80000,
-    raised_amount: 33000,
+    bio: "Se ganaron un lugar entre la elite mundial a pura garra, casi siempre con menos recursos que sus rivales europeos. Detrás de cada partido de Los Gladiadores hay jugadores que se pagan viajes, entrenan doble turno y sostienen su carrera como pueden.",
+    goal_amount: 0,
+    raised_amount: 0,
     photo_url: "/teams/handball-arg.webp",
-    stats: [
-      ["16", "Jugadores"],
-      ["Mundial", "Objetivo"],
-      ["#1", "Sudamérica"],
-    ],
-    fund_items: [
-      ["Directo a los jugadores", "El cuerpo técnico cobra sueldo; el plantel no. Tu aporte va a ellos."],
-      ["Viajes y concentraciones", "Pasajes, estadía y comida que hoy salen de su bolsillo."],
-      ["Equipamiento", "Indumentaria y material de competición de cada jugador."],
-    ],
-    verified: false, // demo: oculto hasta que haya equipos reales
-    member_slugs: [
-      "bruno-vidal", "lautaro-gomez", "nicolas-funes", "inaki-perez",
-      "santiago-rivas", "matias-leiva", "joaquin-bravo", "franco-medina",
-      "agustin-ferreyra", "julian-castro", "benjamin-roldan", "emiliano-paez",
-      "valentin-sosa", "gonzalo-ibarra", "lucas-moreno", "maximo-arce",
-    ],
-    created_at: "2026-02-05T10:00:00Z",
+    stats: [],
+    fund_items: [],
+    verified: true,
+    national: true,
+    color: "#9C3B5A",
+    created_at: "2026-07-04T10:00:00Z",
   },
   {
-    id: "hockey-arg",
-    slug: "hockey-arg",
-    name: "Equipo Argentino de Hockey",
+    id: "las-leonas",
+    slug: "las-leonas",
+    name: "Las Leonas",
     sport: "hockey",
-    discipline: "Selección femenina",
-    city: "Buenos Aires",
+    discipline: "Selección Argentina de Hockey · Femenino",
+    city: "Argentina",
     province: "Argentina",
-    bio: "Una de las camadas más prometedoras del hockey argentino va por su lugar en el Mundial. Entrenan doble turno, estudian o trabajan en paralelo y se pagan buena parte de los viajes. Salvo el cuerpo técnico, casi ninguna tiene un sponsor que la respalde. Tu aporte se reparte en partes iguales entre las 16 jugadoras.",
-    goal_amount: 80000,
-    raised_amount: 32800,
+    bio: "Un símbolo del deporte argentino. Las Leonas llevan décadas dejando el nombre del país en lo más alto del hockey mundial — muchas veces compaginando el alto rendimiento con el estudio, el trabajo y el esfuerzo económico propio.",
+    goal_amount: 0,
+    raised_amount: 0,
     photo_url: "/teams/hockey-arg.webp",
-    stats: [
-      ["16", "Jugadoras"],
-      ["Mundial", "Objetivo"],
-      ["Oro", "Panamericano"],
-    ],
-    fund_items: [
-      ["Directo a las jugadoras", "El cuerpo técnico cobra sueldo; el plantel no. Tu aporte va a ellas."],
-      ["Viajes y concentraciones", "Pasajes y estadía de torneos que hoy se pagan solas."],
-      ["Equipamiento", "Palos, protecciones e indumentaria de cada jugadora."],
-    ],
-    verified: false, // demo: oculto hasta que haya equipos reales
-    member_slugs: [
-      "delfina-castro", "morena-ruiz", "abril-sosa", "juana-mendez",
-      "catalina-vega", "martina-rios", "valentina-cabrera", "paulina-acosta",
-      "josefina-luna", "renata-molina", "emma-herrera", "mia-dominguez",
-      "clara-ponce", "agostina-vera", "guadalupe-bravo", "olivia-figueroa",
-    ],
-    created_at: "2026-02-05T10:00:00Z",
+    stats: [],
+    fund_items: [],
+    verified: true,
+    national: true,
+    color: "#1B7A4B",
+    created_at: "2026-07-04T10:00:00Z",
   },
   {
-    id: "voley-arg",
-    slug: "voley-arg",
-    name: "Equipo Argentino de Vóley",
-    sport: "voley",
-    discipline: "Selección masculina",
-    city: "Buenos Aires",
+    id: "los-leones",
+    slug: "los-leones",
+    name: "Los Leones",
+    sport: "hockey",
+    discipline: "Selección Argentina de Hockey · Masculino",
+    city: "Argentina",
     province: "Argentina",
-    bio: "Con una mística que enamora, el vóley argentino sueña con repetir las grandes hazañas de su historia. El plantel es joven y, más allá del cuerpo técnico, casi nadie tiene un sponsor que lo sostenga. Tu aporte se reparte en partes iguales entre los 16 jugadores.",
-    goal_amount: 80000,
-    raised_amount: 30800,
+    bio: "Campeones olímpicos y una de las potencias del hockey mundial. Los Leones representan a la Argentina en cada cancha del planeta, sosteniendo un nivel de elite que exige muchísimo más apoyo del que reciben.",
+    goal_amount: 0,
+    raised_amount: 0,
+    photo_url: "/teams/hockey-arg.webp",
+    stats: [],
+    fund_items: [],
+    verified: true,
+    national: true,
+    color: "#1B7A4B",
+    created_at: "2026-07-04T10:00:00Z",
+  },
+  {
+    id: "las-panteras",
+    slug: "las-panteras",
+    name: "Las Panteras",
+    sport: "voley",
+    discipline: "Selección Argentina de Vóley · Femenino",
+    city: "Argentina",
+    province: "Argentina",
+    bio: "El vóley femenino argentino crece a fuerza de mística y sacrificio. Las Panteras pelean cada punto contra las mejores del mundo, con un plantel joven que casi nunca cuenta con el respaldo que su nivel merece.",
+    goal_amount: 0,
+    raised_amount: 0,
     photo_url: "/teams/voley-arg.webp",
-    stats: [
-      ["16", "Jugadores"],
-      ["Mundial", "Objetivo"],
-      ["Top 8", "Ranking FIVB"],
-    ],
-    fund_items: [
-      ["Directo a los jugadores", "El cuerpo técnico cobra sueldo; el plantel no. Tu aporte va a ellos."],
-      ["Viajes y concentraciones", "Pasajes y estadía de la ventana internacional."],
-      ["Equipamiento", "Indumentaria y material de competición de cada jugador."],
-    ],
-    verified: false, // demo: oculto hasta que haya equipos reales
-    member_slugs: [
-      "ivan-torres", "facundo-ledesma", "bautista-rios", "thiago-paz",
-      "mateo-silva", "lautaro-mendez", "nicolas-ferrari", "juan-cruz-vera",
-      "valentin-rocha", "simon-aguirre", "benicio-ramos", "tobias-luna",
-      "ciro-herrera", "dante-correa", "bruno-medina", "felipe-aguero",
-    ],
-    created_at: "2026-02-05T10:00:00Z",
+    stats: [],
+    fund_items: [],
+    verified: true,
+    national: true,
+    color: "#B5882A",
+    created_at: "2026-07-04T10:00:00Z",
+  },
+  {
+    id: "seleccion-voley-masculina",
+    slug: "seleccion-voley-masculina",
+    name: "Selección de Vóley",
+    sport: "voley",
+    discipline: "Selección Argentina de Vóley · Masculino",
+    city: "Argentina",
+    province: "Argentina",
+    bio: "Con una historia de hazañas que enamoró a generaciones, el vóley masculino argentino sigue soñando en grande. Un plantel que deja todo por la celeste y blanca y que necesita del hincha para sostener el camino.",
+    goal_amount: 0,
+    raised_amount: 0,
+    photo_url: "/teams/voley-arg.webp",
+    stats: [],
+    fund_items: [],
+    verified: true,
+    national: true,
+    color: "#B5882A",
+    created_at: "2026-07-04T10:00:00Z",
   },
 ];

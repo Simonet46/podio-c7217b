@@ -77,19 +77,29 @@ export async function getAthleteBySlug(slug: string): Promise<Athlete | null> {
   return all.find((a) => a.slug === slug) ?? null;
 }
 
-/** Recalcula recaudado y meta del equipo como la suma de sus jugadores. */
+/** Jugadores de un equipo: membresía dinámica por `athlete.team === team.slug`,
+ *  con fallback a member_slugs (legacy/demo) si existieran. */
+function teamMembers(team: Team, all: Athlete[]): Athlete[] {
+  const byTeam = all.filter((a) => a.team === team.slug);
+  if (byTeam.length > 0) return byTeam;
+  if (team.member_slugs?.length) {
+    return team.member_slugs
+      .map((slug) => all.find((a) => a.slug === slug))
+      .filter((a): a is Athlete => Boolean(a));
+  }
+  return [];
+}
+
+/** Recalcula el recaudado del equipo como la suma real de sus jugadores. */
 function withTeamTotals(team: Team, all: Athlete[]): Team {
-  const members = team.member_slugs
-    .map((slug) => all.find((a) => a.slug === slug))
-    .filter((a): a is Athlete => Boolean(a));
+  const members = teamMembers(team, all);
   return {
     ...team,
     raised_amount: members.reduce((s, m) => s + m.raised_amount, 0),
-    goal_amount: members.reduce((s, m) => s + m.goal_amount, 0),
   };
 }
 
-/** Equipos (deportes de equipo). */
+/** Selecciones nacionales. */
 export async function getTeams(): Promise<Team[]> {
   const all = await allAthletesRaw();
   return SEED_TEAMS.filter((t) => !ONLY_VERIFIED || t.verified).map((t) =>
@@ -104,12 +114,10 @@ export async function getTeamBySlug(slug: string): Promise<Team | null> {
   return withTeamTotals(team, all);
 }
 
-/** Jugadores de un equipo, en el orden de member_slugs. */
+/** Jugadores de un equipo (atletas asignados a esa selección). */
 export async function getTeamMembers(team: Team): Promise<Athlete[]> {
   const all = await allAthletesRaw();
-  return team.member_slugs
-    .map((slug) => all.find((a) => a.slug === slug))
-    .filter((a): a is Athlete => Boolean(a));
+  return teamMembers(team, all);
 }
 
 /** Totales para el home y para el reparto de "Apoyá a todos". */

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { SPORT_LIST, getSport } from "@/config/sports";
+import { SEED_TEAMS } from "@/lib/data/teams";
 import { formatMoney } from "@/lib/money";
 import { supporterCount } from "@/lib/supporters";
 
@@ -52,6 +53,7 @@ type AthleteRow = {
   verified: boolean | null;
   mp_connected: boolean | null;
   dni: string | null;
+  team: string | null;
 };
 
 type TeamApp = {
@@ -128,6 +130,8 @@ type Draft = {
   province: string;
   bio: string;
   goal_amount: string;
+  show_goal: boolean;
+  team: string;
   scope: "la2028" | "otros";
   next_competition: string;
   photo_url: string | null;
@@ -211,6 +215,8 @@ function buildDraft(app: Application): Draft {
     province: parts[1] ?? parts[0] ?? "",
     bio,
     goal_amount: "10000",
+    show_goal: false,
+    team: "",
     scope: "la2028",
     next_competition: app.next_competition ?? "",
     photo_url: app.photo_url,
@@ -358,7 +364,7 @@ export function BackofficeApp() {
     setLoadingList(true);
     const [appsRes, athRes, teamRes, changesRes, updatesRes] = await Promise.all([
       supa.from("athlete_applications").select("*").order("created_at", { ascending: false }),
-      supa.from("athletes").select("id,slug,full_name,sport,city,province,raised_amount,verified,mp_connected,dni").order("raised_amount", { ascending: false }),
+      supa.from("athletes").select("id,slug,full_name,sport,city,province,raised_amount,verified,mp_connected,dni,team").order("raised_amount", { ascending: false }),
       supa.from("team_applications").select("*").order("created_at", { ascending: false }),
       supa
         .from("profile_change_requests")
@@ -467,6 +473,8 @@ export function BackofficeApp() {
         province: draft.province,
         bio: draft.bio,
         goal_amount: Number(draft.goal_amount) || 0,
+        show_goal: draft.show_goal,
+        team: draft.team || null,
         raised_amount: 0,
         verified: true,
         scope: draft.scope,
@@ -549,6 +557,17 @@ export function BackofficeApp() {
     if (error) { setToast("Error: " + error.message); return; }
     setToast(`${athlete.full_name} ${next ? "reactivado ✓" : "suspendido."}`);
     loadApps();
+  }
+
+  async function handleSetTeam(athlete: AthleteRow, teamSlug: string) {
+    const supa = sb();
+    if (!supa) return;
+    // Optimista: reflejamos el cambio en la lista al toque.
+    setAthletes((prev) => prev.map((a) => a.id === athlete.id ? { ...a, team: teamSlug || null } : a));
+    const { error } = await supa.from("athletes").update({ team: teamSlug || null }).eq("id", athlete.id);
+    if (error) { setToast("Error al asignar la selección: " + error.message); loadApps(); return; }
+    const teamName = SEED_TEAMS.find((t) => t.slug === teamSlug)?.name;
+    setToast(teamSlug ? `${athlete.full_name} → ${teamName}. Tocá "Publicar ahora".` : `${athlete.full_name} sin selección.`);
   }
 
   async function handleViewMpInfo(athlete: AthleteRow) {
@@ -819,7 +838,7 @@ export function BackofficeApp() {
           )}
 
           {/* ===== ATLETAS ===== */}
-          {active === "Atletas" && <AtletasSection athletes={athletes} loading={loadingList} onConnect={genMpLink} onToggleStatus={handleToggleStatus} onViewMpInfo={handleViewMpInfo} />}
+          {active === "Atletas" && <AtletasSection athletes={athletes} loading={loadingList} onConnect={genMpLink} onToggleStatus={handleToggleStatus} onViewMpInfo={handleViewMpInfo} onSetTeam={handleSetTeam} />}
 
           {/* ===== CAMBIOS DE PERFIL ===== */}
           {active === "Cambios" && (
@@ -1309,18 +1328,20 @@ function AtletasSection({
   onConnect,
   onToggleStatus,
   onViewMpInfo,
+  onSetTeam,
 }: {
   athletes: AthleteRow[];
   loading: boolean;
   onConnect: (a: AthleteRow) => void;
   onToggleStatus: (a: AthleteRow) => void;
   onViewMpInfo: (a: AthleteRow) => void;
+  onSetTeam: (a: AthleteRow, teamSlug: string) => void;
 }) {
-  const cols = "2fr 1.1fr 1.3fr .8fr 1fr .8fr 1.2fr";
+  const cols = "1.7fr 1fr 1.4fr 1fr .85fr 1fr";
   return (
     <section style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, overflow: "hidden" }}>
       <div style={{ display: "grid", gridTemplateColumns: cols, gap: 12, padding: "13px 24px", borderBottom: `1px solid rgba(255,255,255,.06)` }}>
-        {["Atleta", "Deporte", "Ubicación", "Hinchas", "$/mes", "Estado", "Cobros"].map((h, i) => (
+        {["Atleta", "Deporte", "Selección", "Recaudado", "Estado", "Cobros"].map((h, i) => (
           <span key={h} className="text-[11px] font-600 uppercase tracking-[.06em]" style={{ color: C.txtFaint, textAlign: i >= 3 ? "right" : "left" }}>{h}</span>
         ))}
       </div>
@@ -1329,7 +1350,6 @@ function AtletasSection({
       {athletes.map((a) => {
         const sport = getSport(a.sport);
         const color = sport?.color ?? C.celeste;
-        const loc = [a.city, a.province].filter(Boolean).join(", ") || "—";
         const raised = a.raised_amount ?? 0;
         return (
           <div key={a.id} style={{ display: "grid", gridTemplateColumns: cols, gap: 12, alignItems: "center", padding: "14px 24px", borderBottom: `1px solid ${C.borderSoft}` }}>
@@ -1338,8 +1358,19 @@ function AtletasSection({
               <span className="truncate text-[14px] font-600">{a.full_name}</span>
             </div>
             <div><SportPill label={sport?.label ?? a.sport} color={color} /></div>
-            <div className="text-[13px]" style={{ color: "rgba(255,255,255,.6)" }}>{loc}</div>
-            <div className="text-right font-display text-[16px] font-600">{supporterCount(raised)}</div>
+            <div>
+              <select
+                value={a.team ?? ""}
+                onChange={(e) => onSetTeam(a, e.target.value)}
+                title="Asignar a una selección nacional"
+                style={{ ...inputDark, padding: "6px 8px", fontSize: 12.5 }}
+              >
+                <option value="" style={{ background: C.sidebar }}>— Sin selección —</option>
+                {SEED_TEAMS.map((t) => (
+                  <option key={t.slug} value={t.slug} style={{ background: C.sidebar }}>{t.name}</option>
+                ))}
+              </select>
+            </div>
             <div className="text-right font-display text-[15px] font-600" style={{ color: C.gold }}>{formatMoney(raised)}</div>
             <div className="flex justify-end">
               <button
@@ -1636,15 +1667,46 @@ function ApprovalModal({
           <DText label="Próxima competencia" value={draft.next_competition} onChange={(v) => setDraft({ ...draft, next_competition: v })} />
           <DText label="Ciudad" value={draft.city} onChange={(v) => setDraft({ ...draft, city: v })} />
           <DText label="Provincia" value={draft.province} onChange={(v) => setDraft({ ...draft, province: v })} />
-          <label className="block text-sm">
-            <span className="eyebrow" style={{ color: C.txtFaint }}>Meta ($)</span>
-            <input type="number" min={0} value={draft.goal_amount} onChange={(e) => setDraft({ ...draft, goal_amount: e.target.value })} style={inputDark} />
-          </label>
+          <div className="block text-sm">
+            <label className="flex cursor-pointer items-start gap-2.5">
+              <input
+                type="checkbox"
+                checked={draft.show_goal}
+                onChange={(e) => setDraft({ ...draft, show_goal: e.target.checked })}
+                style={{ marginTop: 3, accentColor: C.gold, width: 16, height: 16 }}
+              />
+              <span>
+                <span className="eyebrow" style={{ color: draft.show_goal ? C.gold : C.txtFaint }}>Mostrar meta de recaudación</span>
+                <span className="mt-0.5 block text-[12px]" style={{ color: C.txtFaint }}>
+                  Muestra una barra de progreso en el perfil. Apagado: solo se ve el total recaudado (estilo aporte mensual).
+                </span>
+              </span>
+            </label>
+            {draft.show_goal && (
+              <input
+                type="number"
+                min={0}
+                value={draft.goal_amount}
+                onChange={(e) => setDraft({ ...draft, goal_amount: e.target.value })}
+                placeholder="Meta en pesos (ej: 500000)"
+                style={{ ...inputDark, marginTop: 10 }}
+              />
+            )}
+          </div>
           <label className="block text-sm">
             <span className="eyebrow" style={{ color: C.txtFaint }}>Alcance</span>
             <select value={draft.scope} onChange={(e) => setDraft({ ...draft, scope: e.target.value as "la2028" | "otros" })} style={inputDark}>
               <option value="la2028" style={{ background: C.sidebar }}>Rumbo a LA 2028</option>
               <option value="otros" style={{ background: C.sidebar }}>Otros atletas argentinos</option>
+            </select>
+          </label>
+          <label className="block text-sm">
+            <span className="eyebrow" style={{ color: C.txtFaint }}>Selección nacional</span>
+            <select value={draft.team} onChange={(e) => setDraft({ ...draft, team: e.target.value })} style={inputDark}>
+              <option value="" style={{ background: C.sidebar }}>Ninguna</option>
+              {SEED_TEAMS.map((t) => (
+                <option key={t.slug} value={t.slug} style={{ background: C.sidebar }}>{t.name}</option>
+              ))}
             </select>
           </label>
           <label className="block text-sm sm:col-span-2">

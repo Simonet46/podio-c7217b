@@ -3,7 +3,7 @@ import { Footer } from "@/components/Footer";
 import { AthleteGrid } from "@/components/AthleteGrid";
 import { CoverBand } from "@/components/CoverBand";
 import { HomeHero, type HeroAthlete } from "@/components/HomeHero";
-import { getAthletes, getOtherAthletes, getTeams, getGlobalStats } from "@/lib/data/athletes";
+import { getAthletes, getOtherAthletes, getTeams, getAllAthletes, getGlobalStats } from "@/lib/data/athletes";
 import { AthleteCard } from "@/components/AthleteCard";
 import { getSport } from "@/config/sports";
 import { formatMoney } from "@/lib/money";
@@ -14,7 +14,11 @@ import Link from "next/link";
 export default async function HomePage() {
   const athletes = await getAthletes();
   const otherAthletes = await getOtherAthletes();
-  const teams = await getTeams();
+  const allTeams = await getTeams();
+  const allAth = await getAllAthletes();
+  // En el home solo mostramos selecciones que ya tienen jugadores en GRANITO
+  // (las vacías existen y son accesibles, pero no ensucian la portada).
+  const teams = allTeams.filter((t) => allAth.some((a) => a.team === t.slug));
   const { athleteCount, sportCount, totalRaised } = await getGlobalStats();
   const netPct = Math.round((1 - PLATFORM_FEE_RATE) * 100);
   const feePct = Math.round(PLATFORM_FEE_RATE * 100);

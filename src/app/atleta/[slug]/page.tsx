@@ -13,7 +13,8 @@ import { getSponsorForSlug } from "@/lib/data/sponsors";
 import { getAthleteBySlug, getAllAthletes, getTeamBySlug, getAthleteUpdates } from "@/lib/data/athletes";
 import { AthleteTimeline } from "@/components/AthleteTimeline";
 import { getSport } from "@/config/sports";
-import { formatMoney } from "@/lib/money";
+import { formatMoney, progressPct } from "@/lib/money";
+import { ProgressBar } from "@/components/ProgressBar";
 import { supporterCount } from "@/lib/supporters";
 import { SITE, asset } from "@/config/site";
 
@@ -154,9 +155,10 @@ export default async function AthletePage({
                   {team && (
                     <Link
                       href={`/equipo/${team.slug}`}
-                      className="font-display text-[11px] font-600 uppercase tracking-wide text-white/60 hover:text-white transition"
+                      className="inline-flex items-center gap-1.5 rounded-full px-3 py-[5px] font-display text-[11px] font-600 uppercase tracking-[.08em] text-white transition hover:-translate-y-0.5"
+                      style={{ background: `${team.color ?? "#C9A227"}26`, border: `1px solid ${team.color ?? "#C9A227"}66` }}
                     >
-                      ← {team.name}
+                      🇦🇷 {team.name}
                     </Link>
                   )}
                 </div>
@@ -291,6 +293,24 @@ export default async function AthletePage({
 
             {/* ── Columna derecha: widget sticky ── */}
             <aside className="lg:sticky lg:top-24">
+              {/* Meta de recaudación (opt-in por el admin) */}
+              {athlete.show_goal && athlete.goal_amount > 0 && (
+                <div className="mb-4 rounded-2xl border border-white/[.08] p-5" style={{ background: "#0d2238" }}>
+                  <div className="mb-2 flex items-baseline justify-between">
+                    <span className="font-display text-[15px] font-700 text-gold">
+                      {formatMoney(athlete.raised_amount)}
+                    </span>
+                    <span className="text-[13px] text-white/55">
+                      meta {formatMoney(athlete.goal_amount)}
+                    </span>
+                  </div>
+                  <ProgressBar raised={athlete.raised_amount} goal={athlete.goal_amount} />
+                  <p className="mt-2 text-[12px] text-white/50">
+                    {progressPct(athlete.raised_amount, athlete.goal_amount)}% de la meta
+                  </p>
+                </div>
+              )}
+
               <DonationWidget
                 target={{
                   kind: "athlete",
