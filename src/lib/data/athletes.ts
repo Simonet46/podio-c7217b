@@ -4,6 +4,35 @@ import { SEED_ATHLETES } from "./seed";
 import { SEED_TEAMS } from "./teams";
 import type { Athlete, Team } from "./types";
 
+/** Novedad publicada por un atleta (aprobada) para su perfil público. */
+export interface AthleteUpdate {
+  id: string;
+  title: string;
+  body: string;
+  image_url: string | null;
+  created_at: string;
+}
+
+/** Novedades APROBADAS de un atleta (por slug). Vacío si no hay Supabase. */
+export async function getAthleteUpdates(slug: string): Promise<AthleteUpdate[]> {
+  if (!isSupabaseConfigured) return [];
+  const supabase = await getSupabase();
+  if (!supabase) return [];
+  const { data: athlete } = await supabase
+    .from("athletes")
+    .select("id")
+    .eq("slug", slug)
+    .maybeSingle();
+  if (!athlete?.id) return [];
+  const { data } = await supabase
+    .from("athlete_updates")
+    .select("id,title,body,image_url,created_at")
+    .eq("athlete_id", athlete.id)
+    .eq("status", "approved")
+    .order("created_at", { ascending: false });
+  return (data as AthleteUpdate[]) ?? [];
+}
+
 /**
  * Capa de acceso a datos.
  * En el sitio estático lee del seed local; si Supabase está configurado, de ahí.

@@ -45,6 +45,16 @@ type Aporte = {
   created_at: string;
 };
 
+type Novedad = {
+  id: string;
+  title: string;
+  body: string;
+  image_url: string | null;
+  status: string;
+  admin_note: string | null;
+  created_at: string;
+};
+
 type AuthState = "loading" | "none" | "nolink" | "ok";
 
 type EditForm = {
@@ -73,6 +83,15 @@ export default function MiPerfilPage() {
   const [editBusy, setEditBusy] = useState(false);
   const [editError, setEditError] = useState("");
   const [photoUploading, setPhotoUploading] = useState(false);
+  // Novedades del atleta.
+  const [novedades, setNovedades] = useState<Novedad[]>([]);
+  const [novTitle, setNovTitle] = useState("");
+  const [novBody, setNovBody] = useState("");
+  const [novImage, setNovImage] = useState("");
+  const [novImgUploading, setNovImgUploading] = useState(false);
+  const [novBusy, setNovBusy] = useState(false);
+  const [novError, setNovError] = useState("");
+  const [novSent, setNovSent] = useState(false);
 
   // Escuchar postMessage del popup de MP.
   useEffect(() => {
@@ -111,15 +130,17 @@ export default function MiPerfilPage() {
       setAtleta(a as Atleta);
 
       // Cargar datos paralelos.
-      const [{ data: mp }, { data: changes }, { data: dons }] = await Promise.all([
+      const [{ data: mp }, { data: changes }, { data: dons }, { data: novs }] = await Promise.all([
         supabase.from("athlete_mp_accounts").select("mp_user_id").eq("athlete_id", a.id).maybeSingle(),
         supabase.from("profile_change_requests").select("id,changes,status,created_at").eq("athlete_id", a.id).eq("status", "pending").maybeSingle(),
         supabase.from("donations").select("id,amount,net_amount,type,status,created_at").eq("athlete_id", a.id).order("created_at", { ascending: false }).limit(10),
+        supabase.from("athlete_updates").select("id,title,body,image_url,status,admin_note,created_at").eq("athlete_id", a.id).order("created_at", { ascending: false }),
       ]);
 
       setMpConectado(!!mp?.mp_user_id);
       setPendingChange(changes as PendingChange | null);
       setAportes((dons as Aporte[]) ?? []);
+      setNovedades((novs as Novedad[]) ?? []);
       setAuthState("ok");
     }
     init();
@@ -236,6 +257,62 @@ export default function MiPerfilPage() {
     setPendingChange({ id: "", changes, status: "pending", created_at: new Date().toISOString() });
     setEditBusy(false);
     setShowEditModal(false);
+  }
+
+  async function handleNovImage(file: File) {
+    if (!atleta || novImgUploading) return;
+    if (file.size > 5 * 1024 * 1024) {
+      setNovError("La imagen no puede pesar más de 5 MB.");
+      return;
+    }
+    setNovImgUploading(true);
+    setNovError("");
+    try {
+      const supabase = await getSupabase();
+      const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+      const path = `updates/${atleta.id}-${Date.now()}.${ext}`;
+      const { error } = await supabase!.storage
+        .from("athlete-media")
+        .upload(path, file, { contentType: file.type, upsert: false });
+      if (error) { setNovError("No se pudo subir la imagen."); return; }
+      setNovImage(supabase!.storage.from("athlete-media").getPublicUrl(path).data.publicUrl);
+    } finally {
+      setNovImgUploading(false);
+    }
+  }
+
+  async function handleNovSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!atleta || novBusy) return;
+    if (!novTitle.trim() || !novBody.trim()) {
+      setNovError("Poné un título y algo para contar.");
+      return;
+    }
+    setNovBusy(true);
+    setNovError("");
+    const supabase = await getSupabase();
+    const { data, error } = await supabase!
+      .from("athlete_updates")
+      .insert({
+        athlete_id: atleta.id,
+        title: novTitle.trim(),
+        body: novBody.trim(),
+        image_url: novImage || null,
+      })
+      .select("id,title,body,image_url,status,admin_note,created_at")
+      .maybeSingle();
+
+    if (error) {
+      setNovError("No se pudo enviar. Intentá de nuevo.");
+      setNovBusy(false);
+      return;
+    }
+    if (data) setNovedades((prev) => [data as Novedad, ...prev]);
+    setNovTitle("");
+    setNovBody("");
+    setNovImage("");
+    setNovSent(true);
+    setNovBusy(false);
   }
 
   async function connectMP() {
@@ -547,6 +624,92 @@ export default function MiPerfilPage() {
           )}
         </Card>
 
+        {/* Novedades del atleta */}
+        <Card title="Novedades" className="mb-4">
+          <p className="mb-4 text-[13px] leading-relaxed text-white/50">
+            Contá tu día a día: una competencia, un entrenamiento, un logro.
+            Cada novedad la <strong className="text-white/70">revisa el equipo</strong> antes
+            de publicarse en tu perfil público.
+          </p>
+
+          {novSent && (
+            <div
+              className="mb-4 rounded-[10px] p-3 text-[13px]"
+              style={{ background: "rgba(34,197,94,.1)", border: "1px solid rgba(34,197,94,.35)", color: "#22c55e" }}
+            >
+              ✓ Novedad enviada. Queda pendiente de revisión.
+            </div>
+          )}
+
+          <form onSubmit={handleNovSubmit} className="mb-6 flex flex-col gap-3">
+            <input
+              type="text"
+              value={novTitle}
+              onChange={(e) => { setNovTitle(e.target.value); setNovSent(false); }}
+              maxLength={90}
+              placeholder="Título (ej: Gané la clasificación nacional)"
+              className="rounded-[10px] border border-white/[.12] bg-white/[.04] px-4 py-3 text-[14px] text-white outline-none placeholder:text-white/30 focus:border-white/35"
+            />
+            <textarea
+              rows={3}
+              value={novBody}
+              onChange={(e) => { setNovBody(e.target.value); setNovSent(false); }}
+              placeholder="Contá qué pasó…"
+              className="resize-none rounded-[10px] border border-white/[.12] bg-white/[.04] px-4 py-3 text-[14px] leading-relaxed text-white outline-none placeholder:text-white/30 focus:border-white/35"
+            />
+            <div className="flex flex-wrap items-center gap-3">
+              <label className="cursor-pointer rounded-[10px] border border-white/25 px-4 py-2.5 font-display text-[12px] font-600 uppercase tracking-wide text-white/80 transition hover:border-white/50">
+                {novImgUploading ? "Subiendo…" : novImage ? "Cambiar foto" : "Agregar foto"}
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="hidden"
+                  disabled={novImgUploading}
+                  onChange={(e) => { const f = e.target.files?.[0]; if (f) handleNovImage(f); e.target.value = ""; }}
+                />
+              </label>
+              {novImage && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={novImage} alt="" className="h-11 w-11 rounded-lg object-cover" />
+              )}
+              <button
+                type="submit"
+                disabled={novBusy || novImgUploading}
+                className="ml-auto rounded-[10px] px-5 py-2.5 font-display text-[13px] font-600 uppercase tracking-wide text-ink disabled:opacity-50"
+                style={{ background: "#C9A227" }}
+              >
+                {novBusy ? "Enviando…" : "Publicar novedad"}
+              </button>
+            </div>
+            {novError && (
+              <p className="rounded-[8px] p-2.5 text-[13px]" style={{ background: "rgba(220,38,38,.12)", color: "#f87171" }}>
+                {novError}
+              </p>
+            )}
+          </form>
+
+          {novedades.length === 0 ? (
+            <p className="text-[13px] text-white/40">Todavía no publicaste novedades.</p>
+          ) : (
+            <div className="flex flex-col gap-3 border-t border-white/[.07] pt-4">
+              {novedades.map((n) => (
+                <div key={n.id} className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-[14px] font-500 text-white/85">{n.title}</p>
+                    <p className="text-[12px] text-white/40">
+                      {new Date(n.created_at).toLocaleDateString("es-AR", { day: "numeric", month: "long" })}
+                    </p>
+                    {n.status === "rejected" && n.admin_note && (
+                      <p className="mt-1 text-[12px] italic text-white/45">Nota: {n.admin_note}</p>
+                    )}
+                  </div>
+                  <NovBadge status={n.status} />
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+
         {/* Sección perfil (read-only) */}
         <Card title="Mi perfil" className="mb-4">
           <div className="space-y-4">
@@ -668,6 +831,23 @@ function Card({ title, children, className = "" }: { title: string; children: Re
       </h2>
       {children}
     </div>
+  );
+}
+
+function NovBadge({ status }: { status: string }) {
+  const map: Record<string, { label: string; color: string }> = {
+    approved: { label: "Publicada", color: "#22c55e" },
+    pending: { label: "En revisión", color: "#C9A227" },
+    rejected: { label: "Rechazada", color: "#f87171" },
+  };
+  const s = map[status] ?? map.pending;
+  return (
+    <span
+      className="shrink-0 rounded-full px-2.5 py-1 font-display text-[10px] font-600 uppercase tracking-wide"
+      style={{ background: `${s.color}1e`, color: s.color, border: `1px solid ${s.color}55` }}
+    >
+      {s.label}
+    </span>
   );
 }
 

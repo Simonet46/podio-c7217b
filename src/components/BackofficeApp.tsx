@@ -85,6 +85,7 @@ type Section =
   | "Postulaciones"
   | "Atletas"
   | "Cambios"
+  | "Novedades"
   | "Aportes"
   | "Pagos"
   | "Hinchas"
@@ -97,6 +98,18 @@ type ProfileChangeRequest = {
   athlete_name: string;
   changes: Record<string, string>;
   previous_values: Record<string, string>;
+  status: string;
+  admin_note: string | null;
+  created_at: string;
+};
+
+type AthleteUpdateRow = {
+  id: string;
+  athlete_id: string;
+  athlete_name: string;
+  title: string;
+  body: string;
+  image_url: string | null;
   status: string;
   admin_note: string | null;
   created_at: string;
@@ -272,6 +285,7 @@ const NAV_MAIN: { label: Section; icon: string }[] = [
   { label: "Postulaciones", icon: "◔" },
   { label: "Atletas", icon: "◉" },
   { label: "Cambios", icon: "✎" },
+  { label: "Novedades", icon: "✦" },
   { label: "Aportes", icon: "◈" },
   { label: "Pagos", icon: "◇" },
 ];
@@ -285,6 +299,7 @@ const PAGE_META: Record<Section, { t: string; s: string }> = {
   Postulaciones: { t: "Postulaciones", s: "Revisá cada caso a mano, uno por uno" },
   Atletas: { t: "Atletas", s: "Atletas publicados en la plataforma" },
   Cambios: { t: "Cambios de perfil", s: "Pedidos de edición enviados por atletas" },
+  Novedades: { t: "Novedades", s: "Publicaciones que los atletas quieren mostrar en su perfil" },
   Aportes: { t: "Aportes", s: "Movimientos recientes" },
   Pagos: { t: "Pagos", s: "Distribución mensual a los atletas" },
   Hinchas: { t: "Hinchas", s: "Las personas que apoyan" },
@@ -312,6 +327,7 @@ export function BackofficeApp() {
   const [publishing, setPublishing] = useState(false);
   const [mpModal, setMpModal] = useState<MpModalState>(null);
   const [profileChanges, setProfileChanges] = useState<ProfileChangeRequest[]>([]);
+  const [athleteUpdates, setAthleteUpdates] = useState<AthleteUpdateRow[]>([]);
 
   // ── Sesión ────────────────────────────────────────────────────────────
   const resolveSession = useCallback(async () => {
@@ -340,13 +356,17 @@ export function BackofficeApp() {
     const supa = sb();
     if (!supa) return;
     setLoadingList(true);
-    const [appsRes, athRes, teamRes, changesRes] = await Promise.all([
+    const [appsRes, athRes, teamRes, changesRes, updatesRes] = await Promise.all([
       supa.from("athlete_applications").select("*").order("created_at", { ascending: false }),
       supa.from("athletes").select("id,slug,full_name,sport,city,province,raised_amount,verified,mp_connected,dni").order("raised_amount", { ascending: false }),
       supa.from("team_applications").select("*").order("created_at", { ascending: false }),
       supa
         .from("profile_change_requests")
         .select("id,athlete_id,changes,previous_values,status,admin_note,created_at,athletes(full_name)")
+        .order("created_at", { ascending: false }),
+      supa
+        .from("athlete_updates")
+        .select("id,athlete_id,title,body,image_url,status,admin_note,created_at,athletes(full_name)")
         .order("created_at", { ascending: false }),
     ]);
     if (!appsRes.error && appsRes.data) setAllApps(appsRes.data as Application[]);
@@ -355,6 +375,14 @@ export function BackofficeApp() {
     if (!changesRes.error && changesRes.data) {
       setProfileChanges(
         (changesRes.data as unknown as Array<{ id: string; athlete_id: string; changes: Record<string, string>; previous_values: Record<string, string>; status: string; admin_note: string | null; created_at: string; athletes: { full_name: string } | null }>).map((r) => ({
+          ...r,
+          athlete_name: r.athletes?.full_name ?? "Atleta desconocido",
+        })),
+      );
+    }
+    if (!updatesRes.error && updatesRes.data) {
+      setAthleteUpdates(
+        (updatesRes.data as unknown as Array<{ id: string; athlete_id: string; title: string; body: string; image_url: string | null; status: string; admin_note: string | null; created_at: string; athletes: { full_name: string } | null }>).map((r) => ({
           ...r,
           athlete_name: r.athletes?.full_name ?? "Atleta desconocido",
         })),
@@ -671,6 +699,7 @@ export function BackofficeApp() {
             <NavItem key={n.label} item={n} active={active === n.label} badge={
               n.label === "Postulaciones" && counts.pending ? String(counts.pending) :
               n.label === "Cambios" && profileChanges.filter((c) => c.status === "pending").length ? String(profileChanges.filter((c) => c.status === "pending").length) :
+              n.label === "Novedades" && athleteUpdates.filter((u) => u.status === "pending").length ? String(athleteUpdates.filter((u) => u.status === "pending").length) :
               null
             } onClick={() => setActive(n.label)} />
           ))}
@@ -811,6 +840,28 @@ export function BackofficeApp() {
                 await supa.from("profile_change_requests").update({ status: "rejected", admin_note: note || null }).eq("id", item.id);
                 setProfileChanges((prev) => prev.map((c) => c.id === item.id ? { ...c, status: "rejected", admin_note: note || null } : c));
                 setToast(`Cambios de ${item.athlete_name} rechazados.`);
+              }}
+            />
+          )}
+
+          {/* ===== NOVEDADES ===== */}
+          {active === "Novedades" && (
+            <NovedadesSection
+              items={athleteUpdates}
+              loading={loadingList}
+              onApprove={async (item) => {
+                const supa = sb();
+                if (!supa) return;
+                await supa.from("athlete_updates").update({ status: "approved" }).eq("id", item.id);
+                setAthleteUpdates((prev) => prev.map((u) => u.id === item.id ? { ...u, status: "approved" } : u));
+                setToast(`✓ Novedad de ${item.athlete_name} aprobada. Tocá "Publicar ahora" para verla en su perfil.`);
+              }}
+              onReject={async (item, note) => {
+                const supa = sb();
+                if (!supa) return;
+                await supa.from("athlete_updates").update({ status: "rejected", admin_note: note || null }).eq("id", item.id);
+                setAthleteUpdates((prev) => prev.map((u) => u.id === item.id ? { ...u, status: "rejected", admin_note: note || null } : u));
+                setToast(`Novedad de ${item.athlete_name} rechazada.`);
               }}
             />
           )}
@@ -2205,6 +2256,200 @@ function ChangeCard({
       )}
 
       {/* Actions */}
+      {!readOnly && item.status === "pending" && (
+        <div className="flex gap-2.5">
+          <button
+            onClick={onReject}
+            disabled={busy || rejectBusy}
+            className="flex-1 rounded-[10px] py-2.5 font-display text-[13px] font-600 uppercase tracking-wide text-white disabled:opacity-40"
+            style={{ background: "rgba(223,0,36,.2)", border: `1px solid rgba(223,0,36,.35)` }}
+          >
+            Rechazar
+          </button>
+          <button
+            onClick={onApprove}
+            disabled={busy || rejectBusy}
+            className="flex-1 rounded-[10px] py-2.5 font-display text-[13px] font-600 uppercase tracking-wide disabled:opacity-40"
+            style={{ background: C.green, color: "#fff" }}
+          >
+            {busy ? "Aprobando…" : "Aprobar y publicar"}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function NovedadesSection({
+  items,
+  loading,
+  onApprove,
+  onReject,
+}: {
+  items: AthleteUpdateRow[];
+  loading: boolean;
+  onApprove: (item: AthleteUpdateRow) => Promise<void>;
+  onReject: (item: AthleteUpdateRow, note: string) => Promise<void>;
+}) {
+  const [busy, setBusy] = useState<string | null>(null);
+  const [rejectModal, setRejectModal] = useState<AthleteUpdateRow | null>(null);
+  const [rejectNote, setRejectNote] = useState("");
+
+  if (loading) {
+    return <div className="py-16 text-center text-[14px]" style={{ color: C.txtDim }}>Cargando…</div>;
+  }
+
+  const pending = items.filter((i) => i.status === "pending");
+  const reviewed = items.filter((i) => i.status !== "pending");
+
+  async function approve(item: AthleteUpdateRow) {
+    setBusy(item.id);
+    await onApprove(item);
+    setBusy(null);
+  }
+  async function reject(item: AthleteUpdateRow) {
+    setBusy(item.id + "-reject");
+    await onReject(item, rejectNote);
+    setBusy(null);
+    setRejectModal(null);
+    setRejectNote("");
+  }
+
+  return (
+    <>
+      {pending.length === 0 && reviewed.length === 0 && (
+        <div className="py-20 text-center text-[15px]" style={{ color: C.txtDim }}>
+          Ningún atleta publicó novedades todavía.
+        </div>
+      )}
+
+      {pending.length > 0 && (
+        <section className="mb-6">
+          <div className="mb-3 font-display text-[12px] font-600 uppercase tracking-[.1em]" style={{ color: C.gold }}>
+            Pendientes de revisión ({pending.length})
+          </div>
+          <div className="flex flex-col gap-4">
+            {pending.map((item) => (
+              <NovedadCard
+                key={item.id}
+                item={item}
+                busy={busy === item.id}
+                rejectBusy={busy === item.id + "-reject"}
+                onApprove={() => approve(item)}
+                onReject={() => { setRejectNote(""); setRejectModal(item); }}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {reviewed.length > 0 && (
+        <section>
+          <div className="mb-3 font-display text-[12px] font-600 uppercase tracking-[.1em]" style={{ color: C.txtFaint }}>
+            Revisadas
+          </div>
+          <div className="flex flex-col gap-3">
+            {reviewed.map((item) => (
+              <NovedadCard key={item.id} item={item} busy={false} rejectBusy={false} onApprove={() => Promise.resolve()} onReject={() => {}} readOnly />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {rejectModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          style={{ background: "rgba(0,0,0,.75)" }}
+          onClick={(e) => { if (e.target === e.currentTarget) setRejectModal(null); }}
+        >
+          <div className="w-full max-w-[440px] rounded-[18px] p-6" style={{ background: C.surface, border: `1px solid ${C.border}` }}>
+            <h3 className="mb-4 font-display text-[18px] font-700 uppercase leading-none text-white">Rechazar novedad</h3>
+            <p className="mb-4 text-[14px]" style={{ color: C.txtDim }}>
+              ¿Querés dejarle una nota al atleta explicando el motivo? (opcional)
+            </p>
+            <textarea
+              rows={3}
+              value={rejectNote}
+              onChange={(e) => setRejectNote(e.target.value)}
+              placeholder="Ej: La foto no es apropiada / falta contexto…"
+              className="mb-4 w-full resize-none rounded-[10px] p-3 text-[14px] text-white outline-none placeholder:text-white/30"
+              style={{ background: C.sidebar, border: `1px solid rgba(255,255,255,.12)` }}
+            />
+            <div className="flex gap-3">
+              <button
+                onClick={() => setRejectModal(null)}
+                className="flex-1 rounded-[10px] py-3 font-display text-[13px] font-600 uppercase tracking-wide"
+                style={{ border: `1px solid rgba(255,255,255,.15)`, color: C.txtDim }}
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => reject(rejectModal)}
+                disabled={busy === rejectModal.id + "-reject"}
+                className="flex-1 rounded-[10px] py-3 font-display text-[13px] font-600 uppercase tracking-wide text-white disabled:opacity-50"
+                style={{ background: C.red }}
+              >
+                {busy === rejectModal.id + "-reject" ? "Rechazando…" : "Rechazar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+function NovedadCard({
+  item,
+  busy,
+  rejectBusy,
+  onApprove,
+  onReject,
+  readOnly,
+}: {
+  item: AthleteUpdateRow;
+  busy: boolean;
+  rejectBusy: boolean;
+  onApprove: () => void;
+  onReject: () => void;
+  readOnly?: boolean;
+}) {
+  const statusColor = item.status === "approved" ? C.greenBright : item.status === "rejected" ? C.redBright : C.gold;
+  const statusLabel = item.status === "approved" ? "Publicada" : item.status === "rejected" ? "Rechazada" : "Pendiente";
+
+  return (
+    <div className="rounded-[14px] p-5" style={{ background: C.surface, border: `1px solid ${C.border}` }}>
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <div>
+          <div className="font-display text-[16px] font-600 leading-tight text-white">{item.athlete_name}</div>
+          <div className="mt-0.5 text-[12px]" style={{ color: C.txtFaint }}>{timeAgo(item.created_at)}</div>
+        </div>
+        <span
+          className="shrink-0 rounded-full px-2.5 py-1 font-display text-[11px] font-600 uppercase tracking-wide"
+          style={{ background: `${statusColor}18`, color: statusColor, border: `1px solid ${statusColor}40` }}
+        >
+          {statusLabel}
+        </span>
+      </div>
+
+      {/* Contenido de la novedad */}
+      <div className="mb-4 rounded-[10px] p-4" style={{ background: C.sidebar, border: `1px solid rgba(255,255,255,.06)` }}>
+        <div className="font-display text-[16px] font-600 uppercase leading-tight text-white">{item.title}</div>
+        {item.image_url && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={item.image_url} alt={item.title} className="mt-3 max-h-[260px] w-full rounded-lg object-cover" />
+        )}
+        <p className="mt-2.5 whitespace-pre-line text-[14px] leading-relaxed" style={{ color: "rgba(255,255,255,.72)" }}>
+          {item.body}
+        </p>
+      </div>
+
+      {item.admin_note && (
+        <div className="mb-3 rounded-[8px] px-3 py-2 text-[12px] italic" style={{ background: "rgba(255,255,255,.04)", color: C.txtFaint }}>
+          Nota: {item.admin_note}
+        </div>
+      )}
+
       {!readOnly && item.status === "pending" && (
         <div className="flex gap-2.5">
           <button

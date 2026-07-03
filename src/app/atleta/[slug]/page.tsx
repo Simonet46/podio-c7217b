@@ -10,7 +10,8 @@ import { Reveal } from "@/components/Reveal";
 import { SupporterWall } from "@/components/SupporterWall";
 import { SponsorLogo } from "@/components/SponsorLogo";
 import { getSponsorForSlug } from "@/lib/data/sponsors";
-import { getAthleteBySlug, getAllAthletes, getTeamBySlug } from "@/lib/data/athletes";
+import { getAthleteBySlug, getAllAthletes, getTeamBySlug, getAthleteUpdates } from "@/lib/data/athletes";
+import { AthleteTimeline } from "@/components/AthleteTimeline";
 import { getSport } from "@/config/sports";
 import { formatMoney } from "@/lib/money";
 import { supporterCount } from "@/lib/supporters";
@@ -50,6 +51,7 @@ export default async function AthletePage({
   const backers = supporterCount(athlete.raised_amount);
   const team = athlete.team ? await getTeamBySlug(athlete.team) : null;
   const sponsor = getSponsorForSlug(athlete.slug);
+  const updates = await getAthleteUpdates(athlete.slug);
 
   const hasCover = Boolean(athlete.photo_secondary_url);
   const hasPortrait = Boolean(athlete.photo_url);
@@ -239,6 +241,13 @@ export default async function AthletePage({
                       className="h-auto w-full object-cover"
                     />
                   </div>
+                </Reveal>
+              )}
+
+              {/* El camino: novedades del atleta (moderadas) */}
+              {updates.length > 0 && (
+                <Reveal>
+                  <AthleteTimeline updates={updates} firstName={athlete.first_name} />
                 </Reveal>
               )}
 
