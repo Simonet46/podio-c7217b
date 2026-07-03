@@ -45,7 +45,7 @@ type Aporte = {
   created_at: string;
 };
 
-type AuthState = "loading" | "none" | "ok";
+type AuthState = "loading" | "none" | "nolink" | "ok";
 
 type EditForm = {
   photo_url: string;
@@ -64,6 +64,7 @@ export default function MiPerfilPage() {
   const [loginEmail, setLoginEmail] = useState("");
   const [loginSent, setLoginSent] = useState(false);
   const [loginBusy, setLoginBusy] = useState(false);
+  const [loginError, setLoginError] = useState("");
   const [connectingMp, setConnectingMp] = useState(false);
   const [mpJustConnected, setMpJustConnected] = useState(false);
   const [aportes, setAportes] = useState<Aporte[]>([]);
@@ -104,7 +105,9 @@ export default function MiPerfilPage() {
         .eq("user_id", session.user.id)
         .maybeSingle();
 
-      if (!a) { setAuthState("none"); return; }
+      // Sesión válida pero sin atleta vinculado (p. ej. entró con otro email):
+      // estado propio con explicación, no el form de login de nuevo.
+      if (!a) { setAuthState("nolink"); return; }
       setAtleta(a as Atleta);
 
       // Cargar datos paralelos.
@@ -126,12 +129,21 @@ export default function MiPerfilPage() {
     e.preventDefault();
     if (!loginEmail || loginBusy) return;
     setLoginBusy(true);
+    setLoginError("");
     const supabase = await getSupabase();
-    await supabase?.auth.signInWithOtp({
+    // shouldCreateUser: false → solo mandamos link a cuentas que EXISTEN.
+    // (Sin esto, cualquier email creaba una cuenta fantasma sin atleta.)
+    const { error } = (await supabase?.auth.signInWithOtp({
       email: loginEmail,
-      options: { emailRedirectTo: `${SITE_URL}/bienvenida/` },
-    });
-    setLoginSent(true);
+      options: { emailRedirectTo: `${SITE_URL}/bienvenida/`, shouldCreateUser: false },
+    })) ?? {};
+    if (error) {
+      setLoginError(
+        "Ese email no corresponde a una cuenta de atleta. Usá el email con el que te aprobamos, o postulate si todavía no tenés perfil.",
+      );
+    } else {
+      setLoginSent(true);
+    }
     setLoginBusy(false);
   }
 
@@ -298,6 +310,14 @@ export default function MiPerfilPage() {
                   placeholder="tu@email.com"
                   className="rounded-[10px] border border-white/[.14] bg-white/[.05] px-[15px] py-[13px] text-[15px] text-white outline-none placeholder:text-white/35 focus:border-white/40"
                 />
+                {loginError && (
+                  <p
+                    className="rounded-[8px] p-3 text-[13px] leading-relaxed"
+                    style={{ background: "rgba(220,38,38,.12)", color: "#f87171" }}
+                  >
+                    {loginError}
+                  </p>
+                )}
                 <button
                   type="submit"
                   disabled={loginBusy || !loginEmail}
@@ -312,10 +332,52 @@ export default function MiPerfilPage() {
 
           <p className="mt-5 text-center text-[13px] text-white/35">
             ¿Sos un atleta sin cuenta aún?{" "}
-            <Link href="/postulacion" className="text-white/60 underline hover:text-white">
+            <Link href="/para-atletas" className="text-white/60 underline hover:text-white">
               Postulate acá
             </Link>
           </p>
+        </div>
+      </Shell>
+    );
+  }
+
+  /* ── Sesión sin atleta vinculado ── */
+  if (authState === "nolink") {
+    return (
+      <Shell onSignOut={handleSignOut}>
+        <div className="mx-auto mt-16 w-full max-w-[460px] px-4">
+          <div
+            className="rounded-[16px] p-8 text-center"
+            style={{ background: "#0d2238", border: "1px solid rgba(255,255,255,.08)" }}
+          >
+            <div className="mb-4 text-[40px]">🤔</div>
+            <h1 className="mb-2 font-display text-[24px] font-700 uppercase leading-tight text-white">
+              Tu email no está vinculado a un atleta
+            </h1>
+            <p className="mb-6 text-[14px] leading-relaxed text-white/55">
+              Entraste bien, pero este email no corresponde a ningún perfil de atleta aprobado.
+              Puede que te hayamos invitado con otro email — probá con ese — o que todavía
+              no te hayas postulado.
+            </p>
+            <div className="flex flex-col gap-3">
+              <Link
+                href="/para-atletas"
+                className="rounded-[10px] py-3.5 font-display text-[14px] font-600 uppercase tracking-wide text-ink"
+                style={{ background: "#C9A227" }}
+              >
+                Postularme como atleta
+              </Link>
+              <button
+                onClick={handleSignOut}
+                className="rounded-[10px] border border-white/20 py-3.5 font-display text-[14px] font-600 uppercase tracking-wide text-white/60 hover:text-white"
+              >
+                Salir y probar con otro email
+              </button>
+            </div>
+            <p className="mt-5 text-[12px] text-white/35">
+              ¿Seguro que ya sos atleta de GRANITO? Escribinos a hola@somosgranito.com y lo resolvemos.
+            </p>
+          </div>
         </div>
       </Shell>
     );
