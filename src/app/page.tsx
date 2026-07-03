@@ -2,15 +2,12 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { AthleteGrid } from "@/components/AthleteGrid";
 import { CoverBand } from "@/components/CoverBand";
-import { ActivityFeed } from "@/components/ActivityFeed";
-import { LiveToast } from "@/components/LiveToast";
 import { HomeHero, type HeroAthlete } from "@/components/HomeHero";
 import { getAthletes, getOtherAthletes, getTeams, getGlobalStats } from "@/lib/data/athletes";
 import { AthleteCard } from "@/components/AthleteCard";
 import { getSport } from "@/config/sports";
 import { formatMoney } from "@/lib/money";
-import { topSupporters, supporterCount } from "@/lib/supporters";
-import { PLATFORM_FEE_RATE, DIPLOMA_TIERS } from "@/config/site";
+import { PLATFORM_FEE_RATE } from "@/config/site";
 import { Reveal } from "@/components/Reveal";
 import Link from "next/link";
 
@@ -18,7 +15,7 @@ export default async function HomePage() {
   const athletes = await getAthletes();
   const otherAthletes = await getOtherAthletes();
   const teams = await getTeams();
-  const { athleteCount, totalRaised, supporterTotal } = await getGlobalStats();
+  const { athleteCount, sportCount, totalRaised } = await getGlobalStats();
   const netPct = Math.round((1 - PLATFORM_FEE_RATE) * 100);
   const feePct = Math.round(PLATFORM_FEE_RATE * 100);
 
@@ -35,22 +32,7 @@ export default async function HomePage() {
       location: `${a.city}, ${a.province}`,
       nextCompetition: a.next_competition ?? null,
       photo: a.photo_url,
-      backers: supporterCount(a.raised_amount),
     }));
-
-  const topThree = topSupporters(3);
-  const podiumColors = [
-    DIPLOMA_TIERS.oro.color,
-    DIPLOMA_TIERS.plata.color,
-    DIPLOMA_TIERS.bronce.color,
-  ];
-
-  // Destinatarios posibles para el feed "en vivo" de aportes.
-  const activityTargets = [
-    ...athletes.map((a) => ({ label: a.full_name, href: `/atleta/${a.slug}` })),
-    ...teams.map((t) => ({ label: t.name, href: `/equipo/${t.slug}` })),
-    { label: "todos los atletas", href: "/apoyar-a-todos" },
-  ];
 
   return (
     <>
@@ -59,17 +41,14 @@ export default async function HomePage() {
         {/* ───────── Hero inmersivo ───────── */}
         <HomeHero featured={featured} />
 
-        {/* ───────── Franja: stats ───────── */}
+        {/* ───────── Franja: stats reales ───────── */}
         <section className="bg-ink text-white">
           <div className="mx-auto max-w-container px-4 sm:px-6">
             <div className="flex flex-wrap gap-8 border-t border-white/10 py-8 sm:gap-12">
-              <Stat
-                value={supporterTotal.toLocaleString("es-AR")}
-                label="Personas apoyando"
-              />
               <Stat value={String(athleteCount)} label="Atletas en campaña" />
-              <Stat value={formatMoney(totalRaised)} label="Total recaudado" />
-              <Stat value="93%" label="Va directo al atleta" />
+              <Stat value={String(sportCount)} label={sportCount === 1 ? "Deporte" : "Deportes"} />
+              <Stat value={formatMoney(totalRaised)} label="Aportado a la fecha" />
+              <Stat value="1" label="Empresa impulsora" />
             </div>
           </div>
         </section>
@@ -80,17 +59,15 @@ export default async function HomePage() {
         {/* ───────── Grid de atletas ───────── */}
         <section id="atletas" className="bg-ink text-white">
           <div className="mx-auto max-w-container px-4 py-16 sm:px-6">
-            {/* Actividad en vivo */}
-            <Reveal className="mb-10">
-              <ActivityFeed targets={activityTargets} />
-            </Reveal>
-
             <Reveal>
               <div className="mb-8 text-center">
-                <p className="eyebrow text-gold">Más historias</p>
+                <p className="eyebrow text-gold">Cada uno, una historia</p>
                 <h2 className="mt-2 font-display text-3xl font-700 uppercase tracking-tight text-white sm:text-4xl">
-                  Elegí a quién apoyar
+                  Conocé a los atletas
                 </h2>
+                <p className="mx-auto mt-3 max-w-xl text-white/60">
+                  Entrá en su día a día, seguí su carrera y elegí a quién acompañar.
+                </p>
               </div>
             </Reveal>
             <AthleteGrid athletes={athletes} teams={teams} />
@@ -152,76 +129,6 @@ export default async function HomePage() {
               >
                 Sumate al apoyo colectivo
               </Link>
-            </Reveal>
-          </div>
-        </section>
-
-        {/* ───────── Top hinchas (pódium 3D) ───────── */}
-        <section className="bg-ice">
-          <div className="mx-auto max-w-[1100px] px-4 py-20 sm:px-6">
-            <Reveal>
-              <div className="mb-16 text-center">
-                <p className="eyebrow text-celeste-deep">Los que más empujan</p>
-                <h2 className="mt-2 font-display text-4xl font-700 uppercase tracking-tight text-ink sm:text-5xl">
-                  Top hinchas del mes
-                </h2>
-              </div>
-            </Reveal>
-
-            <Reveal>
-              <div
-                className="flex items-end justify-center gap-6"
-                style={{ perspective: "1000px" }}
-              >
-                {/* Plata — 2° puesto */}
-                <Podium
-                  hincha={topThree[1]}
-                  rank={2}
-                  barH={150}
-                  barStyle="linear-gradient(180deg,#C8D2DC,#A9B6C2)"
-                  barShadow="0 18px 40px rgba(0,0,0,.18)"
-                  avatarBorder="#B8C2CC"
-                  numSize="text-4xl"
-                  avatarSize="h-20 w-20"
-                  nameSize="text-lg"
-                />
-                {/* Oro — 1° puesto */}
-                <Podium
-                  hincha={topThree[0]}
-                  rank={1}
-                  barH={210}
-                  barStyle="linear-gradient(180deg,#E0C04A,#C9A227)"
-                  barShadow="0 24px 50px rgba(201,162,39,.35)"
-                  avatarBorder="#C9A227"
-                  numSize="text-5xl"
-                  avatarSize="h-24 w-24"
-                  nameSize="text-xl"
-                  champion
-                />
-                {/* Bronce — 3° puesto */}
-                <Podium
-                  hincha={topThree[2]}
-                  rank={3}
-                  barH={120}
-                  barStyle="linear-gradient(180deg,#D6A179,#C0825A)"
-                  barShadow="0 18px 40px rgba(0,0,0,.18)"
-                  avatarBorder="#C8956A"
-                  numSize="text-3xl"
-                  avatarSize="h-20 w-20"
-                  nameSize="text-lg"
-                />
-              </div>
-            </Reveal>
-
-            <Reveal>
-              <div className="mt-10 text-center">
-                <Link
-                  href="/hinchas"
-                  className="font-display text-sm font-600 uppercase tracking-wide text-celeste-deep hover:underline"
-                >
-                  Ver ranking completo →
-                </Link>
-              </div>
             </Reveal>
           </div>
         </section>
@@ -291,7 +198,6 @@ export default async function HomePage() {
         </section>
       </main>
       <Footer />
-      <LiveToast targets={activityTargets} />
     </>
   );
 }
@@ -345,63 +251,6 @@ function Founder({ name, sport }: { name: string; sport: string }) {
         {name}
       </div>
       <div className="mt-1 text-[12px] text-white/55">{sport}</div>
-    </div>
-  );
-}
-
-type PodiumHincha = { rank: number; name: string; athletes: number; total: number };
-
-function Podium({
-  hincha,
-  rank,
-  barH,
-  barStyle,
-  barShadow,
-  avatarBorder,
-  numSize,
-  avatarSize,
-  nameSize,
-  champion,
-}: {
-  hincha: PodiumHincha;
-  rank: number;
-  barH: number;
-  barStyle: string;
-  barShadow: string;
-  avatarBorder: string;
-  numSize: string;
-  avatarSize: string;
-  nameSize: string;
-  champion?: boolean;
-}) {
-  const initial = hincha?.name?.[0] ?? String(rank);
-  return (
-    <div className={`text-center ${champion ? "w-[200px] sm:w-[220px]" : "w-[160px] sm:w-[200px]"}`}>
-      {champion && <p className="eyebrow mb-2 text-gold">Hincha del mes</p>}
-      <div
-        className={`mx-auto mb-3.5 flex ${avatarSize} items-center justify-center rounded-full font-display font-700 text-white`}
-        style={{ border: `3px solid ${avatarBorder}`, background: avatarBorder }}
-      >
-        {initial}
-      </div>
-      <div className={`font-display font-600 uppercase text-ink ${nameSize}`}>
-        {hincha?.name ?? `Lugar ${rank}`}
-      </div>
-      <div className="mb-3.5 text-sm text-steel">
-        {hincha ? `${hincha.athletes} atletas apoyados` : "—"}
-      </div>
-      <div
-        className={`flex items-start justify-center rounded-t-lg ${champion ? "pt-[18px]" : "pt-3.5"}`}
-        style={{
-          height: barH,
-          background: barStyle,
-          transform: "rotateX(8deg)",
-          transformOrigin: "bottom",
-          boxShadow: barShadow,
-        }}
-      >
-        <span className={`font-display font-700 text-white/85 ${numSize}`}>{rank}</span>
-      </div>
     </div>
   );
 }

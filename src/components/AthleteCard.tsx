@@ -4,13 +4,11 @@ import type { Athlete } from "@/lib/data/types";
 import { getSport } from "@/config/sports";
 import { asset } from "@/config/site";
 import { formatMoney } from "@/lib/money";
-import { supporterCount } from "@/lib/supporters";
 import { Monogram } from "./Monogram";
 
 export function AthleteCard({ athlete }: { athlete: Athlete }) {
   const sport = getSport(athlete.sport);
   const color = sport?.color ?? "#1E6E8C";
-  const backers = supporterCount(athlete.raised_amount);
 
   return (
     <article
@@ -67,12 +65,11 @@ export function AthleteCard({ athlete }: { athlete: Athlete }) {
         className="flex items-center justify-between px-[18px] py-4"
       >
         <div className="text-[13px] text-white/60">
-          <strong className="font-display text-[17px] text-white">{backers}</strong>{" "}
-          apoyando ·{" "}
-          <strong className="font-display text-[17px] text-gold">{formatMoney(athlete.raised_amount)}</strong>
+          <strong className="font-display text-[17px] text-gold">{formatMoney(athlete.raised_amount)}</strong>{" "}
+          aportados
         </div>
         <span className="font-display text-[13px] font-600 uppercase tracking-[.04em] text-gold">
-          Apoyar →
+          Conocelo →
         </span>
       </Link>
     </article>

@@ -96,12 +96,15 @@ export async function getGlobalStats() {
       .filter((a) => !a.team)
       .reduce((s, a) => s + supporterCount(a.raised_amount), 0) +
     teams.reduce((s, t) => s + supporterCount(t.raised_amount), 0);
+  // Deportes distintos representados (real, para las stats del home).
+  const sportCount = new Set(athletes.map((a) => a.sport)).size;
   return {
     // Atletas individuales + todos los jugadores de equipos.
     athleteCount: athletes.length,
     // Campañas visibles en el home: individuales + equipos.
     campaignCount: athletes.filter((a) => !a.team).length + teams.length,
     teamCount: teams.length,
+    sportCount,
     totalRaised,
     supporterTotal,
   };

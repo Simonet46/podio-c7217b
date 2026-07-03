@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { FounderAvatar } from "@/components/FounderAvatar";
@@ -104,6 +103,10 @@ export default function QuienesSomosPage() {
             >
               Los que están detrás
             </h2>
+            <p className="mx-auto mt-4 max-w-[560px] text-[15px] leading-relaxed text-white/55">
+              Hoy nos ves a nosotros. Pero GRANITO no se trata de nosotros: a medida
+              que la comunidad crezca, los protagonistas van a ser los atletas que impulsamos.
+            </p>
           </Reveal>
 
           <div className="flex flex-col gap-8">
@@ -220,23 +223,28 @@ export default function QuienesSomosPage() {
           </Reveal>
         </section>
 
-        {/* ── Con el apoyo de ── */}
-        <section className="mx-auto max-w-[1080px] px-6 pb-24 pt-8 text-center sm:px-12">
+        {/* ── Para el deporte, no para nosotros ── */}
+        <section className="mx-auto max-w-[820px] px-6 pb-24 pt-6 text-center sm:px-12">
           <Reveal>
-            <p
-              className="mb-6 font-display font-500 uppercase text-white/45"
-              style={{ fontSize: "12px", letterSpacing: ".16em" }}
+            <div
+              className="rounded-[18px] p-9 sm:p-11"
+              style={{
+                background: "linear-gradient(160deg,#12283f,#0d2238)",
+                border: "1px solid rgba(201,162,39,.25)",
+              }}
             >
-              Con el apoyo de
-            </p>
-            <div className="flex flex-wrap items-center justify-center gap-9">
-              <Image
-                src="/logos/ds-connect.png"
-                alt="DS Connect"
-                width={130}
-                height={46}
-                className="h-[46px] w-auto object-contain opacity-85"
-              />
+              <p
+                className="font-display font-700 uppercase leading-[1.1] text-white"
+                style={{ fontSize: "clamp(22px,2.6vw,32px)" }}
+              >
+                GRANITO no nació para sus fundadores.{" "}
+                <span className="text-gold">Nació para el deporte argentino.</span>
+              </p>
+              <p className="mx-auto mt-5 max-w-[560px] text-[16px] leading-relaxed text-white/65">
+                Nuestro objetivo no es figurar: es construir una institución que
+                pueda impulsar el deporte argentino durante décadas, mucho más allá
+                de nosotros tres.
+              </p>
             </div>
           </Reveal>
         </section>

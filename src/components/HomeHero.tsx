@@ -15,7 +15,6 @@ export type HeroAthlete = {
   location: string;
   nextCompetition?: string | null;
   photo: string | null;
-  backers: number;
 };
 
 export function HomeHero({ featured }: { featured: HeroAthlete[] }) {
@@ -146,19 +145,11 @@ export function HomeHero({ featured }: { featured: HeroAthlete[] }) {
               </div>
             </Link>
 
-            {/* Badge: apoyando */}
-            <div className="podio-float2 absolute -right-5 top-16 rounded-xl bg-white px-4 py-3 text-ink shadow-[0_18px_44px_rgba(0,0,0,.4)] sm:-right-20">
-              <div className="font-display text-2xl font-700 leading-none">
-                {center.backers}
-              </div>
-              <div className="text-[11px] font-600 text-steel">apoyando</div>
-            </div>
-
-            {/* Badge: recién apoyaron */}
+            {/* Badge: caso revisado (real — es el proceso de GRANITO) */}
             <div className="podio-float absolute -right-3 bottom-10 flex items-center gap-2 rounded-full border border-white/[.12] bg-ink-2/95 px-3.5 py-2 shadow-[0_14px_36px_rgba(0,0,0,.45)] sm:-right-16">
-              <span className="h-2 w-2 rounded-full bg-green-500" aria-hidden />
+              <span className="h-2 w-2 rounded-full bg-gold" aria-hidden />
               <span className="text-[13px] font-500 text-white">
-                Recién la apoyaron
+                Historia real, revisada a mano
               </span>
             </div>
           </div>
@@ -243,7 +234,7 @@ export function HomeHero({ featured }: { featured: HeroAthlete[] }) {
             href={`/atleta/${center.slug}`}
             className="inline-block rounded-md bg-gold px-8 py-4 font-display text-base font-700 uppercase tracking-wide text-ink transition-transform hover:-translate-y-0.5"
           >
-            Apoyá a {center.firstName}
+            Conocé la historia de {center.firstName}
           </Link>
         </div>
       </div>
