@@ -286,10 +286,11 @@ export default function MiPerfilPage() {
             style={{ background: "#0d2238", border: "1px solid rgba(255,255,255,.08)" }}
           >
             <h1 className="mb-1 font-display text-[26px] font-700 uppercase leading-none tracking-tight text-white">
-              Acceso atletas
+              Mi cuenta de atleta
             </h1>
             <p className="mb-6 text-[14px] text-white/55">
-              Ingresá tu email y te mandamos un link de acceso.
+              Solo para atletas ya aprobados por GRANITO. Ingresá el email con el
+              que te aprobamos y te mandamos un link de acceso.
             </p>
 
             {loginSent ? (
