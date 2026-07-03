@@ -5,35 +5,62 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Reveal } from "@/components/Reveal";
 import { CompanyContactForm } from "@/components/CompanyContactForm";
-import { Monogram } from "@/components/Monogram";
 import { getAthletes } from "@/lib/data/athletes";
 import { getSport } from "@/config/sports";
 import { asset, SITE } from "@/config/site";
 
 export const metadata: Metadata = {
-  title: `Para empresas — ${SITE.brand}`,
+  title: `Empresas impulsoras — ${SITE.brand}`,
   description:
-    "Conectamos a tu empresa con atletas argentinos reales. Vos hacés el match, ellos llevan tu marca a donde entrenan y compiten.",
+    "Tu empresa puede impulsar el deporte argentino: carreras deportivas reales, con transparencia total e informes de impacto. No vendemos publicidad, construimos comunidad.",
 };
 
 const BENEFITS = [
   {
     color: "#0072CE",
-    icon: "🎯",
-    title: "Audiencia que ya quiere",
-    text: "No interrumpís a nadie. Llegás a personas que eligieron seguir y apoyar a estos atletas. Afinidad real, no impresiones frías.",
+    icon: "🏃",
+    title: "Carreras, no campañas",
+    text: "Tu aporte le da tranquilidad a un atleta para entrenar, viajar y competir. No financiás publicidad: impulsás una carrera deportiva real.",
   },
   {
-    color: "#DF0024",
-    icon: "❤️",
-    title: "Asociación auténtica",
-    text: "Tu marca acompaña una historia de esfuerzo, no un cartel. La gente recuerda quién estuvo cuando el atleta la peleaba solo.",
+    color: "#C9A227",
+    icon: "🇦🇷",
+    title: "Orgullo que se comparte",
+    text: "Tu equipo sabe que la empresa impulsa el deporte argentino. Un orgullo que se vive puertas adentro y se cuenta puertas afuera.",
   },
   {
     color: "#009F3D",
-    icon: "🤝",
-    title: "Relación directa",
-    text: "Te acercamos al atleta y el acuerdo lo arreglan entre ustedes, sin intermediarios. Vos decidís cómo y cuánto acompañar.",
+    icon: "🔍",
+    title: "Transparencia total",
+    text: "Sabés exactamente adónde va cada peso. Los aportes llegan directo al atleta y vos recibís informes claros del impacto que generás.",
+  },
+];
+
+const RECIBE = [
+  {
+    icon: "📊",
+    title: "Informes de impacto",
+    text: "Reportes periódicos: a quiénes impulsaste, qué lograron y qué viene.",
+  },
+  {
+    icon: "🧾",
+    title: "Transparencia de aportes",
+    text: "El detalle de cómo se distribuyó cada peso que aportó tu empresa.",
+  },
+  {
+    icon: "📖",
+    title: "Historias reales",
+    text: "El detrás de escena de los atletas que tu empresa acompaña.",
+  },
+  {
+    icon: "🏅",
+    title: "Certificado de Empresa Impulsora",
+    text: "El reconocimiento oficial de GRANITO a las empresas que empujan.",
+  },
+  {
+    icon: "📈",
+    title: "Métricas claras",
+    text: "Números concretos de tu impacto: atletas, disciplinas, competencias.",
   },
 ];
 
@@ -41,74 +68,27 @@ const STEPS = [
   {
     n: "01",
     title: "Contanos",
-    text: "Tu empresa, tus valores y qué tipo de atleta querés acompañar.",
+    text: "Tu empresa, tus valores y cómo te gustaría impulsar el deporte argentino.",
   },
   {
     n: "02",
-    title: "Te proponemos",
-    text: "Armamos una lista de atletas específicos que encajan con tu marca.",
+    title: "Definimos juntos",
+    text: "Un atleta, una disciplina o un proyecto deportivo. El alcance lo elegís vos.",
   },
   {
     n: "03",
-    title: "Los ponemos en relación",
-    text: "Te presentamos al atleta o su manager y quedan en contacto directo.",
+    title: "Tu aporte llega directo",
+    text: "Sin intermediarios: el dinero va a la cuenta del atleta. Nosotros no custodiamos fondos.",
   },
   {
     n: "04",
-    title: "Arreglan directo",
-    text: "El acuerdo lo definen ustedes, a su manera. Nosotros solo conectamos.",
-  },
-];
-
-const PLANS = [
-  {
-    tag: "Una empresa, un atleta",
-    name: "Un atleta",
-    accent: "#6CB4E4",
-    featured: false,
-    desc: "Te acercamos a un atleta puntual que encaja perfectamente con tu marca.",
-    features: [
-      "Selección personalizada",
-      "Presentación directa con el atleta",
-      "El acuerdo lo cierran ustedes",
-      "Sin intermediarios ni comisiones",
-    ],
-    cta: "Quiero conectar",
-  },
-  {
-    tag: "Para marcas activas",
-    name: "Varios atletas",
-    accent: "#C9A227",
-    featured: true,
-    desc: "Te presentamos un grupo de atletas seleccionados según tu perfil y valores.",
-    features: [
-      "Portafolio de 3 a 10 atletas",
-      "Diversidad de deportes e historias",
-      "Presentaciones individuales",
-      "Más alcance e impacto de marca",
-    ],
-    cta: "Quiero varios atletas",
-  },
-  {
-    tag: "Visibilidad en la plataforma",
-    name: "Comunidad",
-    accent: "#009F3D",
-    featured: false,
-    desc: "Tu logo asociado a GRANITO, con presencia en perfiles y campañas de toda la plataforma.",
-    features: [
-      "Logo en la plataforma",
-      "Asociación con el deporte argentino",
-      "Visibilidad en perfiles y campañas",
-      "Sin requerir acuerdos individuales",
-    ],
-    cta: "Sumar mi marca",
+    title: "Ves el impacto",
+    text: "Informes, historias y métricas de lo que tu empresa hizo posible.",
   },
 ];
 
 export default async function EmpresasPage() {
   const athletes = await getAthletes();
-  const matchAthlete = athletes.find((a) => a.photo_url) ?? athletes[0];
-  const matchSport = getSport(matchAthlete?.sport ?? "");
   const gridAthletes = athletes.filter((a) => a.photo_url).slice(0, 4);
 
   return (
@@ -129,16 +109,16 @@ export default async function EmpresasPage() {
               <Reveal>
                 <div className="mb-6 inline-flex items-center gap-2.5">
                   <span className="podio-pulse h-2 w-2 rounded-full bg-gold" aria-hidden />
-                  <span className="eyebrow text-gold">Para marcas</span>
+                  <span className="eyebrow text-gold">Empresas impulsoras</span>
                 </div>
                 <h1 className="font-display text-[54px] font-700 uppercase leading-[.92] tracking-tight sm:text-[68px] lg:text-[76px]">
-                  Tu marca, del<br />lado correcto<br />de la{" "}
-                  <span className="text-gold">historia</span>
+                  Impulsá el<br />deporte<br />
+                  <span className="text-gold">argentino</span>
                 </h1>
                 <p className="mt-6 max-w-[480px] text-[19px] leading-relaxed text-white/70">
-                  Conectamos a tu empresa con atletas argentinos reales que la
-                  pelean todos los días. Una conexión auténtica, con historias
-                  que la gente ya está siguiendo.
+                  No te vendemos publicidad. Te invitamos a formar parte de una
+                  comunidad que ayuda a deportistas argentinos a desarrollar su
+                  carrera con menos preocupaciones económicas.
                 </p>
               </Reveal>
               <Reveal delay={160}>
@@ -147,7 +127,7 @@ export default async function EmpresasPage() {
                     href="#contacto"
                     className="rounded-md bg-gold px-7 py-4 font-display text-base font-700 uppercase tracking-[.04em] text-ink transition-transform hover:-translate-y-0.5"
                   >
-                    Conectar con un atleta
+                    Quiero impulsar
                   </a>
                   <a
                     href="#como-funciona"
@@ -159,122 +139,49 @@ export default async function EmpresasPage() {
               </Reveal>
             </div>
 
-            {/* Matchmaker visual */}
+            {/* Certificado de Empresa Impulsora (visual) */}
             <Reveal delay={120}>
               <div className="flex flex-col items-center gap-4">
-                <div className="flex items-center">
-                  {/* Card atleta */}
+                <div
+                  className="w-full max-w-[420px] rounded-[16px] p-8 text-center"
+                  style={{
+                    background: "linear-gradient(160deg,#12283f,#0d2238)",
+                    border: "1px solid rgba(201,162,39,.35)",
+                    boxShadow: "0 30px 70px rgba(0,0,0,.5)",
+                  }}
+                >
                   <div
-                    className="relative z-[2] w-[220px] overflow-hidden rounded-[14px]"
-                    style={{
-                      background: "#0d2238",
-                      border: "1px solid rgba(255,255,255,.1)",
-                      boxShadow: "0 30px 70px rgba(0,0,0,.5)",
-                    }}
-                  >
-                    <div className="relative h-[180px]">
-                      {matchAthlete?.photo_url ? (
-                        <Image
-                          src={asset(matchAthlete.photo_url)}
-                          alt={matchAthlete.full_name}
-                          fill
-                          sizes="220px"
-                          className="object-cover"
-                        />
-                      ) : (
-                        <Monogram
-                          name={matchAthlete?.full_name ?? "Atleta"}
-                          color={matchSport?.color ?? "#1E6E8C"}
-                          className="h-full w-full"
-                        />
-                      )}
-                      <div
-                        className="pointer-events-none absolute inset-0"
-                        style={{ background: "linear-gradient(180deg,transparent 45%,rgba(13,34,56,.95))" }}
-                      />
-                      <div className="absolute bottom-2.5 left-3 right-3">
-                        <div className="font-display text-[17px] font-600 uppercase leading-none">
-                          {matchAthlete?.first_name ?? "Atleta"}
-                        </div>
-                        <div className="mt-0.5 text-[11px] text-white/60">
-                          {matchSport?.label ?? matchAthlete?.sport} · {matchAthlete?.city}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="px-3.5 py-2.5 text-[11px] text-white/55">
-                      312 personas la apoyan
-                    </div>
-                  </div>
-
-                  {/* "+" dorado */}
+                    className="mx-auto mb-5 h-[10px] w-32 rounded-[3px]"
+                    style={{ background: "linear-gradient(90deg,#0072CE 0 20%,#F4C300 20% 40%,#1A1A1A 40% 60%,#009F3D 60% 80%,#DF0024 80% 100%)" }}
+                    aria-hidden
+                  />
+                  <div className="eyebrow text-white/50">GRANITO certifica que</div>
                   <div
-                    className="podio-float relative z-[3] mx-[-18px] flex h-16 w-16 flex-none items-center justify-center rounded-full"
-                    style={{
-                      background: "linear-gradient(150deg,#E8CC5A,#C9A227)",
-                      boxShadow: "0 14px 30px rgba(201,162,39,.45)",
-                    }}
+                    className="mx-auto my-4 flex h-[64px] w-[150px] items-center justify-center rounded-lg text-[13px] text-white/40"
+                    style={{ border: "1px dashed rgba(255,255,255,.25)" }}
                   >
-                    <span className="font-display text-[26px] font-700 text-ink">+</span>
+                    Tu empresa
                   </div>
-
-                  {/* Card marca */}
-                  <div
-                    className="relative z-[1] flex w-[220px] flex-col items-center justify-center gap-3.5 rounded-[14px] px-5 py-5"
-                    style={{
-                      background: "#0d2238",
-                      border: "1px solid rgba(255,255,255,.1)",
-                      boxShadow: "0 30px 70px rgba(0,0,0,.5)",
-                      minHeight: "248px",
-                    }}
-                  >
-                    <div className="eyebrow text-white/50">Tu marca acá</div>
-                    <div
-                      className="flex h-[70px] w-[140px] items-center justify-center rounded-lg text-[13px] text-white/40"
-                      style={{ border: "1px dashed rgba(255,255,255,.25)" }}
-                    >
-                      Tu logo
-                    </div>
-                    <div className="text-center text-[12px] leading-[1.5] text-white/55">
-                      En su perfil, su ropa<br />y sus competencias
-                    </div>
+                  <div className="font-display text-[24px] font-700 uppercase leading-[1.05] text-gold">
+                    es Empresa Impulsora<br />del deporte argentino
                   </div>
+                  <p className="mt-4 text-[13px] leading-relaxed text-white/55">
+                    Impulsa carreras deportivas reales, con transparencia
+                    total y de la mano de una comunidad fundada por atletas.
+                  </p>
                 </div>
-                <div className="eyebrow text-gold">El match perfecto</div>
+                <div className="eyebrow text-gold">Impacto, no exposición</div>
               </div>
             </Reveal>
           </div>
         </section>
-
-        {/* ── TRUST STRIP ── */}
-        <div
-          className="border-y"
-          style={{ background: "#0b1f34", borderColor: "rgba(255,255,255,.07)" }}
-        >
-          <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-center gap-10 px-6 py-6">
-            <span className="eyebrow text-white/45">Marcas que ya apoyan</span>
-            <Image
-              src="/logos/ds-connect.png"
-              alt="DS Connect"
-              width={64}
-              height={64}
-              className="h-16 w-16 object-contain opacity-85"
-            />
-            {[1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="h-[36px] w-[110px] rounded"
-                style={{ background: "rgba(255,255,255,.06)" }}
-              />
-            ))}
-          </div>
-        </div>
 
         {/* ── POR QUÉ GRANITO ── */}
         <section className="mx-auto max-w-[1440px] px-6 pb-10 pt-20">
           <Reveal className="mb-12 text-center">
             <div className="eyebrow mb-2.5 text-gold">Por qué GRANITO</div>
             <h2 className="font-display text-[48px] font-700 uppercase leading-[.95] tracking-tight">
-              Una conexión que se siente real
+              Impacto que se puede ver
             </h2>
           </Reveal>
           <div className="grid gap-6 md:grid-cols-3">
@@ -299,15 +206,53 @@ export default async function EmpresasPage() {
           </div>
         </section>
 
+        {/* ── QUÉ RECIBE TU EMPRESA ── */}
+        <section className="mx-auto max-w-[1180px] px-6 pb-10 pt-16">
+          <Reveal className="mb-12 text-center">
+            <div className="eyebrow mb-2.5 text-gold">Qué recibe tu empresa</div>
+            <h2 className="font-display text-[48px] font-700 uppercase leading-[.95] tracking-tight">
+              No branding. Impacto.
+            </h2>
+          </Reveal>
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {RECIBE.map((r, i) => (
+              <Reveal key={r.title} delay={i * 70}>
+                <div
+                  className="h-full rounded-xl p-7"
+                  style={{ background: "#0d2238", border: "1px solid rgba(255,255,255,.07)" }}
+                >
+                  <div className="mb-3 text-[28px]">{r.icon}</div>
+                  <h3 className="mb-2 font-display text-[19px] font-600 uppercase leading-[1.1]">
+                    {r.title}
+                  </h3>
+                  <p className="text-[14px] leading-relaxed text-white/60">{r.text}</p>
+                </div>
+              </Reveal>
+            ))}
+            {/* Cierre de la grilla: la filosofía */}
+            <Reveal delay={350}>
+              <div
+                className="flex h-full items-center rounded-xl p-7"
+                style={{
+                  background: "linear-gradient(160deg,rgba(201,162,39,.14),rgba(201,162,39,.05))",
+                  border: "1px solid rgba(201,162,39,.3)",
+                }}
+              >
+                <p className="font-display text-[19px] font-600 uppercase leading-[1.25] text-gold">
+                  Lo que no vas a encontrar: logos en camisetas, banners ni
+                  publicidad. Eso no es GRANITO.
+                </p>
+              </div>
+            </Reveal>
+          </div>
+        </section>
+
         {/* ── CÓMO FUNCIONA ── */}
-        <section
-          id="como-funciona"
-          className="mx-auto max-w-[1180px] px-6 pb-10 pt-16"
-        >
+        <section id="como-funciona" className="mx-auto max-w-[1180px] px-6 pb-10 pt-16">
           <Reveal className="mb-14 text-center">
             <div className="eyebrow mb-2.5 text-gold">Cómo funciona</div>
             <h2 className="font-display text-[48px] font-700 uppercase leading-[.95] tracking-tight">
-              El match, paso a paso
+              Impulsar es simple
             </h2>
           </Reveal>
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
@@ -325,94 +270,28 @@ export default async function EmpresasPage() {
               </Reveal>
             ))}
           </div>
-        </section>
-
-        {/* ── PLANES ── */}
-        <section className="mx-auto max-w-[1180px] px-6 pb-10 pt-16">
-          <Reveal className="mb-12 text-center">
-            <div className="eyebrow mb-2.5 text-gold">Formas de sumarte</div>
-            <h2 className="font-display text-[48px] font-700 uppercase leading-[.95] tracking-tight">
-              Elegí cómo conectar
-            </h2>
+          <Reveal className="mt-10 text-center">
+            <Link
+              href="/transparencia"
+              className="font-display text-sm font-600 uppercase tracking-wide text-celeste hover:underline"
+            >
+              Cómo se distribuyen los aportes → Transparencia
+            </Link>
           </Reveal>
-          <div className="grid items-start gap-5 md:grid-cols-3">
-            {PLANS.map((p) => (
-              <Reveal key={p.name}>
-                <div
-                  className="relative overflow-hidden rounded-[14px]"
-                  style={{
-                    background: p.featured
-                      ? "linear-gradient(160deg,#1a3352,#0d2238)"
-                      : "#0d2238",
-                    border: p.featured
-                      ? "1px solid rgba(201,162,39,.38)"
-                      : "1px solid rgba(255,255,255,.08)",
-                    boxShadow: p.featured
-                      ? "0 20px 60px rgba(201,162,39,.12)"
-                      : "none",
-                  }}
-                >
-                  {p.featured && (
-                    <div
-                      className="w-full py-1.5 text-center font-display text-[11px] font-600 uppercase tracking-[.1em] text-ink"
-                      style={{ background: "#C9A227" }}
-                    >
-                      Más elegido
-                    </div>
-                  )}
-                  <div className="p-7">
-                    <div className="eyebrow mb-2" style={{ color: p.accent }}>
-                      {p.tag}
-                    </div>
-                    <div className="mb-1.5 font-display text-[30px] font-700 uppercase leading-none">
-                      {p.name}
-                    </div>
-                    <p className="mb-5 min-h-[62px] text-[14px] leading-[1.55] text-white/60">
-                      {p.desc}
-                    </p>
-                    <div className="mb-6 flex flex-col gap-2.5">
-                      {p.features.map((f) => (
-                        <div
-                          key={f}
-                          className="flex items-start gap-2.5 text-[14px] text-white/78"
-                        >
-                          <span className="flex-none font-600" style={{ color: p.accent }}>
-                            ✓
-                          </span>
-                          {f}
-                        </div>
-                      ))}
-                    </div>
-                    <a
-                      href="#contacto"
-                      className="block w-full rounded-[8px] py-3.5 text-center font-display text-[15px] font-600 uppercase tracking-[.04em] transition-transform hover:-translate-y-0.5"
-                      style={
-                        p.featured
-                          ? { background: "#C9A227", color: "#0A1A2F", boxShadow: "0 10px 28px rgba(201,162,39,.28)" }
-                          : { background: "rgba(255,255,255,.07)", color: "#fff", border: "1px solid rgba(255,255,255,.14)" }
-                      }
-                    >
-                      {p.cta}
-                    </a>
-                  </div>
-                </div>
-              </Reveal>
-            ))}
-          </div>
         </section>
 
-        {/* ── ATLETAS PARA TU MARCA ── */}
+        {/* ── A QUIÉNES IMPULSÁS ── */}
         {gridAthletes.length > 0 && (
           <section className="mx-auto max-w-[1440px] px-6 pb-10 pt-16">
             <Reveal className="mb-8 flex flex-wrap items-end justify-between gap-4">
               <div>
-                <div className="eyebrow mb-2.5 text-gold">Listos para conectar</div>
+                <div className="eyebrow mb-2.5 text-gold">Personas, no activos</div>
                 <h2 className="font-display text-[44px] font-700 uppercase leading-[.95] tracking-tight">
-                  Atletas para tu marca
+                  A quiénes impulsás
                 </h2>
               </div>
               <span className="text-[14px] text-white/50">
-                Te ayudamos a elegir el que mejor encaje
+                Cada perfil es una carrera deportiva real, revisada a mano
               </span>
             </Reveal>
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
@@ -466,7 +345,7 @@ export default async function EmpresasPage() {
                 href="/#atletas"
                 className="font-display text-sm font-600 uppercase tracking-wide text-celeste hover:underline"
               >
-                Ver todos los atletas →
+                Conocé a todos los atletas →
               </Link>
             </Reveal>
           </section>
@@ -486,17 +365,18 @@ export default async function EmpresasPage() {
               <div>
                 <div className="eyebrow mb-3 text-gold">Hablemos</div>
                 <h2 className="font-display text-[40px] font-700 uppercase leading-[.95] tracking-tight">
-                  Conectá tu marca con un atleta
+                  Sumate como empresa impulsora
                 </h2>
                 <p className="mt-4 text-[16px] leading-relaxed text-white/70">
-                  Contanos de tu empresa y qué buscás. Te armamos una propuesta de
-                  match con atletas que encajan con tus valores. Sin costo de exploración.
+                  Contanos de tu empresa y cómo te gustaría impulsar el deporte
+                  argentino. Armamos juntos la forma que mejor encaje — un
+                  atleta, una disciplina o un proyecto.
                 </p>
                 <div className="mt-6 flex flex-col gap-3.5">
                   {[
-                    "Propuesta a medida en 48 hs",
-                    "Te presentamos al atleta o su manager",
-                    "El acuerdo lo definen ustedes, directo",
+                    "Respuesta del equipo fundador en 48 hs",
+                    "El aporte llega directo al atleta",
+                    "Informes de impacto y transparencia total",
                   ].map((item) => (
                     <div
                       key={item}

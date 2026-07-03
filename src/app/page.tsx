@@ -103,7 +103,7 @@ export default async function HomePage() {
             <Reveal>
               <div className="mb-2 flex items-center gap-3">
                 <span className="ribbon ribbon-tall w-16 rounded-full" aria-hidden />
-                <p className="eyebrow text-celeste">No solo LA 2028</p>
+                <p className="eyebrow text-celeste">De la base a la elite</p>
               </div>
               <h2 className="font-display text-3xl font-700 uppercase tracking-tight text-white sm:text-4xl">
                 Otros atletas argentinos

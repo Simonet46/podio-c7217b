@@ -6,9 +6,9 @@ import { WEB3FORMS_ACCESS_KEY, APPLICATIONS_EMAIL, SITE } from "@/config/site";
 type Status = "idle" | "loading" | "ok" | "error";
 
 const OPCIONES = [
-  "Conectarme con un atleta específico",
-  "Que me presenten varios atletas",
-  "Asociar mi marca con la comunidad GRANITO",
+  "Impulsar a un atleta",
+  "Impulsar una disciplina o proyecto deportivo",
+  "Impulsar a toda la comunidad GRANITO",
   "Todavía no sé / quiero explorar",
 ];
 
@@ -127,7 +127,7 @@ export function CompanyContactForm() {
       <textarea
         name="mensaje"
         rows={3}
-        placeholder="¿Qué buscás? (deporte, valores de marca, objetivos…)"
+        placeholder="Contanos de tu empresa y qué te gustaría impulsar…"
         className={inputCls}
         style={{ resize: "none" }}
       />

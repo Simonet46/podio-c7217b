@@ -61,12 +61,6 @@ export function diplomaTier(amount: number): DiplomaTier {
   return "bronce";
 }
 
-/**
- * Ceremonia de LA 2028 (14 de julio de 2028).
- * Fecha en UTC para que el contador sea consistente entre cliente y servidor.
- */
-export const LA2028_DATE = new Date("2028-07-14T00:00:00Z");
-
 /** Moneda de los aportes. Mercado Pago cobra en pesos argentinos. */
 export const CURRENCY = "ARS" as const;
 

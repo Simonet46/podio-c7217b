@@ -12,16 +12,13 @@ export interface Sponsor {
   color: string;
 }
 
-export const SPONSORS: Record<string, Sponsor> = {
-  idisko: { id: "idisko", name: "iDisko", color: "#6D28D9" },
-  "coke-sprite": { id: "coke-sprite", name: "Coke Sprite SRL", color: "#D32F2F" },
-};
+// Sin marcas demo: GRANITO no muestra sponsors en los perfiles (filosofía:
+// impacto, no exposición). El mecanismo queda por si algún día se usa para
+// reconocer "empresas impulsoras" de forma no publicitaria.
+export const SPONSORS: Record<string, Sponsor> = {};
 
 /** Qué empresa apadrina a qué atleta/equipo (por slug). */
-export const SPONSORSHIPS: Record<string, string> = {
-  "lucia-ferreyra": "idisko",
-  "valentina-moretti": "coke-sprite",
-};
+export const SPONSORSHIPS: Record<string, string> = {};
 
 export function getSponsorForSlug(slug: string): Sponsor | null {
   const id = SPONSORSHIPS[slug];
