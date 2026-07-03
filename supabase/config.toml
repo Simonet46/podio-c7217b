@@ -27,12 +27,22 @@ otp_expiry = 86400
 enroll_enabled = true
 verify_enabled = true
 
-# NOTA: los templates de email custom (supabase/templates/*.html) requieren
-# SMTP propio (p. ej. Resend) — el plan free con el mailer default no permite
-# modificarlos. Cuando haya SMTP, agregar:
-#   [auth.email.template.invite]
-#   subject = "Bienvenido/a a GRANITO 🥇 Tu cuenta de atleta está lista"
-#   content_path = "./supabase/templates/invite.html"
-#   [auth.email.template.magic_link]
-#   subject = "Tu link de acceso a GRANITO"
-#   content_path = "./supabase/templates/magic_link.html"
+# SMTP propio vía Resend: habilita los templates custom y manda los emails
+# desde el dominio de GRANITO. La clave vive en .env.local (RESEND_API_KEY)
+# y se inyecta al hacer push — nunca se commitea.
+[auth.email.smtp]
+enabled = true
+host = "smtp.resend.com"
+port = 465
+user = "resend"
+pass = "env(RESEND_API_KEY)"
+admin_email = "no-reply@somosgranito.com"
+sender_name = "GRANITO"
+
+[auth.email.template.invite]
+subject = "Bienvenido/a a GRANITO 🥇 Tu cuenta de atleta está lista"
+content_path = "./supabase/templates/invite.html"
+
+[auth.email.template.magic_link]
+subject = "Tu link de acceso a GRANITO"
+content_path = "./supabase/templates/magic_link.html"
