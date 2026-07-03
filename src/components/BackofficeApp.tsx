@@ -24,6 +24,7 @@ type Application = {
   location: string | null;
   email: string;
   age: number | null;
+  dni: string | null;
   next_competition: string | null;
   media_url: string | null;
   photo_url: string | null;
@@ -50,6 +51,7 @@ type AthleteRow = {
   raised_amount: number | null;
   verified: boolean | null;
   mp_connected: boolean | null;
+  dni: string | null;
 };
 
 type TeamApp = {
@@ -103,6 +105,7 @@ type ProfileChangeRequest = {
 type Draft = {
   appId: string;
   email: string;
+  dni: string;
   slug: string;
   full_name: string;
   first_name: string;
@@ -185,6 +188,7 @@ function buildDraft(app: Application): Draft {
   return {
     appId: app.id,
     email: app.email ?? "",
+    dni: app.dni ?? "",
     slug: slugify(app.full_name),
     full_name: app.full_name,
     first_name: app.full_name.split(" ")[0] ?? app.full_name,
@@ -338,7 +342,7 @@ export function BackofficeApp() {
     setLoadingList(true);
     const [appsRes, athRes, teamRes, changesRes] = await Promise.all([
       supa.from("athlete_applications").select("*").order("created_at", { ascending: false }),
-      supa.from("athletes").select("id,slug,full_name,sport,city,province,raised_amount,verified,mp_connected").order("raised_amount", { ascending: false }),
+      supa.from("athletes").select("id,slug,full_name,sport,city,province,raised_amount,verified,mp_connected,dni").order("raised_amount", { ascending: false }),
       supa.from("team_applications").select("*").order("created_at", { ascending: false }),
       supa
         .from("profile_change_requests")
@@ -428,6 +432,7 @@ export function BackofficeApp() {
         full_name: draft.full_name,
         first_name: draft.first_name,
         email: draft.email || null,
+        dni: draft.dni || null,
         sport: draft.sport,
         discipline: draft.discipline,
         city: draft.city,
@@ -1597,6 +1602,7 @@ function ApprovalModal({
           </label>
 
           <DText label="Instagram / redes" value={draft.socials} onChange={(v) => setDraft({ ...draft, socials: v })} hint="Usuario o link." />
+          <DText label="DNI" value={draft.dni} onChange={(v) => setDraft({ ...draft, dni: v.replace(/[^\d]/g, "") })} hint="Se cruza automáticamente con el DNI verificado de su Mercado Pago." />
           <DText label="Mercado Pago" value={draft.payment_mp} onChange={(v) => setDraft({ ...draft, payment_mp: v })} hint="Alias, CVU o email." />
           <DText label="PayPal" value={draft.payment_paypal} onChange={(v) => setDraft({ ...draft, payment_paypal: v })} hint="Email o link de PayPal.me." wide />
 
@@ -1909,6 +1915,7 @@ function MpInfoModal({ modal, onClose }: { modal: NonNullable<MpModalState>; onC
             <div className="mb-4 rounded-xl px-4 py-3 text-[13px] leading-relaxed" style={{ background: "rgba(34,197,94,.08)", border: "1px solid rgba(34,197,94,.22)", color: C.greenBright }}>
               ✓ El atleta autorizó esta cuenta mediante OAuth — solo quien se logueó en MP pudo conectarla.
             </div>
+            <DniCheck declaredDni={athlete.dni} mpDni={info.identification?.number ?? null} />
             <div className="flex flex-col gap-2">
               <MpInfoRow label="Nombre" value={[info.first_name, info.last_name].filter(Boolean).join(" ") || "—"} />
               <MpInfoRow label="Email de MP" value={info.email ?? "—"} />
@@ -1935,6 +1942,29 @@ function MpInfoModal({ modal, onClose }: { modal: NonNullable<MpModalState>; onC
           </>
         )}
       </div>
+    </div>
+  );
+}
+
+/** Cruza el DNI declarado en la postulación con el DNI verificado por MP (KYC). */
+function DniCheck({ declaredDni, mpDni }: { declaredDni: string | null; mpDni: string | null }) {
+  if (!mpDni) return null;
+  const clean = (s: string) => s.replace(/[^\d]/g, "");
+  if (!declaredDni) {
+    return (
+      <div className="mb-4 rounded-xl px-4 py-3 text-[13px] leading-relaxed" style={{ background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.1)", color: C.txtDim }}>
+        ⓘ La postulación no declaró DNI, no se puede cruzar con el de Mercado Pago. Verificá la identidad por otro canal.
+      </div>
+    );
+  }
+  const match = clean(declaredDni) === clean(mpDni);
+  return match ? (
+    <div className="mb-4 rounded-xl px-4 py-3 text-[13px] font-600 leading-relaxed" style={{ background: "rgba(34,197,94,.12)", border: "1px solid rgba(34,197,94,.4)", color: C.greenBright }}>
+      ✓ IDENTIDAD VERIFICADA — el DNI declarado en la postulación coincide con el DNI verificado por Mercado Pago.
+    </div>
+  ) : (
+    <div className="mb-4 rounded-xl px-4 py-3 text-[13px] font-600 leading-relaxed" style={{ background: "rgba(223,0,36,.14)", border: "1px solid rgba(223,0,36,.45)", color: C.redBright }}>
+      ⚠ ALERTA — el DNI de la cuenta MP ({mpDni}) NO coincide con el declarado en la postulación ({declaredDni}). No aprobar pagos sin contactar al atleta.
     </div>
   );
 }

@@ -8,6 +8,7 @@ import { DonationWidget } from "@/components/DonationWidget";
 import { Monogram } from "@/components/Monogram";
 import { Reveal } from "@/components/Reveal";
 import { getTeams, getTeamBySlug, getTeamMembers } from "@/lib/data/athletes";
+import { SEED_TEAMS } from "@/lib/data/teams";
 import { getSport } from "@/config/sports";
 import { asset, SITE } from "@/config/site";
 import { formatMoney } from "@/lib/money";
@@ -15,7 +16,10 @@ import { supporterCount } from "@/lib/supporters";
 
 export async function generateStaticParams() {
   const teams = await getTeams();
-  return teams.map((t) => ({ slug: t.slug }));
+  // El export estático exige al menos un param: si no hay equipos verificados,
+  // generamos los slugs del seed (la página devuelve 404 para los ocultos).
+  if (teams.length > 0) return teams.map((t) => ({ slug: t.slug }));
+  return SEED_TEAMS.map((t) => ({ slug: t.slug }));
 }
 
 export async function generateMetadata({
@@ -37,7 +41,7 @@ export default async function TeamPage({
   params: { slug: string };
 }) {
   const team = await getTeamBySlug(params.slug);
-  if (!team) notFound();
+  if (!team || !team.verified) notFound();
 
   const sport = getSport(team.sport);
   const color = sport?.color ?? "#1B7A4B";

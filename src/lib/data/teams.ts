@@ -29,7 +29,7 @@ export const SEED_TEAMS: Team[] = [
       ["Viajes y concentraciones", "Pasajes, estadía y comida que hoy salen de su bolsillo."],
       ["Equipamiento", "Indumentaria y material de competición de cada jugador."],
     ],
-    verified: true,
+    verified: false, // demo: oculto hasta que haya equipos reales
     member_slugs: [
       "bruno-vidal", "lautaro-gomez", "nicolas-funes", "inaki-perez",
       "santiago-rivas", "matias-leiva", "joaquin-bravo", "franco-medina",
@@ -60,7 +60,7 @@ export const SEED_TEAMS: Team[] = [
       ["Viajes y concentraciones", "Pasajes y estadía de torneos que hoy se pagan solas."],
       ["Equipamiento", "Palos, protecciones e indumentaria de cada jugadora."],
     ],
-    verified: true,
+    verified: false, // demo: oculto hasta que haya equipos reales
     member_slugs: [
       "delfina-castro", "morena-ruiz", "abril-sosa", "juana-mendez",
       "catalina-vega", "martina-rios", "valentina-cabrera", "paulina-acosta",
@@ -91,7 +91,7 @@ export const SEED_TEAMS: Team[] = [
       ["Viajes y concentraciones", "Pasajes y estadía de la ventana internacional."],
       ["Equipamiento", "Indumentaria y material de competición de cada jugador."],
     ],
-    verified: true,
+    verified: false, // demo: oculto hasta que haya equipos reales
     member_slugs: [
       "ivan-torres", "facundo-ledesma", "bautista-rios", "thiago-paz",
       "mateo-silva", "lautaro-mendez", "nicolas-ferrari", "juan-cruz-vera",

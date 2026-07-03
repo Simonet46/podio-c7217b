@@ -27,6 +27,7 @@ export function AthleteApplicationForm() {
   const [nombre, setNombre] = useState("");
   const [email, setEmail] = useState("");
   const [edad, setEdad] = useState("");
+  const [dni, setDni] = useState("");
   const [ciudad, setCiudad] = useState("");
   const [deporte, setDeporte] = useState("");
   const [deporteOtro, setDeporteOtro] = useState(""); // si elige "Otro"
@@ -178,6 +179,7 @@ export function AthleteApplicationForm() {
         location: ciudad || null,
         email,
         age: edad ? Number(edad) : null,
+        dni: dni || null,
         next_competition: nextComp,
         photo_url: photos.photo_url,
         photo_secondary_url: photos.photo_secondary_url,
@@ -327,6 +329,7 @@ export function AthleteApplicationForm() {
     setNombre("");
     setEmail("");
     setEdad("");
+    setDni("");
     setCiudad("");
     setDeporte("");
     setDeporteOtro("");
@@ -532,6 +535,20 @@ export function AthleteApplicationForm() {
                 className={`${inputCls} mt-[7px]`}
               />
             </div>
+          </div>
+
+          <div className="mb-6">
+            <label className={labelCls}>
+              DNI <span className="text-white/35">· para verificar tu identidad al aprobar cobros</span>
+            </label>
+            <input
+              value={dni}
+              onChange={(e) => setDni(e.target.value.replace(/[^\d]/g, ""))}
+              inputMode="numeric"
+              maxLength={9}
+              placeholder="Sin puntos, ej: 39245386"
+              className={`${inputCls} mt-[7px]`}
+            />
           </div>
 
           <div className="mb-6">
