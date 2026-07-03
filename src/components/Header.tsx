@@ -31,16 +31,16 @@ export function Header() {
               Apoyá a todos
             </Link>
             <Link
-              href="/hinchas"
-              className="font-display text-sm uppercase tracking-wide text-white/75 transition-colors hover:text-white"
-            >
-              Top hinchas
-            </Link>
-            <Link
               href="/quienes-somos"
               className="font-display text-sm uppercase tracking-wide text-white/75 transition-colors hover:text-white"
             >
               Quiénes somos
+            </Link>
+            <Link
+              href="/transparencia"
+              className="font-display text-sm uppercase tracking-wide text-white/75 transition-colors hover:text-white"
+            >
+              Transparencia
             </Link>
             <Link
               href="/para-atletas"
