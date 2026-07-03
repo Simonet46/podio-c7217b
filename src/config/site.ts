@@ -11,7 +11,7 @@ export const SITE = {
   description:
     "Apoyá directo a los atletas argentinos: desde el alto rendimiento hasta el juvenil del barrio. El 93% va al atleta.",
   /** URL canónica del sitio (usada para callbacks de pago). */
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
+  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://somosgranito.com",
 } as const;
 
 /**

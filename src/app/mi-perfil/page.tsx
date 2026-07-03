@@ -8,7 +8,7 @@ import { getSport } from "@/config/sports";
 import { formatMoney } from "@/lib/money";
 
 const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://simonet46.github.io/podio-c7217b";
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://somosgranito.com";
 
 /* ── Tipos ────────────────────────────────────────────── */
 type Atleta = {

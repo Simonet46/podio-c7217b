@@ -79,5 +79,5 @@ export async function verifyState<T = Record<string, unknown>>(
 }
 
 export const SITE_URL =
-  Deno.env.get("SITE_URL") ?? "https://simonet46.github.io/podio-c7217b";
+  Deno.env.get("SITE_URL") ?? "https://somosgranito.com";
 export const PLATFORM_FEE_RATE = 0.07;

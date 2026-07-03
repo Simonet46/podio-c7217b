@@ -4,9 +4,14 @@ project_id = "ruugpxfgpbtajrxbabvg"
 
 [auth]
 # A dónde redirigen los magic links si no traen redirect_to explícito.
-site_url = "https://simonet46.github.io/podio-c7217b"
+site_url = "https://somosgranito.com"
 # Lista blanca de redirects permitidos (sin esto, los links caen en localhost).
-additional_redirect_urls = ["https://simonet46.github.io/podio-c7217b/**"]
+# Mantenemos también el dominio viejo de github.io por si queda algún link en tránsito.
+additional_redirect_urls = [
+  "https://somosgranito.com/**",
+  "https://www.somosgranito.com/**",
+  "https://simonet46.github.io/podio-c7217b/**",
+]
 
 # Valores que ya están así en remoto — los fijamos para que el push no los
 # pise con los defaults del CLI.

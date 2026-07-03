@@ -25,10 +25,12 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
-      - name: Build (export estático con basePath del repo)
+      - name: Build (export estático — dominio propio somosgranito.com)
         run: npm run build
         env:
-          NEXT_PUBLIC_BASE_PATH: /podio-c7217b
+          # Sin basePath: el sitio se sirve desde la raíz del dominio propio.
+          # (Antes iba en /podio-c7217b sobre github.io.)
+          NEXT_PUBLIC_SITE_URL: https://somosgranito.com
           # Supabase (públicas: la anon key va igual en el bundle del cliente).
           # Definidas como "Variables" del repo (Settings → Secrets and variables → Actions → Variables).
           NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
