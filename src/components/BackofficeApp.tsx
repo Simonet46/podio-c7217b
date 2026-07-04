@@ -535,7 +535,7 @@ export function BackofficeApp() {
     setToast(
       error
         ? "No se pudo disparar la publicación (¿está configurada la función trigger-rebuild?): " + error.message
-        : "🚀 Publicación disparada. El sitio se actualiza en ~1-2 min.",
+        : "🚀 Publicación disparada. Tarda ~2-3 min en reconstruirse y hasta ~10 min más en actualizarse en todos lados (caché de GitHub). Si no lo ves enseguida, recargá con Cmd+Shift+R o esperá unos minutos.",
     );
   }
 
