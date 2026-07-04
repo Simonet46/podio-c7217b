@@ -139,6 +139,8 @@ type Draft = {
   socials: string;
   payment_mp: string;
   payment_paypal: string;
+  /** ¿El atleta ya conectó su MP por OAuth en la postulación? (solo lectura) */
+  mp_connected: boolean;
   fund_items: [string, string][];
   supporter_message: string;
 };
@@ -224,6 +226,7 @@ function buildDraft(app: Application): Draft {
     socials: app.socials ?? "",
     payment_mp: app.payment_mp ?? "",
     payment_paypal: app.payment_paypal ?? "",
+    mp_connected: app.mp_connected ?? false,
     fund_items: [["", ""], ["", ""], ["", ""]],
     supporter_message: "",
   };
@@ -1716,8 +1719,30 @@ function ApprovalModal({
 
           <DText label="Instagram / redes" value={draft.socials} onChange={(v) => setDraft({ ...draft, socials: v })} hint="Usuario o link." />
           <DText label="DNI" value={draft.dni} onChange={(v) => setDraft({ ...draft, dni: v.replace(/[^\d]/g, "") })} hint="Se cruza automáticamente con el DNI verificado de su Mercado Pago." />
-          <DText label="Mercado Pago" value={draft.payment_mp} onChange={(v) => setDraft({ ...draft, payment_mp: v })} hint="Alias, CVU o email." />
-          <DText label="PayPal" value={draft.payment_paypal} onChange={(v) => setDraft({ ...draft, payment_paypal: v })} hint="Email o link de PayPal.me." wide />
+
+          {/* Estado real de la cuenta de MP (OAuth). El alias es solo una nota. */}
+          <div className="sm:col-span-2">
+            <span className="eyebrow" style={{ color: C.txtFaint }}>Cobros por Mercado Pago</span>
+            {draft.mp_connected ? (
+              <div className="mt-1.5 flex items-start gap-2.5 rounded-[10px] px-3.5 py-3 text-[13px] leading-relaxed" style={{ background: "rgba(34,197,94,.1)", border: "1px solid rgba(34,197,94,.3)", color: C.greenBright }}>
+                <span>✓</span>
+                <span>Ya conectó su Mercado Pago de forma segura (OAuth) durante la postulación. Al dar de alta se vincula automáticamente y queda listo para cobrar.</span>
+              </div>
+            ) : (
+              <div className="mt-1.5 rounded-[10px] px-3.5 py-3 text-[13px] leading-relaxed" style={{ background: "rgba(255,255,255,.04)", border: `1px solid ${C.border}`, color: C.txtDim }}>
+                <div style={{ color: "#fff", fontWeight: 600, marginBottom: 4 }}>Todavía no conectó su Mercado Pago.</div>
+                La conexión es segura (OAuth) y <strong style={{ color: "#fff" }}>solo la puede hacer el atleta</strong> desde su propia cuenta de MP. Después de dar de alta:
+                <div style={{ marginTop: 6, paddingLeft: 14 }}>
+                  · le llega en el email de invitación → la conecta desde su panel, o<br />
+                  · vos generás el link desde <strong style={{ color: "#fff" }}>Atletas → “Conectar MP”</strong> y se lo pasás.
+                </div>
+                <div style={{ marginTop: 6, color: C.txtFaint, fontStyle: "italic" }}>Escribir un alias abajo NO habilita cobros: es solo una nota de referencia.</div>
+              </div>
+            )}
+          </div>
+
+          <DText label="Alias / CVU de MP (nota, opcional)" value={draft.payment_mp} onChange={(v) => setDraft({ ...draft, payment_mp: v })} hint="Solo referencia. El cobro real usa la conexión OAuth de arriba." />
+          <DText label="PayPal" value={draft.payment_paypal} onChange={(v) => setDraft({ ...draft, payment_paypal: v })} hint="Email o link de PayPal.me." />
 
           <DPairEditor
             title="Tu aporte financia (título / descripción)"
