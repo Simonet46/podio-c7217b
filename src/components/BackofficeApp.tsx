@@ -5,7 +5,6 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { SPORT_LIST, getSport } from "@/config/sports";
 import { SEED_TEAMS } from "@/lib/data/teams";
 import { formatMoney } from "@/lib/money";
-import { supporterCount } from "@/lib/supporters";
 
 // ── Cliente Supabase del navegador (singleton, mantiene sesión) ──────────
 const SB_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -86,6 +85,7 @@ type Section =
   | "Resumen"
   | "Postulaciones"
   | "Atletas"
+  | "Selecciones"
   | "Cambios"
   | "Novedades"
   | "Aportes"
@@ -102,6 +102,17 @@ type ProfileChangeRequest = {
   previous_values: Record<string, string>;
   status: string;
   admin_note: string | null;
+  created_at: string;
+};
+
+type AdminDonation = {
+  id: string;
+  athlete_id: string;
+  amount: number;
+  net_amount: number | null;
+  type: string;
+  status: string;
+  donor_email: string | null;
   created_at: string;
 };
 
@@ -232,67 +243,11 @@ function buildDraft(app: Application): Draft {
   };
 }
 
-// ── Datos de ejemplo (secciones sin fuente real todavía) ────────────────
-const DEMO_AVISO = "Datos de ejemplo — esta sección todavía no está conectada.";
-
-const DEMO_AportesKpis = [
-  { label: "Recaudado en junio", value: "$4.13M", sub: "1.284 aportes" },
-  { label: "Ticket promedio", value: "$3.215", sub: "+4% vs. mayo" },
-  { label: "Aportes recurrentes", value: "78%", sub: "del total mensual" },
-];
-const DEMO_Aportes = [
-  { fan: "Carla Méndez", ath: "Lucía Ferrari", color: "#0072CE", amount: "$5.000", method: "Mercado Pago", date: "25 jun · 14:32", status: "Acreditado" },
-  { fan: "Nicolás Pérez", ath: "Valentina Sosa", color: "#3E8FD0", amount: "$3.000", method: "Tarjeta", date: "25 jun · 12:10", status: "Acreditado" },
-  { fan: "Sofía Robles", ath: "Joaquín Vega", color: "#F4C300", amount: "$10.000", method: "Mercado Pago", date: "25 jun · 09:48", status: "Acreditado" },
-  { fan: "Martín Gómez", ath: "Mateo Ríos", color: "#DF0024", amount: "$2.000", method: "Tarjeta", date: "24 jun · 21:05", status: "Pendiente" },
-  { fan: "Julieta Faraldo", ath: "Brisa Medina", color: "#7A4DD0", amount: "$7.500", method: "Mercado Pago", date: "24 jun · 18:22", status: "Acreditado" },
-  { fan: "Federico Luna", ath: "Tomás Aguirre", color: "#009F3D", amount: "$4.000", method: "Transferencia", date: "24 jun · 16:40", status: "Acreditado" },
-  { fan: "Lucas Díaz", ath: "Valentina Sosa", color: "#3E8FD0", amount: "$6.000", method: "Tarjeta", date: "23 jun · 20:58", status: "Rechazado" },
-];
-const DEMO_PayHistory = [
-  { period: "Mayo 2026", total: "$3.71M", atletas: 138, estado: "Pagado", date: "01 jun" },
-  { period: "Abril 2026", total: "$3.42M", atletas: 131, estado: "Pagado", date: "01 may" },
-  { period: "Marzo 2026", total: "$3.18M", atletas: 124, estado: "Pagado", date: "01 abr" },
-];
-const DEMO_HinchasKpis = [
-  { label: "Hinchas activos", value: "3.204", sub: "+212 este mes" },
-  { label: "Aporte mensual prom.", value: "$3.840", sub: "por hincha" },
-  { label: "Retención", value: "91%", sub: "a 6 meses" },
-];
-const DEMO_Hinchas = [
-  { name: "Carlos Medina", atletas: 48, mensual: "$42.000", desde: "Ene 2025", medal: "#C9A227" },
-  { name: "Sofía Robles", atletas: 41, mensual: "$36.500", desde: "Mar 2025", medal: "#B8C2CC" },
-  { name: "Diego Paz", atletas: 37, mensual: "$31.000", desde: "Feb 2025", medal: "#C8956A" },
-  { name: "Carla Méndez", atletas: 29, mensual: "$24.000", desde: "Jun 2025", medal: null },
-  { name: "Martín Gómez", atletas: 24, mensual: "$19.500", desde: "Ago 2025", medal: null },
-  { name: "Julieta Faraldo", atletas: 21, mensual: "$17.800", desde: "Sep 2025", medal: null },
-  { name: "Federico Luna", atletas: 18, mensual: "$15.200", desde: "Oct 2025", medal: null },
-  { name: "Agustina Vidal", atletas: 16, mensual: "$13.400", desde: "Nov 2025", medal: null },
-];
-const DEMO_Empresas = [
-  { name: "Club Atlético Tigre", type: "Club", supports: "Equipo de remo · 8 atletas", mensual: "$180.000", initial: "CT", color: "#0072CE", estado: "Activo" },
-  { name: "Banco del Sur", type: "Sponsor", supports: "12 atletas", mensual: "$450.000", initial: "BS", color: "#009F3D", estado: "Activo" },
-  { name: "Deportes Andinos", type: "Sponsor", supports: "Esquí y montaña · 5 atletas", mensual: "$120.000", initial: "DA", color: "#3E8FD0", estado: "Activo" },
-  { name: "Energía Patagónica", type: "Sponsor", supports: "6 atletas del sur", mensual: "$95.000", initial: "EP", color: "#DF0024", estado: "En pausa" },
-  { name: "Federación de Hockey", type: "Federación", supports: "Selección sub-21", mensual: "$240.000", initial: "FH", color: "#7A4DD0", estado: "Activo" },
-  { name: "Mutual Deportiva", type: "Sponsor", supports: "Fondo solidario", mensual: "$60.000", initial: "MD", color: "#C9A227", estado: "Activo" },
-];
-const DEMO_Activity = [
-  { text: "Carla M. apoyó a Lucía Ferrari con $5.000", ago: "hace 3 min", color: "#C9A227" },
-  { text: "Aprobaste la postulación de Mateo Ríos", ago: "hace 1 h", color: "#22c55e" },
-  { text: "Pago de junio enviado a 142 atletas", ago: "hace 4 h", color: "#009F3D" },
-  { text: "Nueva empresa: Club Atlético Tigre", ago: "ayer", color: "#3E8FD0" },
-];
-const DEMO_Payouts = [
-  { name: "Lucía Ferrari", supporters: 312, amount: "$248K", color: "#0072CE", initials: "LF" },
-  { name: "Valentina Sosa", supporters: 421, amount: "$372K", color: "#3E8FD0", initials: "VS" },
-  { name: "Joaquín Vega", supporters: 389, amount: "$298K", color: "#F4C300", initials: "JV" },
-];
-
 const NAV_MAIN: { label: Section; icon: string }[] = [
   { label: "Resumen", icon: "◧" },
   { label: "Postulaciones", icon: "◔" },
   { label: "Atletas", icon: "◉" },
+  { label: "Selecciones", icon: "🇦🇷" },
   { label: "Cambios", icon: "✎" },
   { label: "Novedades", icon: "✦" },
   { label: "Aportes", icon: "◈" },
@@ -307,6 +262,7 @@ const PAGE_META: Record<Section, { t: string; s: string }> = {
   Resumen: { t: "Resumen general", s: "Lo que pasó esta semana" },
   Postulaciones: { t: "Postulaciones", s: "Revisá cada caso a mano, uno por uno" },
   Atletas: { t: "Atletas", s: "Atletas publicados en la plataforma" },
+  Selecciones: { t: "Selecciones nacionales", s: "Los Gladiadores, Las Leonas y compañía — armá los planteles" },
   Cambios: { t: "Cambios de perfil", s: "Pedidos de edición enviados por atletas" },
   Novedades: { t: "Novedades", s: "Publicaciones que los atletas quieren mostrar en su perfil" },
   Aportes: { t: "Aportes", s: "Movimientos recientes" },
@@ -339,6 +295,7 @@ export function BackofficeApp() {
   const [mpModal, setMpModal] = useState<MpModalState>(null);
   const [profileChanges, setProfileChanges] = useState<ProfileChangeRequest[]>([]);
   const [athleteUpdates, setAthleteUpdates] = useState<AthleteUpdateRow[]>([]);
+  const [donations, setDonations] = useState<AdminDonation[]>([]);
 
   // ── Sesión ────────────────────────────────────────────────────────────
   const resolveSession = useCallback(async () => {
@@ -367,7 +324,7 @@ export function BackofficeApp() {
     const supa = sb();
     if (!supa) return;
     setLoadingList(true);
-    const [appsRes, athRes, teamRes, changesRes, updatesRes] = await Promise.all([
+    const [appsRes, athRes, teamRes, changesRes, updatesRes, donationsRes] = await Promise.all([
       supa.from("athlete_applications").select("*").order("created_at", { ascending: false }),
       supa.from("athletes").select("id,slug,full_name,sport,city,province,raised_amount,verified,mp_connected,dni,team").order("raised_amount", { ascending: false }),
       supa.from("team_applications").select("*").order("created_at", { ascending: false }),
@@ -378,6 +335,10 @@ export function BackofficeApp() {
       supa
         .from("athlete_updates")
         .select("id,athlete_id,title,body,image_url,status,admin_note,created_at,athletes(full_name)")
+        .order("created_at", { ascending: false }),
+      supa
+        .from("donations")
+        .select("id,athlete_id,amount,net_amount,type,status,donor_email,created_at")
         .order("created_at", { ascending: false }),
     ]);
     if (!appsRes.error && appsRes.data) setAllApps(appsRes.data as Application[]);
@@ -391,6 +352,7 @@ export function BackofficeApp() {
         })),
       );
     }
+    if (!donationsRes.error && donationsRes.data) setDonations(donationsRes.data as AdminDonation[]);
     if (!updatesRes.error && updatesRes.data) {
       setAthleteUpdates(
         (updatesRes.data as unknown as Array<{ id: string; athlete_id: string; title: string; body: string; image_url: string | null; status: string; admin_note: string | null; created_at: string; athletes: { full_name: string } | null }>).map((r) => ({
@@ -713,7 +675,6 @@ export function BackofficeApp() {
 
   // ── phase === "ready": dashboard ────────────────────────────────────────
   const meta = PAGE_META[active];
-  const isDemo = ["Aportes", "Pagos", "Hinchas", "Empresas", "Ajustes"].includes(active);
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: C.bg, color: "#fff", fontFamily: "var(--font-inter), system-ui, sans-serif" }}>
@@ -811,17 +772,6 @@ export function BackofficeApp() {
         </header>
 
         <div style={{ padding: "28px 36px 48px" }}>
-          {/* aviso demo */}
-          {isDemo && (
-            <div
-              className="mb-5 flex items-center gap-2.5 rounded-[10px] px-4 py-2.5 text-[13px]"
-              style={{ background: "rgba(201,162,39,.1)", border: `1px solid rgba(201,162,39,.28)`, color: C.gold }}
-            >
-              <span>ⓘ</span>
-              <span>{DEMO_AVISO}</span>
-            </div>
-          )}
-
           {toast && (
             <div
               className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl px-4 py-3 text-sm"
@@ -841,20 +791,30 @@ export function BackofficeApp() {
           )}
 
           {/* ===== RESUMEN ===== */}
-          {active === "Resumen" && (
-            <ResumenSection
-              kpis={[
-                { label: "Aportes del mes", value: "$4.13M", icon: "◈", color: C.gold, delta: "demo", deltaColor: C.txtFaint, sub: "ejemplo" },
-                { label: "Atletas activos", value: String(athletes.length), icon: "◉", color: C.blue, delta: "real", deltaColor: C.greenBright, sub: "publicados" },
-                { label: "Postulaciones", value: String(counts.pending), icon: "◔", color: C.red, delta: "real", deltaColor: C.gold, sub: "sin revisar" },
-                { label: "Hinchas activos", value: "3.204", icon: "♥", color: C.green, delta: "demo", deltaColor: C.txtFaint, sub: "ejemplo" },
-              ]}
-              apps={allApps.filter((a) => a.status === "pending").slice(0, 6)}
-              pendingCount={counts.pending}
-              onReview={() => setActive("Postulaciones")}
-              onApprove={(app) => { setActive("Postulaciones"); setFilter("pending"); setSelectedAppId(app.id); setDraft(buildDraft(app)); }}
-            />
-          )}
+          {active === "Resumen" && (() => {
+            const confirmadas = donations.filter((d) => d.status === "completed");
+            const donantes = new Set(confirmadas.map((d) => d.donor_email).filter(Boolean)).size;
+            const athName = (id: string) => athletes.find((a) => a.id === id)?.full_name ?? "un atleta";
+            return (
+              <ResumenSection
+                kpis={[
+                  { label: "Aportado total", value: formatMoney(confirmadas.reduce((s, d) => s + Number(d.amount), 0)), icon: "◈", color: C.gold, delta: "", deltaColor: C.txtFaint, sub: `${confirmadas.length} ${confirmadas.length === 1 ? "aporte confirmado" : "aportes confirmados"}` },
+                  { label: "Atletas publicados", value: String(athletes.filter((a) => a.verified).length), icon: "◉", color: C.blue, delta: "", deltaColor: C.greenBright, sub: athletes.some((a) => !a.verified && !a.mp_connected) ? `${athletes.filter((a) => !a.verified && !a.mp_connected).length} esperando MP` : "en la web" },
+                  { label: "Postulaciones", value: String(counts.pending), icon: "◔", color: C.red, delta: "", deltaColor: C.gold, sub: "sin revisar" },
+                  { label: "Donantes", value: String(donantes), icon: "♥", color: C.green, delta: "", deltaColor: C.txtFaint, sub: "personas que aportaron" },
+                ]}
+                apps={allApps.filter((a) => a.status === "pending").slice(0, 6)}
+                pendingCount={counts.pending}
+                activity={donations.slice(0, 6).map((d) => ({
+                  text: `${d.donor_email ?? "Alguien"} aportó ${formatMoney(Number(d.amount))} a ${athName(d.athlete_id)}`,
+                  ago: timeAgo(d.created_at),
+                  color: d.status === "completed" ? C.greenBright : d.status === "pending" ? C.gold : C.redBright,
+                }))}
+                onReview={() => setActive("Postulaciones")}
+                onApprove={(app) => { setActive("Postulaciones"); setFilter("pending"); setSelectedAppId(app.id); setDraft(buildDraft(app)); }}
+              />
+            );
+          })()}
 
           {/* ===== POSTULACIONES ===== */}
           {active === "Postulaciones" && (
@@ -876,6 +836,11 @@ export function BackofficeApp() {
 
           {/* ===== ATLETAS ===== */}
           {active === "Atletas" && <AtletasSection athletes={athletes} loading={loadingList} onConnect={genMpLink} onToggleStatus={handleToggleStatus} onViewMpInfo={handleViewMpInfo} onSetTeam={handleSetTeam} />}
+
+          {/* ===== SELECCIONES ===== */}
+          {active === "Selecciones" && (
+            <SeleccionesSection athletes={athletes} loading={loadingList} onSetTeam={handleSetTeam} />
+          )}
 
           {/* ===== CAMBIOS DE PERFIL ===== */}
           {active === "Cambios" && (
@@ -923,13 +888,13 @@ export function BackofficeApp() {
           )}
 
           {/* ===== APORTES ===== */}
-          {active === "Aportes" && <AportesSection />}
+          {active === "Aportes" && <AportesSection donations={donations} athletes={athletes} />}
 
           {/* ===== PAGOS ===== */}
           {active === "Pagos" && <PagosSection />}
 
           {/* ===== HINCHAS ===== */}
-          {active === "Hinchas" && <HinchasSection />}
+          {active === "Hinchas" && <HinchasSection donations={donations} />}
 
           {/* ===== EMPRESAS ===== */}
           {active === "Empresas" && <EmpresasSection />}
@@ -1000,12 +965,14 @@ function ResumenSection({
   kpis,
   apps,
   pendingCount,
+  activity,
   onReview,
   onApprove,
 }: {
   kpis: { label: string; value: string; icon: string; color: string; delta: string; deltaColor: string; sub: string }[];
   apps: Application[];
   pendingCount: number;
+  activity: { text: string; ago: string; color: string }[];
   onReview: () => void;
   onApprove: (app: Application) => void;
 }) {
@@ -1066,40 +1033,36 @@ function ResumenSection({
           ))}
         </section>
 
-        {/* columna derecha (demo) */}
+        {/* columna derecha: reparto + actividad real */}
         <div className="flex flex-col gap-[18px]">
           <section style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, overflow: "hidden" }}>
-            <div className="flex items-center justify-between px-5 pb-3.5 pt-[18px]" style={{ borderBottom: `1px solid rgba(255,255,255,.06)` }}>
-              <h2 className="m-0 font-display text-[18px] font-600">Próximos pagos</h2>
-              <DemoTag />
+            <div className="px-5 pb-3.5 pt-[18px]" style={{ borderBottom: `1px solid rgba(255,255,255,.06)` }}>
+              <h2 className="m-0 font-display text-[18px] font-600">Reparto automático</h2>
             </div>
-            <div className="px-5 py-[18px]" style={{ borderBottom: `1px solid rgba(255,255,255,.06)` }}>
-              <div className="mb-1.5 text-[12px]" style={{ color: C.txtDim }}>A distribuir este mes</div>
-              <div className="font-display text-[30px] font-700 leading-none">$3.842.500</div>
-              <div className="mt-3.5 flex h-2 overflow-hidden rounded-full" style={{ background: "rgba(255,255,255,.07)" }}>
+            <div className="px-5 py-[18px]">
+              <div className="flex h-2 overflow-hidden rounded-full" style={{ background: "rgba(255,255,255,.07)" }}>
                 <div style={{ width: "93%", background: C.green }} /><div style={{ width: "7%", background: C.gold }} />
               </div>
               <div className="mt-2 flex justify-between text-[11px]" style={{ color: C.txtDim }}>
                 <span><strong style={{ color: C.green }}>93%</strong> a atletas</span>
                 <span><strong style={{ color: C.gold }}>7%</strong> plataforma</span>
               </div>
+              <p className="mt-3 text-[12px] leading-relaxed" style={{ color: C.txtFaint }}>
+                Mercado Pago acredita cada aporte directo en la cuenta del atleta
+                al momento del pago. No hay pagos manuales que procesar.
+              </p>
             </div>
-            {DEMO_Payouts.map((p) => (
-              <div key={p.name} className="flex items-center gap-2.5 px-5 py-3" style={{ borderBottom: `1px solid ${C.borderSoft}` }}>
-                <div className="flex h-8 w-8 flex-none items-center justify-center rounded-full font-display text-[12px] font-700" style={{ background: p.color, color: "#fff" }}>{p.initials}</div>
-                <div className="min-w-0 flex-1"><div className="text-[13px] font-600 leading-tight">{p.name}</div><div className="text-[11px]" style={{ color: C.txtFaint }}>{p.supporters} hinchas</div></div>
-                <div className="font-display text-[15px] font-600">{p.amount}</div>
-              </div>
-            ))}
           </section>
 
           <section style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, overflow: "hidden" }}>
-            <div className="flex items-center justify-between px-5 pb-3.5 pt-[18px]" style={{ borderBottom: `1px solid rgba(255,255,255,.06)` }}>
-              <h2 className="m-0 font-display text-[18px] font-600">Actividad reciente</h2>
-              <DemoTag />
+            <div className="px-5 pb-3.5 pt-[18px]" style={{ borderBottom: `1px solid rgba(255,255,255,.06)` }}>
+              <h2 className="m-0 font-display text-[18px] font-600">Últimos aportes</h2>
             </div>
             <div className="py-1.5">
-              {DEMO_Activity.map((ac, i) => (
+              {activity.length === 0 && (
+                <div className="px-5 py-6 text-[13px]" style={{ color: C.txtFaint }}>Todavía no hubo aportes.</div>
+              )}
+              {activity.map((ac, i) => (
                 <div key={i} className="flex items-start gap-3 px-5 py-2.5">
                   <span className="mt-1.5 h-2 w-2 flex-none rounded-full" style={{ background: ac.color }} />
                   <div className="min-w-0"><div className="text-[13px] leading-snug" style={{ color: "rgba(255,255,255,.85)" }}>{ac.text}</div><div className="mt-0.5 text-[11px]" style={{ color: C.txtFaint }}>{ac.ago}</div></div>
@@ -1410,16 +1373,28 @@ function AtletasSection({
             </div>
             <div className="text-right font-display text-[15px] font-600" style={{ color: C.gold }}>{formatMoney(raised)}</div>
             <div className="flex justify-end">
-              <button
-                onClick={() => onToggleStatus(a)}
-                title={a.verified ? "Suspender atleta" : "Reactivar atleta"}
-                className="rounded-full px-2.5 py-[3px] font-display text-[10px] font-600 uppercase tracking-[.04em] transition-opacity hover:opacity-70"
-                style={a.verified
-                  ? { background: "rgba(34,197,94,.14)", color: C.greenBright, border: "none", cursor: "pointer" }
-                  : { background: "rgba(223,0,36,.12)", color: C.redBright, border: "none", cursor: "pointer" }}
-              >
-                {a.verified ? "Activo" : "Suspendido"}
-              </button>
+              {!a.verified && !a.mp_connected ? (
+                // Creado sin vía de cobro: no es una suspensión, le falta MP.
+                // Se publica solo cuando el atleta conecta su Mercado Pago.
+                <span
+                  title="Oculto hasta que conecte su Mercado Pago. Se publica automáticamente al conectarlo."
+                  className="rounded-full px-2.5 py-[3px] font-display text-[10px] font-600 uppercase tracking-[.04em]"
+                  style={{ background: "rgba(201,162,39,.14)", color: C.gold }}
+                >
+                  Falta MP
+                </span>
+              ) : (
+                <button
+                  onClick={() => onToggleStatus(a)}
+                  title={a.verified ? "Suspender atleta" : "Reactivar atleta"}
+                  className="rounded-full px-2.5 py-[3px] font-display text-[10px] font-600 uppercase tracking-[.04em] transition-opacity hover:opacity-70"
+                  style={a.verified
+                    ? { background: "rgba(34,197,94,.14)", color: C.greenBright, border: "none", cursor: "pointer" }
+                    : { background: "rgba(223,0,36,.12)", color: C.redBright, border: "none", cursor: "pointer" }}
+                >
+                  {a.verified ? "Activo" : "Suspendido"}
+                </button>
+              )}
             </div>
             <div className="flex justify-end">
               {a.mp_connected ? (
@@ -1449,30 +1424,135 @@ function AtletasSection({
   );
 }
 
+// ── Selecciones nacionales: armado de planteles ─────────────────────────
+function SeleccionesSection({
+  athletes,
+  loading,
+  onSetTeam,
+}: {
+  athletes: AthleteRow[];
+  loading: boolean;
+  onSetTeam: (a: AthleteRow, teamSlug: string) => void;
+}) {
+  if (loading) {
+    return <div className="py-16 text-center text-[14px]" style={{ color: C.txtDim }}>Cargando…</div>;
+  }
+  const sinSeleccion = athletes.filter((a) => !a.team);
+
+  return (
+    <div className="flex flex-col gap-5">
+      {SEED_TEAMS.map((t) => {
+        const roster = athletes.filter((a) => a.team === t.slug);
+        return (
+          <section
+            key={t.slug}
+            className="rounded-[14px] p-6"
+            style={{ background: C.surface, border: `1px solid ${C.border}` }}
+          >
+            <div className="mb-1 flex flex-wrap items-center gap-3">
+              <span
+                className="flex h-10 w-10 items-center justify-center rounded-[9px] font-display text-[15px] font-700 text-white"
+                style={{ background: t.color ?? C.gold }}
+              >
+                {t.name.replace(/^(Los|Las|La|El)\s/i, "").slice(0, 2).toUpperCase()}
+              </span>
+              <div>
+                <div className="font-display text-[19px] font-700 uppercase leading-none text-white">{t.name}</div>
+                <div className="mt-0.5 text-[12px]" style={{ color: C.txtFaint }}>{t.discipline}</div>
+              </div>
+              <span className="ml-auto text-[12px]" style={{ color: C.txtFaint }}>
+                {roster.length} {roster.length === 1 ? "jugador" : "jugadores"}
+              </span>
+            </div>
+
+            {/* Plantel actual */}
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              {roster.length === 0 && (
+                <span className="text-[13px]" style={{ color: C.txtFaint }}>Sin jugadores todavía.</span>
+              )}
+              {roster.map((a) => (
+                <span
+                  key={a.id}
+                  className="inline-flex items-center gap-2 rounded-full py-1.5 pl-3 pr-1.5 text-[13px] font-500 text-white"
+                  style={{ background: C.sidebar, border: `1px solid rgba(255,255,255,.12)` }}
+                >
+                  {a.full_name}
+                  <button
+                    onClick={() => onSetTeam(a, "")}
+                    title={`Quitar a ${a.full_name} de ${t.name}`}
+                    className="flex h-5 w-5 items-center justify-center rounded-full text-[11px] leading-none transition-colors hover:text-white"
+                    style={{ background: "rgba(223,0,36,.18)", color: C.redBright }}
+                  >
+                    ✕
+                  </button>
+                </span>
+              ))}
+
+              {/* Agregar atleta */}
+              {sinSeleccion.length > 0 && (
+                <select
+                  value=""
+                  onChange={(e) => {
+                    const ath = athletes.find((x) => x.id === e.target.value);
+                    if (ath) onSetTeam(ath, t.slug);
+                  }}
+                  style={{ ...inputDark, width: "auto", padding: "7px 10px", fontSize: 13 }}
+                >
+                  <option value="" disabled style={{ background: C.sidebar }}>+ Agregar atleta…</option>
+                  {sinSeleccion.map((a) => (
+                    <option key={a.id} value={a.id} style={{ background: C.sidebar }}>{a.full_name}</option>
+                  ))}
+                </select>
+              )}
+            </div>
+          </section>
+        );
+      })}
+      <p className="text-[12px]" style={{ color: C.txtFaint }}>
+        Un atleta puede estar en una sola selección. Los cambios impactan en la página pública al tocar &quot;Publicar ahora&quot;.
+      </p>
+    </div>
+  );
+}
+
 // ── Aportes (demo) ───────────────────────────────────────────────────────
-function AportesSection() {
+function AportesSection({ donations, athletes }: { donations: AdminDonation[]; athletes: AthleteRow[] }) {
+  const confirmadas = donations.filter((d) => d.status === "completed");
+  const now = new Date();
+  const esteMes = confirmadas.filter((d) => {
+    const f = new Date(d.created_at);
+    return f.getMonth() === now.getMonth() && f.getFullYear() === now.getFullYear();
+  });
+  const athName = (id: string) => athletes.find((a) => a.id === id)?.full_name ?? "—";
+  const estadoLabel: Record<string, string> = { completed: "Acreditado", pending: "Pendiente", failed: "Rechazado", refunded: "Reembolsado" };
+
   return (
     <>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 16, marginBottom: 20 }} className="bo-kpis3">
-        {DEMO_AportesKpis.map((k) => <KpiSimple key={k.label} {...k} />)}
+        <KpiSimple label="Total confirmado" value={formatMoney(confirmadas.reduce((s, d) => s + Number(d.amount), 0))} sub={`${confirmadas.length} ${confirmadas.length === 1 ? "aporte" : "aportes"}`} />
+        <KpiSimple label="Este mes" value={formatMoney(esteMes.reduce((s, d) => s + Number(d.amount), 0))} sub={`${esteMes.length} ${esteMes.length === 1 ? "aporte" : "aportes"}`} />
+        <KpiSimple label="Para atletas (93%)" value={formatMoney(confirmadas.reduce((s, d) => s + Number(d.net_amount ?? d.amount), 0))} sub="acreditado directo en su MP" />
       </div>
       <section style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, overflow: "hidden" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "1.6fr 1.4fr 1fr 1.2fr 1.1fr .9fr", gap: 12, padding: "13px 24px", borderBottom: `1px solid rgba(255,255,255,.06)` }}>
-          {["Hincha", "Atleta", "Monto", "Método", "Fecha", "Estado"].map((h, i) => (
+        <div style={{ display: "grid", gridTemplateColumns: "1.8fr 1.4fr 1fr 1fr 1.1fr .9fr", gap: 12, padding: "13px 24px", borderBottom: `1px solid rgba(255,255,255,.06)` }}>
+          {["Donante", "Atleta", "Monto", "Tipo", "Fecha", "Estado"].map((h, i) => (
             <span key={h} className="text-[11px] font-600 uppercase tracking-[.06em]" style={{ color: C.txtFaint, textAlign: i === 2 || i === 5 ? "right" : "left" }}>{h}</span>
           ))}
         </div>
-        {DEMO_Aportes.map((a, i) => (
-          <div key={i} style={{ display: "grid", gridTemplateColumns: "1.6fr 1.4fr 1fr 1.2fr 1.1fr .9fr", gap: 12, alignItems: "center", padding: "13px 24px", borderBottom: `1px solid ${C.borderSoft}` }}>
+        {donations.length === 0 && (
+          <div className="px-6 py-12 text-center text-[13px]" style={{ color: C.txtDim }}>Todavía no hubo aportes. Cuando lleguen, van a aparecer acá en tiempo real.</div>
+        )}
+        {donations.map((d) => (
+          <div key={d.id} style={{ display: "grid", gridTemplateColumns: "1.8fr 1.4fr 1fr 1fr 1.1fr .9fr", gap: 12, alignItems: "center", padding: "13px 24px", borderBottom: `1px solid ${C.borderSoft}` }}>
             <div className="flex min-w-0 items-center gap-2.5">
-              <div className="flex h-[34px] w-[34px] flex-none items-center justify-center rounded-full font-display text-[13px] font-700" style={{ background: "rgba(255,255,255,.08)" }}>{a.fan[0]}</div>
-              <span className="truncate text-[14px] font-500">{a.fan}</span>
+              <div className="flex h-[34px] w-[34px] flex-none items-center justify-center rounded-full font-display text-[13px] font-700" style={{ background: "rgba(255,255,255,.08)" }}>{(d.donor_email ?? "?")[0].toUpperCase()}</div>
+              <span className="truncate text-[13px] font-500">{d.donor_email ?? "Sin email"}</span>
             </div>
-            <div className="flex min-w-0 items-center gap-2"><span className="h-2 w-2 flex-none rounded-full" style={{ background: a.color }} /><span className="truncate text-[13px]" style={{ color: "rgba(255,255,255,.8)" }}>{a.ath}</span></div>
-            <div className="text-right font-display text-[15px] font-600" style={{ color: C.gold }}>{a.amount}</div>
-            <div className="text-[13px]" style={{ color: "rgba(255,255,255,.6)" }}>{a.method}</div>
-            <div className="text-[12px]" style={{ color: C.txtFaint }}>{a.date}</div>
-            <div className="text-right"><PayStatus status={a.status} /></div>
+            <div className="truncate text-[13px]" style={{ color: "rgba(255,255,255,.8)" }}>{athName(d.athlete_id)}</div>
+            <div className="text-right font-display text-[15px] font-600" style={{ color: C.gold }}>{formatMoney(Number(d.amount))}</div>
+            <div className="text-[13px]" style={{ color: "rgba(255,255,255,.6)" }}>{d.type === "monthly" ? "Mensual" : "Único"}</div>
+            <div className="text-[12px]" style={{ color: C.txtFaint }}>{timeAgo(d.created_at)}</div>
+            <div className="text-right"><PayStatus status={estadoLabel[d.status] ?? d.status} /></div>
           </div>
         ))}
       </section>
@@ -1481,92 +1561,101 @@ function AportesSection() {
   );
 }
 
-// ── Pagos (demo) ─────────────────────────────────────────────────────────
+// ── Pagos: el reparto es automático, no hay nada que procesar ────────────
 function PagosSection() {
   return (
-    <>
-      <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: 18, alignItems: "start", marginBottom: 18 }} className="bo-grid">
-        <section style={{ background: "linear-gradient(135deg,#12283f,#0a1828)", border: "1px solid rgba(201,162,39,.22)", borderRadius: 16, padding: "24px 26px" }}>
-          <div className="mb-[18px] flex items-center justify-between">
-            <div>
-              <div className="font-display text-[11px] font-600 uppercase tracking-[.14em]" style={{ color: C.gold }}>Período abierto</div>
-              <div className="mt-1 font-display text-[24px] font-600 leading-none">Junio 2026</div>
-            </div>
-            <span className="rounded-full px-3 py-[5px] font-display text-[11px] font-600 uppercase tracking-[.04em]" style={{ background: "rgba(201,162,39,.16)", color: C.gold }}>Cierra 30 jun</span>
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 14, marginBottom: 22 }}>
-            <PagoStat label="Bruto" value="$4.13M" />
-            <PagoStat label="Comisión 7%" value="$289K" color={C.gold} />
-            <PagoStat label="Neto a atletas" value="$3.84M" color={C.green} />
-          </div>
-          <button className="rounded-[10px] px-6 py-3.5 font-display text-[14px] font-600 uppercase tracking-[.04em]" style={{ background: C.gold, color: C.ink }}>Procesar pago de junio</button>
-        </section>
-        <section style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, overflow: "hidden" }}>
-          <div className="px-5 pb-3 pt-4 font-display text-[16px] font-600" style={{ borderBottom: `1px solid rgba(255,255,255,.06)` }}>Pagos anteriores</div>
-          {DEMO_PayHistory.map((h) => (
-            <div key={h.period} className="flex items-center gap-3 px-5 py-3.5" style={{ borderBottom: `1px solid ${C.borderSoft}` }}>
-              <span className="h-2 w-2 flex-none rounded-full" style={{ background: C.greenBright }} />
-              <div className="min-w-0 flex-1"><div className="text-[13px] font-600">{h.period}</div><div className="text-[11px]" style={{ color: C.txtFaint }}>{h.atletas} atletas · {h.date}</div></div>
-              <div className="text-right"><div className="font-display text-[14px] font-600">{h.total}</div><div className="text-[11px]" style={{ color: C.greenBright }}>{h.estado}</div></div>
-            </div>
-          ))}
-        </section>
+    <section
+      className="mx-auto max-w-[640px] rounded-[16px] p-9 text-center"
+      style={{ background: "linear-gradient(135deg,#12283f,#0a1828)", border: "1px solid rgba(201,162,39,.22)" }}
+    >
+      <div className="mb-4 text-[36px]">⚡</div>
+      <h2 className="font-display text-[24px] font-700 uppercase leading-tight text-white">
+        El reparto es automático
+      </h2>
+      <p className="mx-auto mt-3 max-w-[440px] text-[14px] leading-relaxed" style={{ color: C.txtDim }}>
+        Cada aporte se divide en el momento del pago: Mercado Pago acredita el{" "}
+        <strong style={{ color: C.greenBright }}>93% directo en la cuenta del atleta</strong> y el{" "}
+        <strong style={{ color: C.gold }}>7% a GRANITO</strong>. No custodiamos fondos y no hay
+        pagos manuales que procesar.
+      </p>
+      <div className="mx-auto mt-6 flex h-2 max-w-[380px] overflow-hidden rounded-full" style={{ background: "rgba(255,255,255,.07)" }}>
+        <div style={{ width: "93%", background: C.green }} /><div style={{ width: "7%", background: C.gold }} />
       </div>
-      <ResponsiveCSS />
-    </>
+      <p className="mt-5 text-[12px]" style={{ color: C.txtFaint }}>
+        El detalle de cada movimiento está en la sección Aportes.
+      </p>
+    </section>
   );
 }
 
-// ── Hinchas (demo) ───────────────────────────────────────────────────────
-function HinchasSection() {
+// ── Hinchas: donantes reales agrupados ───────────────────────────────────
+function HinchasSection({ donations }: { donations: AdminDonation[] }) {
+  const porDonante = new Map<string, { total: number; aportes: number; desde: string }>();
+  for (const d of donations.filter((x) => x.status === "completed" && x.donor_email)) {
+    const cur = porDonante.get(d.donor_email!) ?? { total: 0, aportes: 0, desde: d.created_at };
+    cur.total += Number(d.amount);
+    cur.aportes += 1;
+    if (d.created_at < cur.desde) cur.desde = d.created_at;
+    porDonante.set(d.donor_email!, cur);
+  }
+  const ranking = [...porDonante.entries()].sort((a, b) => b[1].total - a[1].total);
+  const medals = [C.gold, "#B8C2CC", "#C8956A"];
+
   return (
     <>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 16, marginBottom: 20 }} className="bo-kpis3">
-        {DEMO_HinchasKpis.map((k) => <KpiSimple key={k.label} {...k} />)}
-      </div>
-      <section style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, overflow: "hidden" }}>
-        <div style={{ display: "grid", gridTemplateColumns: ".5fr 2fr 1.3fr 1.2fr 1fr", gap: 12, padding: "13px 24px", borderBottom: `1px solid rgba(255,255,255,.06)` }}>
-          {["#", "Hincha", "Atletas", "$/mes", "Desde"].map((h, i) => (
-            <span key={h} className="text-[11px] font-600 uppercase tracking-[.06em]" style={{ color: C.txtFaint, textAlign: i >= 2 ? "right" : "left" }}>{h}</span>
-          ))}
+      {ranking.length === 0 ? (
+        <div className="mx-auto max-w-[560px] rounded-[16px] p-10 text-center" style={{ background: C.surface, border: `1px solid ${C.border}` }}>
+          <div className="mb-3 text-[34px]">♥</div>
+          <h2 className="font-display text-[22px] font-700 uppercase text-white">Todavía no hay hinchas</h2>
+          <p className="mt-2 text-[14px] leading-relaxed" style={{ color: C.txtDim }}>
+            Acá van a aparecer las personas que aportan, ordenadas por cuánto empujan. Datos reales, nada inventado.
+          </p>
         </div>
-        {DEMO_Hinchas.map((h, i) => (
-          <div key={h.name} style={{ display: "grid", gridTemplateColumns: ".5fr 2fr 1.3fr 1.2fr 1fr", gap: 12, alignItems: "center", padding: "13px 24px", borderBottom: `1px solid ${C.borderSoft}` }}>
-            <div className="flex h-[30px] w-[30px] items-center justify-center rounded-full font-display text-[13px] font-700" style={h.medal ? { background: h.medal, color: C.ink } : { background: "rgba(255,255,255,.07)", color: "rgba(255,255,255,.6)" }}>{i + 1}</div>
-            <div className="flex min-w-0 items-center gap-2.5"><div className="flex h-[34px] w-[34px] flex-none items-center justify-center rounded-full font-display text-[13px] font-700" style={{ background: "rgba(255,255,255,.08)" }}>{h.name[0]}</div><span className="truncate text-[14px] font-600">{h.name}</span></div>
-            <div className="text-right font-display text-[16px] font-600">{h.atletas}</div>
-            <div className="text-right font-display text-[15px] font-600" style={{ color: C.gold }}>{h.mensual}</div>
-            <div className="text-right text-[13px]" style={{ color: C.txtDim }}>{h.desde}</div>
+      ) : (
+        <section style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, overflow: "hidden" }}>
+          <div style={{ display: "grid", gridTemplateColumns: ".5fr 2.2fr 1fr 1.2fr 1fr", gap: 12, padding: "13px 24px", borderBottom: `1px solid rgba(255,255,255,.06)` }}>
+            {["#", "Donante", "Aportes", "Total", "Desde"].map((h, i) => (
+              <span key={h} className="text-[11px] font-600 uppercase tracking-[.06em]" style={{ color: C.txtFaint, textAlign: i >= 2 ? "right" : "left" }}>{h}</span>
+            ))}
           </div>
-        ))}
-      </section>
+          {ranking.map(([email, r], i) => (
+            <div key={email} style={{ display: "grid", gridTemplateColumns: ".5fr 2.2fr 1fr 1.2fr 1fr", gap: 12, alignItems: "center", padding: "13px 24px", borderBottom: `1px solid ${C.borderSoft}` }}>
+              <div className="flex h-[30px] w-[30px] items-center justify-center rounded-full font-display text-[13px] font-700" style={i < 3 ? { background: medals[i], color: C.ink } : { background: "rgba(255,255,255,.07)", color: "rgba(255,255,255,.6)" }}>{i + 1}</div>
+              <div className="truncate text-[13px] font-500">{email}</div>
+              <div className="text-right font-display text-[16px] font-600">{r.aportes}</div>
+              <div className="text-right font-display text-[15px] font-600" style={{ color: C.gold }}>{formatMoney(r.total)}</div>
+              <div className="text-right text-[12px]" style={{ color: C.txtDim }}>{new Date(r.desde).toLocaleDateString("es-AR", { month: "short", year: "numeric" })}</div>
+            </div>
+          ))}
+        </section>
+      )}
       <ResponsiveCSS />
     </>
   );
 }
 
-// ── Empresas (demo) ──────────────────────────────────────────────────────
+// ── Empresas impulsoras ──────────────────────────────────────────────────
 function EmpresasSection() {
   return (
-    <>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 16 }} className="bo-kpis3">
-        {DEMO_Empresas.map((e) => (
-          <div key={e.name} className="flex flex-col" style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 22 }}>
-            <div className="mb-4 flex items-center justify-between">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl font-display text-[18px] font-700" style={{ background: e.color, color: "#fff" }}>{e.initial}</div>
-              <span className="rounded-full px-2.5 py-[3px] font-display text-[10px] font-600 uppercase tracking-[.04em]" style={{ background: "rgba(255,255,255,.07)", color: "rgba(255,255,255,.65)" }}>{e.type}</span>
-            </div>
-            <div className="mb-1.5 font-display text-[19px] font-600 leading-tight">{e.name}</div>
-            <div className="mb-[18px] flex-1 text-[13px] leading-relaxed" style={{ color: C.txtDim }}>{e.supports}</div>
-            <div className="flex items-center justify-between pt-4" style={{ borderTop: `1px solid rgba(255,255,255,.06)` }}>
-              <div><div className="font-display text-[20px] font-700 leading-none" style={{ color: C.gold }}>{e.mensual}</div><div className="text-[11px]" style={{ color: C.txtFaint }}>por mes</div></div>
-              <span className="rounded-full px-2.5 py-[3px] font-display text-[10px] font-600 uppercase tracking-[.04em]" style={e.estado === "Activo" ? { background: "rgba(34,197,94,.14)", color: C.greenBright } : { background: "rgba(201,162,39,.16)", color: C.gold }}>{e.estado}</span>
-            </div>
-          </div>
-        ))}
-      </div>
-      <ResponsiveCSS />
-    </>
+    <div className="mx-auto flex max-w-[640px] flex-col gap-4">
+      {/* La primera empresa impulsora (real) */}
+      <section className="flex items-center gap-5 rounded-[16px] p-6" style={{ background: C.surface, border: "1px solid rgba(201,162,39,.28)" }}>
+        <div className="flex h-14 w-14 flex-none items-center justify-center rounded-xl font-display text-[20px] font-700 text-white" style={{ background: "#0072CE" }}>DS</div>
+        <div className="min-w-0 flex-1">
+          <div className="font-display text-[19px] font-600 leading-tight text-white">DS Connect</div>
+          <div className="text-[13px]" style={{ color: C.txtDim }}>Primera empresa impulsora del deporte argentino con GRANITO.</div>
+        </div>
+        <span className="rounded-full px-2.5 py-[3px] font-display text-[10px] font-600 uppercase tracking-[.04em]" style={{ background: "rgba(34,197,94,.14)", color: C.greenBright }}>Activa</span>
+      </section>
+
+      <section className="rounded-[16px] p-7 text-center" style={{ background: C.surface, border: `1px solid ${C.border}` }}>
+        <p className="text-[14px] leading-relaxed" style={{ color: C.txtDim }}>
+          Las empresas interesadas escriben desde{" "}
+          <strong style={{ color: "#fff" }}>somosgranito.com/empresas</strong> y el pedido llega
+          por email. Cuando haya más empresas impulsoras, se administran acá.
+        </p>
+      </section>
+    </div>
   );
 }
 
@@ -1856,25 +1945,12 @@ function PayStatus({ status }: { status: string }) {
   return <span className="rounded-full px-2.5 py-[3px] font-display text-[10px] font-600 uppercase tracking-[.04em]" style={{ background: s.bg, color: s.c }}>{status}</span>;
 }
 
-function DemoTag() {
-  return <span className="rounded-full px-2 py-0.5 text-[10px] font-600 uppercase tracking-[.06em]" style={{ background: "rgba(201,162,39,.12)", color: C.gold }}>demo</span>;
-}
-
 function KpiSimple({ label, value, sub }: { label: string; value: string; sub: string }) {
   return (
     <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: "20px 22px" }}>
       <div className="mb-2.5 text-[12px] font-600 uppercase tracking-[.04em]" style={{ color: C.txtDim }}>{label}</div>
       <div className="font-display text-[32px] font-700 leading-none">{value}</div>
       <div className="mt-[7px] text-[12px]" style={{ color: C.txtFaint }}>{sub}</div>
-    </div>
-  );
-}
-
-function PagoStat({ label, value, color }: { label: string; value: string; color?: string }) {
-  return (
-    <div>
-      <div className="mb-[5px] text-[11px] uppercase tracking-[.04em]" style={{ color: C.txtFaint }}>{label}</div>
-      <div className="font-display text-[24px] font-700" style={{ color: color ?? "#fff" }}>{value}</div>
     </div>
   );
 }

@@ -60,16 +60,17 @@ export async function getAllAthletes(): Promise<Athlete[]> {
   return allAthletesRaw();
 }
 
-/** Atletas individuales del foco LA 2028 (grid principal del home). */
+/** Atletas del grid principal del home. Los de selección nacional también
+ *  aparecen acá: el atleta siempre es protagonista (la selección es un hub). */
 export async function getAthletes(): Promise<Athlete[]> {
   const all = await allAthletesRaw();
-  return all.filter((a) => !a.team && a.scope !== "otros");
+  return all.filter((a) => a.scope !== "otros");
 }
 
 /** Otros atletas argentinos (juveniles, regionales, amateurs). */
 export async function getOtherAthletes(): Promise<Athlete[]> {
   const all = await allAthletesRaw();
-  return all.filter((a) => !a.team && a.scope === "otros");
+  return all.filter((a) => a.scope === "otros");
 }
 
 export async function getAthleteBySlug(slug: string): Promise<Athlete | null> {
