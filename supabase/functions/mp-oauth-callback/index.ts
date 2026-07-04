@@ -12,6 +12,32 @@ function redirect(to: string) {
   return new Response(null, { status: 302, headers: { Location: to } });
 }
 
+/** Dispara la reconstrucción del sitio estático (para que el atleta recién
+ *  publicado aparezca sin que un admin tenga que tocar "Publicar ahora"). */
+async function triggerRebuild() {
+  const token = Deno.env.get("GITHUB_TOKEN");
+  if (!token) return;
+  const repo = Deno.env.get("GITHUB_REPO") ?? "Simonet46/podio-c7217b";
+  const workflow = Deno.env.get("GITHUB_WORKFLOW") ?? "deploy.yml";
+  try {
+    await fetch(
+      `https://api.github.com/repos/${repo}/actions/workflows/${workflow}/dispatches`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/vnd.github+json",
+          "X-GitHub-Api-Version": "2022-11-28",
+          "User-Agent": "granito-oauth",
+        },
+        body: JSON.stringify({ ref: "main" }),
+      },
+    );
+  } catch (e) {
+    console.error("No se pudo disparar el rebuild:", e);
+  }
+}
+
 Deno.serve(async (req) => {
   const u = new URL(req.url);
   const code = u.searchParams.get("code");
@@ -118,10 +144,12 @@ Deno.serve(async (req) => {
         .from("athlete_mp_accounts")
         .upsert({ athlete_id: app.athlete_id, ...row });
       if (!e2) {
+        const publish = !prev?.mp_connected;
         const patch: Record<string, unknown> = { mp_connected: true };
-        if (!prev?.mp_connected) patch.verified = true;
+        if (publish) patch.verified = true;
         await supa.from("athletes").update(patch).eq("id", app.athlete_id);
         await supa.from("application_mp_accounts").delete().eq("application_id", appId);
+        if (publish) await triggerRebuild();
       }
     }
     return redirect(okTarget);
@@ -162,5 +190,7 @@ Deno.serve(async (req) => {
   const patch: Record<string, unknown> = { mp_connected: true };
   if (firstConnection) patch.verified = true;
   await supa.from("athletes").update(patch).eq("id", payload.athlete_id);
+  // Recién publicado → reconstruir el sitio para que aparezca en la web.
+  if (firstConnection) await triggerRebuild();
   return redirect(okTarget);
 });
