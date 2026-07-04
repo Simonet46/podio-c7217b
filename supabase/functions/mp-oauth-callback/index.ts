@@ -94,9 +94,19 @@ Deno.serve(async (req) => {
     console.error("No se pudo guardar el token (atleta):", error.message);
     return redirect(errTarget("db:" + error.message.slice(0, 150)));
   }
-  await supa
+
+  // Un atleta no se publica sin vía de cobro. La PRIMERA vez que conecta MP,
+  // lo publicamos automáticamente. Si ya tenía MP (p.ej. reconexión de alguien
+  // suspendido a mano), NO tocamos `verified` para no saltear la moderación.
+  const { data: prev } = await supa
     .from("athletes")
-    .update({ mp_connected: true })
-    .eq("id", payload.athlete_id);
+    .select("mp_connected")
+    .eq("id", payload.athlete_id)
+    .maybeSingle();
+  const firstConnection = !prev?.mp_connected;
+
+  const patch: Record<string, unknown> = { mp_connected: true };
+  if (firstConnection) patch.verified = true;
+  await supa.from("athletes").update(patch).eq("id", payload.athlete_id);
   return redirect(okTarget);
 });

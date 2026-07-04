@@ -333,6 +333,8 @@ export function BackofficeApp() {
   const [draft, setDraft] = useState<Draft | null>(null);
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState("");
+  // Acción opcional que acompaña al toast (ej: generar link de MP tras el alta).
+  const [toastAction, setToastAction] = useState<{ label: string; run: () => void } | null>(null);
   const [publishing, setPublishing] = useState(false);
   const [mpModal, setMpModal] = useState<MpModalState>(null);
   const [profileChanges, setProfileChanges] = useState<ProfileChangeRequest[]>([]);
@@ -479,7 +481,9 @@ export function BackofficeApp() {
         show_goal: draft.show_goal,
         team: draft.team || null,
         raised_amount: 0,
-        verified: true,
+        // Nace oculto: solo se publica cuando tiene una vía de cobro (MP OAuth)
+        // conectada. Si conectó en la postulación, lo publicamos abajo.
+        verified: false,
         scope: draft.scope,
         next_competition: draft.next_competition || null,
         photo_url: draft.photo_url,
@@ -514,6 +518,13 @@ export function BackofficeApp() {
       p_app_id: draft.appId,
       p_athlete_id: data.id,
     });
+    const hasMp = mpMigrated === true;
+
+    // Solo se publica (verified) si tiene MP conectado. Si no, queda oculto
+    // hasta que el atleta lo conecte (y ahí se publica solo — ver mp-oauth-callback).
+    if (hasMp) {
+      await supa.from("athletes").update({ verified: true }).eq("id", data.id);
+    }
 
     // Invitar al atleta por email para que active su cuenta.
     let inviteOk = false;
@@ -525,11 +536,23 @@ export function BackofficeApp() {
     }
 
     setBusy(false);
-    setToast(
-      e2
-        ? "Atleta creado, pero no se pudo marcar la postulación: " + e2.message
-        : `¡${draft.full_name} dado de alta!${mpMigrated ? " MP conectado ✓." : ""}${inviteOk ? ` Invitación enviada a ${draft.email}.` : draft.email ? " (No se pudo enviar la invitación.)" : ""}  Acordate de "Publicar ahora".`,
-    );
+    const newAthleteName = draft.full_name;
+    const newAthleteId = data.id;
+    if (hasMp) {
+      setToastAction(null);
+      setToast(
+        `¡${newAthleteName} dado de alta y publicado! MP conectado ✓.${inviteOk ? ` Invitación enviada a ${draft.email}.` : ""}  Acordate de "Publicar ahora".`,
+      );
+    } else {
+      // Sin MP: creado pero NO público. Ofrecemos generar el link ya.
+      setToast(
+        `${newAthleteName} quedó creado, pero NO está público hasta que conecte su Mercado Pago.${inviteOk ? ` Le mandamos el email para que lo haga.` : ""} Se publica solo cuando lo conecte.`,
+      );
+      setToastAction({
+        label: "Generar link de MP ahora",
+        run: () => genMpLink({ id: newAthleteId, full_name: newAthleteName } as AthleteRow),
+      });
+    }
     setDraft(null);
     loadApps();
   }
@@ -538,6 +561,7 @@ export function BackofficeApp() {
     const supa = sb();
     if (!supa) return;
     setPublishing(true);
+    setToastAction(null);
     setToast("");
     const { error } = await supa.functions.invoke("trigger-rebuild");
     setPublishing(false);
@@ -595,6 +619,7 @@ export function BackofficeApp() {
   async function genMpLink(athlete: AthleteRow) {
     const supa = sb();
     if (!supa) return;
+    setToastAction(null);
     setToast(`Generando link de Mercado Pago de ${athlete.full_name}…`);
     const { data, error } = await supa.functions.invoke("mp-connect-link", {
       body: { athlete_id: athlete.id },
@@ -799,10 +824,19 @@ export function BackofficeApp() {
 
           {toast && (
             <div
-              className="mb-5 rounded-xl px-4 py-3 text-sm"
+              className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl px-4 py-3 text-sm"
               style={{ background: C.surface, border: `1px solid rgba(108,180,228,.4)`, color: "#fff" }}
             >
-              {toast}
+              <span>{toast}</span>
+              {toastAction && (
+                <button
+                  onClick={() => { toastAction.run(); setToastAction(null); }}
+                  className="shrink-0 rounded-[9px] px-4 py-2 font-display text-[12px] font-600 uppercase tracking-[.04em]"
+                  style={{ background: "#009ee3", color: "#fff" }}
+                >
+                  {toastAction.label}
+                </button>
+              )}
             </div>
           )}
 
