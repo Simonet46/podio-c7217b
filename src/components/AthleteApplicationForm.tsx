@@ -258,16 +258,19 @@ export function AthleteApplicationForm() {
     const photos = await uploadPhotos();
     const newId = await saveToSupabase(photos);
     if (newId) {
-      // Si conectó MP durante el registro, vinculamos el token a la postulación.
-      if (mpConnected) {
-        try {
-          const supabase = await getSupabase();
+      try {
+        const supabase = await getSupabase();
+        // Si conectó MP durante el registro, vinculamos el token a la postulación.
+        if (mpConnected) {
           await supabase?.functions.invoke("mp-claim-pending", {
             body: { application_id: newId, connect_token: connectToken },
           });
-        } catch {}
-      }
-      if (WEB3FORMS_ACCESS_KEY) void notifyByEmail(photos);
+        }
+        // Avisar al equipo por email + confirmarle al atleta (Resend).
+        await supabase?.functions.invoke("notify-application", {
+          body: { application_id: newId },
+        });
+      } catch {}
       go(5);
       return;
     }
