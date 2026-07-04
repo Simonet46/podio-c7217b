@@ -20,21 +20,28 @@ Deno.serve(async (req) => {
   const payload = await verifyState<{
     athlete_id?: string;
     connect_token?: string;
+    application_id?: string;
     kind: string;
   }>(state);
+  // Kinds: mp-connect (atleta desde su panel) · mp-connect-app (popup del form)
+  //        mp-connect-app-direct (link enviado por email, atado a la postulación)
   const okKind =
-    payload && (payload.kind === "mp-connect" || payload.kind === "mp-connect-app");
+    payload &&
+    (payload.kind === "mp-connect" ||
+      payload.kind === "mp-connect-app" ||
+      payload.kind === "mp-connect-app-direct");
   const isApp = payload?.kind === "mp-connect-app";
+  const isAppDirect = payload?.kind === "mp-connect-app-direct";
   if (!code || !payload || !okKind) {
-    const base = isApp ? `${SITE_URL}/mp-listo/` : `${SITE_URL}/`;
+    const base = isApp || isAppDirect ? `${SITE_URL}/mp-listo/` : `${SITE_URL}/`;
     const reason = !code ? "mp_no_devolvio_code" : "link_invalido_o_vencido";
     return redirect(`${base}?mp=error&reason=${encodeURIComponent(reason)}`);
   }
 
   // El flujo de postulación vuelve a una página "popup" que se cierra sola.
-  const okTarget = isApp ? `${SITE_URL}/mp-listo/?mp=ok` : `${SITE_URL}/?mp=ok`;
+  const okTarget = isApp || isAppDirect ? `${SITE_URL}/mp-listo/?mp=ok` : `${SITE_URL}/?mp=ok`;
   const errTarget = (reason: string) =>
-    (isApp ? `${SITE_URL}/mp-listo/?mp=error` : `${SITE_URL}/?mp=error`) +
+    (isApp || isAppDirect ? `${SITE_URL}/mp-listo/?mp=error` : `${SITE_URL}/?mp=error`) +
     `&reason=${encodeURIComponent(reason)}`;
 
   // Intercambiar el code por el token del vendedor.
@@ -72,6 +79,53 @@ Deno.serve(async (req) => {
   };
 
   const supa = serviceClient();
+
+  // Conexión vía link de email: el token queda atado a la POSTULACIÓN.
+  // Si la postulación ya fue aprobada (tiene atleta), lo migramos al toque.
+  if (isAppDirect) {
+    const appId = payload.application_id!;
+    const { error } = await supa.from("application_mp_accounts").upsert({
+      application_id: appId,
+      mp_user_id: row.mp_user_id,
+      access_token: row.access_token,
+      refresh_token: row.refresh_token,
+      public_key: row.public_key,
+      token_expires_at: row.token_expires_at,
+      live_mode: row.live_mode,
+      connected_at: new Date().toISOString(),
+      updated_at: row.updated_at,
+    });
+    if (error) {
+      console.error("No se pudo guardar el token (app-direct):", error.message);
+      return redirect(errTarget("db:" + error.message.slice(0, 150)));
+    }
+    await supa.from("athlete_applications").update({ mp_connected: true }).eq("id", appId);
+
+    // ¿Ya existe el atleta? Migrar la conexión (tenemos el token en mano) y
+    // publicarlo si es su primera conexión de MP.
+    const { data: app } = await supa
+      .from("athlete_applications")
+      .select("athlete_id")
+      .eq("id", appId)
+      .maybeSingle();
+    if (app?.athlete_id) {
+      const { data: prev } = await supa
+        .from("athletes")
+        .select("mp_connected")
+        .eq("id", app.athlete_id)
+        .maybeSingle();
+      const { error: e2 } = await supa
+        .from("athlete_mp_accounts")
+        .upsert({ athlete_id: app.athlete_id, ...row });
+      if (!e2) {
+        const patch: Record<string, unknown> = { mp_connected: true };
+        if (!prev?.mp_connected) patch.verified = true;
+        await supa.from("athletes").update(patch).eq("id", app.athlete_id);
+        await supa.from("application_mp_accounts").delete().eq("application_id", appId);
+      }
+    }
+    return redirect(okTarget);
+  }
 
   if (isApp) {
     // Conexión durante el registro: el token queda "en tránsito" atado al

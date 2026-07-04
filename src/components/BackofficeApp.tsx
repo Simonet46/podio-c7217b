@@ -296,6 +296,11 @@ export function BackofficeApp() {
   const [profileChanges, setProfileChanges] = useState<ProfileChangeRequest[]>([]);
   const [athleteUpdates, setAthleteUpdates] = useState<AthleteUpdateRow[]>([]);
   const [donations, setDonations] = useState<AdminDonation[]>([]);
+  // Modal "pedir más info" a un postulante (email vía Resend, sin mailto).
+  const [infoModal, setInfoModal] = useState<Application | null>(null);
+  const [infoMsg, setInfoMsg] = useState("");
+  const [infoIncludeMp, setInfoIncludeMp] = useState(true);
+  const [infoBusy, setInfoBusy] = useState(false);
 
   // ── Sesión ────────────────────────────────────────────────────────────
   const resolveSession = useCallback(async () => {
@@ -599,15 +604,36 @@ export function BackofficeApp() {
     );
   }
 
-  /** Abre el cliente de correo con un pedido de más info prellenado. */
+  /** Abre el modal para pedirle info al postulante SIN salir del backoffice. */
   function askMoreInfo(app: Application) {
-    const first = app.full_name.split(" ")[0];
-    const subject = "Granito · Necesitamos un par de datos más para aprobar tu perfil";
-    const body =
-      `Hola ${first},\n\n¡Gracias por postularte a Granito! Tu historia nos llegó y nos encantó. ` +
-      `Para terminar de aprobar tu perfil nos falta que completes un par de datos.\n\n` +
-      `Podés responder este mismo mail con la info. Cualquier duda, escribinos.\n\nAbrazo,\nEquipo Granito`;
-    window.location.href = `mailto:${app.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    setInfoModal(app);
+    setInfoMsg(
+      "¡Gracias por postularte! Tu historia nos encantó. Para terminar de aprobar tu perfil nos falta que completes un par de datos:\n\n- ",
+    );
+    setInfoIncludeMp(!app.mp_connected);
+    setInfoBusy(false);
+  }
+
+  async function sendInfoRequest() {
+    const supa = sb();
+    if (!supa || !infoModal || infoBusy) return;
+    setInfoBusy(true);
+    const { data, error } = await supa.functions.invoke("request-info", {
+      body: {
+        application_id: infoModal.id,
+        message: infoMsg.trim(),
+        include_mp_link: infoIncludeMp,
+      },
+    });
+    setInfoBusy(false);
+    if (error || data?.error) {
+      setToast("No se pudo enviar el pedido: " + (error?.message ?? data?.error));
+      return;
+    }
+    setToast(
+      `✓ Email enviado a ${infoModal.full_name}${data?.mp_link_included ? " (con el link para conectar su Mercado Pago)" : ""}.`,
+    );
+    setInfoModal(null);
   }
 
   // ── Render: estados previos al dashboard ────────────────────────────────
@@ -911,6 +937,67 @@ export function BackofficeApp() {
 
       {/* ===== Modal de info de MP ===== */}
       {mpModal && <MpInfoModal modal={mpModal} onClose={() => setMpModal(null)} />}
+
+      {/* ===== Modal: pedir más info al postulante (sin salir del backoffice) ===== */}
+      {infoModal && (
+        <div
+          onClick={() => setInfoModal(null)}
+          style={{ position: "fixed", inset: 0, zIndex: 90, background: "rgba(4,10,18,.78)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{ width: "100%", maxWidth: 520, background: C.surface, border: "1px solid rgba(255,255,255,.1)", borderRadius: 20, padding: 28, boxShadow: "0 30px 90px rgba(0,0,0,.65)" }}
+          >
+            <div className="mb-1 font-display text-[11px] uppercase tracking-[.14em]" style={{ color: C.gold }}>Pedir más info</div>
+            <h2 className="m-0 mb-1 font-display text-[22px] font-600 leading-tight">{infoModal.full_name}</h2>
+            <p className="mb-4 text-[13px]" style={{ color: C.txtDim }}>
+              El email sale desde GRANITO (no-reply@somosgranito.com) a <strong style={{ color: "#fff" }}>{infoModal.email}</strong>. Si responde, llega a hola@somosgranito.com.
+            </p>
+
+            <textarea
+              rows={6}
+              value={infoMsg}
+              onChange={(e) => setInfoMsg(e.target.value)}
+              placeholder="Contale qué te falta para aprobar su perfil…"
+              className="w-full resize-none rounded-[10px] p-3.5 text-[14px] leading-relaxed text-white outline-none placeholder:text-white/30"
+              style={{ background: C.sidebar, border: "1px solid rgba(255,255,255,.12)" }}
+            />
+
+            <label className="mt-3 flex cursor-pointer items-start gap-2.5 text-[13px]" style={{ color: infoModal.mp_connected ? C.txtFaint : "rgba(255,255,255,.8)" }}>
+              <input
+                type="checkbox"
+                checked={infoIncludeMp && !infoModal.mp_connected}
+                disabled={!!infoModal.mp_connected}
+                onChange={(e) => setInfoIncludeMp(e.target.checked)}
+                style={{ marginTop: 2, accentColor: "#009ee3", width: 15, height: 15 }}
+              />
+              <span>
+                {infoModal.mp_connected
+                  ? "Ya conectó su Mercado Pago ✓ (no hace falta el link)"
+                  : <>Incluir botón <strong style={{ color: "#6cb4e4" }}>“Conectar mi Mercado Pago”</strong> (link seguro atado a su postulación, vale 30 días)</>}
+              </span>
+            </label>
+
+            <div className="mt-5 flex gap-3">
+              <button
+                onClick={() => setInfoModal(null)}
+                className="flex-1 rounded-[10px] py-3 font-display text-[13px] font-600 uppercase tracking-wide"
+                style={{ border: "1px solid rgba(255,255,255,.15)", color: C.txtDim }}
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={sendInfoRequest}
+                disabled={infoBusy || !infoMsg.trim()}
+                className="flex-1 rounded-[10px] py-3 font-display text-[13px] font-600 uppercase tracking-wide disabled:opacity-50"
+                style={{ background: C.gold, color: C.ink }}
+              >
+                {infoBusy ? "Enviando…" : "Enviar pedido"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <style>{`
         .bo-scroll::-webkit-scrollbar{width:9px;height:9px}

@@ -6,7 +6,7 @@
 // Secrets: SUPABASE_SERVICE_ROLE_KEY, RESEND_API_KEY, (opcional) SITE_URL,
 //          (opcional) TEAM_EMAILS (coma-separado; default appidisko@gmail.com).
 // Deploy con --no-verify-jwt (lo llama el sitio público).
-import { cors, json, serviceClient, SITE_URL } from "../_shared/util.ts";
+import { cors, json, serviceClient, signState, SITE_URL } from "../_shared/util.ts";
 
 const FROM = "GRANITO <no-reply@somosgranito.com>";
 const isEmail = (s: string | null | undefined) =>
@@ -31,8 +31,22 @@ async function sendEmail(key: string, to: string[], subject: string, html: strin
   }
 }
 
-/** Confirmación al atleta (branding GRANITO). */
-function applicantHtml(firstName: string): string {
+/** Confirmación al atleta (branding GRANITO). Si no conectó MP, incluye el botón. */
+function applicantHtml(firstName: string, mpUrl: string | null): string {
+  const mpBlock = mpUrl
+    ? `<div style="margin:20px 0 4px;padding:16px;border:1px solid rgba(0,158,227,.35);border-radius:10px;background:rgba(0,158,227,.08)">
+        <p style="color:rgba(255,255,255,.8);font-size:14px;line-height:1.55;margin:0 0 12px">
+          <strong style="color:#fff">Un paso que podés adelantar:</strong> todavía no conectaste tu
+          Mercado Pago. Es lo que te permite recibir los aportes directo en tu cuenta.
+        </p>
+        <a href="${mpUrl}" style="display:inline-block;background-color:#009ee3;color:#ffffff;font-weight:bold;font-size:14px;padding:12px 26px;border-radius:9px;text-decoration:none">
+          Conectar mi Mercado Pago
+        </a>
+        <p style="color:rgba(255,255,255,.4);font-size:11px;line-height:1.5;margin:10px 0 0">
+          Conexión oficial de MP: te logueás en TU cuenta y autorizás. GRANITO nunca ve tu contraseña.
+        </p>
+      </div>`
+    : "";
   return `<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#0A1A2F;padding:40px 16px;font-family:Arial,Helvetica,sans-serif">
   <tr><td align="center"><table width="100%" cellpadding="0" cellspacing="0" style="max-width:480px">
     <tr><td style="padding-bottom:22px">
@@ -47,10 +61,11 @@ function applicantHtml(firstName: string): string {
       </p>
       <p style="color:rgba(255,255,255,.75);font-size:15px;line-height:1.6;margin:0 0 8px">
         Te vamos a escribir a este mismo email en los próximos días. Si te aprobamos, te llega un
-        link para activar tu cuenta y conectar tu Mercado Pago.
+        link para activar tu cuenta y manejar tu perfil.
       </p>
+      ${mpBlock}
       <p style="color:rgba(255,255,255,.4);font-size:12px;line-height:1.5;margin:22px 0 0">
-        No necesitás hacer nada más por ahora. Cualquier duda, escribinos a hola@somosgranito.com.
+        Cualquier duda, escribinos a hola@somosgranito.com.
       </p>
     </td></tr>
     <tr><td align="center" style="padding-top:20px">
@@ -113,10 +128,27 @@ Deno.serve(async (req) => {
     await sendEmail(key, team, `Nueva postulación — ${app.full_name ?? "atleta"}`, teamHtml(app));
   }
 
-  // 2) Confirmación al atleta (solo si el email es válido).
+  // 2) Confirmación al atleta (solo si el email es válido). Si no conectó MP,
+  // incluimos el botón para hacerlo directo desde el email (link firmado, 30 días).
   if (isEmail(app.email as string)) {
+    let mpUrl: string | null = null;
+    if (!app.mp_connected) {
+      const state = await signState({
+        application_id,
+        kind: "mp-connect-app-direct",
+        exp: Date.now() + 1000 * 60 * 60 * 24 * 30,
+      });
+      const clientId = (Deno.env.get("MP_CLIENT_ID") ?? "").trim();
+      const redirectUri = (Deno.env.get("MP_REDIRECT_URI") ?? "").trim();
+      if (clientId && redirectUri) {
+        mpUrl =
+          `https://auth.mercadopago.com/authorization?client_id=${encodeURIComponent(clientId)}` +
+          `&response_type=code&platform_id=mp&state=${encodeURIComponent(state)}` +
+          `&redirect_uri=${encodeURIComponent(redirectUri)}`;
+      }
+    }
     const firstName = String(app.full_name ?? "").split(" ")[0] || "crack";
-    await sendEmail(key, [app.email as string], "Recibimos tu postulación a GRANITO 🥇", applicantHtml(firstName));
+    await sendEmail(key, [app.email as string], "Recibimos tu postulación a GRANITO 🥇", applicantHtml(firstName, mpUrl));
   }
 
   return json({ ok: true });
