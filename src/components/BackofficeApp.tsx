@@ -582,6 +582,25 @@ export function BackofficeApp() {
     setMpModal({ athlete, info: data as MpInfo, error: null });
   }
 
+  /** Manda (o re-manda) el email de acceso al atleta: crea su cuenta si no
+   *  existe y le llega el link para activarla y crear su contraseña. */
+  async function sendAccess(athlete: AthleteRow) {
+    const supa = sb();
+    if (!supa) return;
+    setToastAction(null);
+    setToast(`Enviando acceso a ${athlete.full_name}…`);
+    const { data, error } = await supa.functions.invoke("invite-athlete", {
+      body: { athlete_id: athlete.id },
+    });
+    if (error || data?.error) {
+      setToast(`No se pudo enviar el acceso: ${error?.message ?? data?.error}`);
+      return;
+    }
+    setToast(
+      `✓ Email de acceso ${data?.resent ? "reenviado" : "enviado"} a ${athlete.full_name}. Le llega un link para activar su cuenta y crear su contraseña.`,
+    );
+  }
+
   /** Genera el link de conexión de Mercado Pago de un atleta y lo abre. */
   async function genMpLink(athlete: AthleteRow) {
     const supa = sb();
@@ -861,7 +880,7 @@ export function BackofficeApp() {
           )}
 
           {/* ===== ATLETAS ===== */}
-          {active === "Atletas" && <AtletasSection athletes={athletes} loading={loadingList} onConnect={genMpLink} onToggleStatus={handleToggleStatus} onViewMpInfo={handleViewMpInfo} onSetTeam={handleSetTeam} />}
+          {active === "Atletas" && <AtletasSection athletes={athletes} loading={loadingList} onConnect={genMpLink} onToggleStatus={handleToggleStatus} onViewMpInfo={handleViewMpInfo} onSetTeam={handleSetTeam} onSendAccess={sendAccess} />}
 
           {/* ===== SELECCIONES ===== */}
           {active === "Selecciones" && (
@@ -1416,6 +1435,7 @@ function AtletasSection({
   onToggleStatus,
   onViewMpInfo,
   onSetTeam,
+  onSendAccess,
 }: {
   athletes: AthleteRow[];
   loading: boolean;
@@ -1423,6 +1443,7 @@ function AtletasSection({
   onToggleStatus: (a: AthleteRow) => void;
   onViewMpInfo: (a: AthleteRow) => void;
   onSetTeam: (a: AthleteRow, teamSlug: string) => void;
+  onSendAccess: (a: AthleteRow) => void;
 }) {
   const cols = "1.7fr 1fr 1.4fr 1fr .85fr 1fr";
   return (
@@ -1483,7 +1504,15 @@ function AtletasSection({
                 </button>
               )}
             </div>
-            <div className="flex justify-end">
+            <div className="flex items-center justify-end gap-1.5">
+              <button
+                onClick={() => onSendAccess(a)}
+                title="Enviar acceso: le llega un email para activar su cuenta y crear su contraseña"
+                className="flex h-[26px] w-[26px] items-center justify-center rounded-full text-[12px] transition-opacity hover:opacity-70"
+                style={{ background: "rgba(201,162,39,.14)", color: C.gold, border: "none", cursor: "pointer" }}
+              >
+                ✉
+              </button>
               {a.mp_connected ? (
                 <button
                   onClick={() => onViewMpInfo(a)}

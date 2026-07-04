@@ -72,9 +72,20 @@ export default function MiPerfilPage() {
   const [mpConectado, setMpConectado] = useState(false);
   const [pendingChange, setPendingChange] = useState<PendingChange | null>(null);
   const [loginEmail, setLoginEmail] = useState("");
+  const [loginPass, setLoginPass] = useState("");
+  // "password" = email + contraseña (default) · "magic" = link por email.
+  const [loginMode, setLoginMode] = useState<"password" | "magic">("password");
   const [loginSent, setLoginSent] = useState(false);
   const [loginBusy, setLoginBusy] = useState(false);
   const [loginError, setLoginError] = useState("");
+  const [forgotSent, setForgotSent] = useState(false);
+  // Email de la sesión activa (para la pantalla "sin atleta vinculado").
+  const [sessionEmail, setSessionEmail] = useState<string | null>(null);
+  // Cambio de contraseña desde el panel.
+  const [secPass1, setSecPass1] = useState("");
+  const [secPass2, setSecPass2] = useState("");
+  const [secBusy, setSecBusy] = useState(false);
+  const [secMsg, setSecMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [connectingMp, setConnectingMp] = useState(false);
   const [mpJustConnected, setMpJustConnected] = useState(false);
   const [aportes, setAportes] = useState<Aporte[]>([]);
@@ -116,6 +127,7 @@ export default function MiPerfilPage() {
 
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) { setAuthState("none"); return; }
+      setSessionEmail(session.user.email ?? null);
 
       // Cargar datos del atleta.
       const { data: a } = await supabase
@@ -151,8 +163,27 @@ export default function MiPerfilPage() {
     if (!loginEmail || loginBusy) return;
     setLoginBusy(true);
     setLoginError("");
+    setForgotSent(false);
     const supabase = await getSupabase();
-    // shouldCreateUser: false → solo mandamos link a cuentas que EXISTEN.
+
+    if (loginMode === "password") {
+      const { error } = (await supabase?.auth.signInWithPassword({
+        email: loginEmail,
+        password: loginPass,
+      })) ?? {};
+      setLoginBusy(false);
+      if (error) {
+        setLoginError(
+          "Email o contraseña incorrectos. Si nunca creaste una contraseña, entrá con el link por email.",
+        );
+        return;
+      }
+      // Sesión creada: recargamos para que init() levante el perfil.
+      window.location.reload();
+      return;
+    }
+
+    // Modo link mágico. shouldCreateUser: false → solo cuentas que EXISTEN.
     // (Sin esto, cualquier email creaba una cuenta fantasma sin atleta.)
     const { error } = (await supabase?.auth.signInWithOtp({
       email: loginEmail,
@@ -168,10 +199,52 @@ export default function MiPerfilPage() {
     setLoginBusy(false);
   }
 
+  async function handleForgot() {
+    if (!loginEmail) {
+      setLoginError("Escribí tu email arriba y volvé a tocar “olvidé mi contraseña”.");
+      return;
+    }
+    setLoginBusy(true);
+    setLoginError("");
+    const supabase = await getSupabase();
+    // Manda el email de recuperación; el link cae en /bienvenida con type=recovery,
+    // donde el atleta crea su contraseña nueva.
+    await supabase?.auth.resetPasswordForEmail(loginEmail, {
+      redirectTo: `${SITE_URL}/bienvenida/`,
+    });
+    setLoginBusy(false);
+    setForgotSent(true);
+  }
+
   async function handleSignOut() {
     const supabase = await getSupabase();
     await supabase?.auth.signOut();
     window.location.href = "/";
+  }
+
+  async function handleSetPassword(e: React.FormEvent) {
+    e.preventDefault();
+    if (secBusy) return;
+    if (secPass1.length < 8) {
+      setSecMsg({ ok: false, text: "La contraseña tiene que tener al menos 8 caracteres." });
+      return;
+    }
+    if (secPass1 !== secPass2) {
+      setSecMsg({ ok: false, text: "Las contraseñas no coinciden." });
+      return;
+    }
+    setSecBusy(true);
+    setSecMsg(null);
+    const supabase = await getSupabase();
+    const { error } = (await supabase?.auth.updateUser({ password: secPass1 })) ?? {};
+    setSecBusy(false);
+    if (error) {
+      setSecMsg({ ok: false, text: "No se pudo guardar. Probá de nuevo en unos segundos." });
+      return;
+    }
+    setSecPass1("");
+    setSecPass2("");
+    setSecMsg({ ok: true, text: "✓ Contraseña guardada. Ya podés entrar con email y contraseña." });
   }
 
   function openEditModal() {
@@ -366,8 +439,8 @@ export default function MiPerfilPage() {
               Mi cuenta de atleta
             </h1>
             <p className="mb-6 text-[14px] text-white/55">
-              Solo para atletas ya aprobados por GRANITO. Ingresá el email con el
-              que te aprobamos y te mandamos un link de acceso.
+              Solo para atletas ya aprobados por GRANITO. Entrá con el email con
+              el que te aprobamos.
             </p>
 
             {loginSent ? (
@@ -378,6 +451,15 @@ export default function MiPerfilPage() {
                 ✓ Link enviado a <strong>{loginEmail}</strong>.<br />
                 <span className="text-[13px] opacity-80">Revisá tu bandeja de entrada.</span>
               </div>
+            ) : forgotSent ? (
+              <div
+                className="rounded-[10px] p-5 text-center text-[15px] leading-relaxed"
+                style={{ background: "rgba(34,197,94,.1)", border: "1px solid rgba(34,197,94,.4)", color: "#22c55e" }}
+              >
+                ✓ Te mandamos un email a <strong>{loginEmail}</strong> para crear
+                una contraseña nueva.<br />
+                <span className="text-[13px] opacity-80">Revisá tu bandeja de entrada.</span>
+              </div>
             ) : (
               <form onSubmit={handleLogin} className="flex flex-col gap-4">
                 <input
@@ -386,8 +468,20 @@ export default function MiPerfilPage() {
                   value={loginEmail}
                   onChange={(e) => setLoginEmail(e.target.value)}
                   placeholder="tu@email.com"
+                  autoComplete="email"
                   className="rounded-[10px] border border-white/[.14] bg-white/[.05] px-[15px] py-[13px] text-[15px] text-white outline-none placeholder:text-white/35 focus:border-white/40"
                 />
+                {loginMode === "password" && (
+                  <input
+                    type="password"
+                    required
+                    value={loginPass}
+                    onChange={(e) => setLoginPass(e.target.value)}
+                    placeholder="Tu contraseña"
+                    autoComplete="current-password"
+                    className="rounded-[10px] border border-white/[.14] bg-white/[.05] px-[15px] py-[13px] text-[15px] text-white outline-none placeholder:text-white/35 focus:border-white/40"
+                  />
+                )}
                 {loginError && (
                   <p
                     className="rounded-[8px] p-3 text-[13px] leading-relaxed"
@@ -398,12 +492,33 @@ export default function MiPerfilPage() {
                 )}
                 <button
                   type="submit"
-                  disabled={loginBusy || !loginEmail}
+                  disabled={loginBusy || !loginEmail || (loginMode === "password" && !loginPass)}
                   className="rounded-[10px] py-[14px] font-display text-[15px] font-600 uppercase tracking-wide text-ink disabled:opacity-50"
                   style={{ background: "#C9A227" }}
                 >
-                  {loginBusy ? "Enviando…" : "Enviar link de acceso"}
+                  {loginBusy
+                    ? loginMode === "password" ? "Entrando…" : "Enviando…"
+                    : loginMode === "password" ? "Entrar" : "Enviar link de acceso"}
                 </button>
+
+                <div className="flex items-center justify-between text-[13px]">
+                  <button
+                    type="button"
+                    onClick={() => { setLoginMode(loginMode === "password" ? "magic" : "password"); setLoginError(""); }}
+                    className="text-white/50 underline underline-offset-4 hover:text-white/80"
+                  >
+                    {loginMode === "password" ? "Entrar con link por email" : "Entrar con contraseña"}
+                  </button>
+                  {loginMode === "password" && (
+                    <button
+                      type="button"
+                      onClick={handleForgot}
+                      className="text-white/50 underline underline-offset-4 hover:text-white/80"
+                    >
+                      Olvidé mi contraseña
+                    </button>
+                  )}
+                </div>
               </form>
             )}
           </div>
@@ -432,10 +547,18 @@ export default function MiPerfilPage() {
             <h1 className="mb-2 font-display text-[24px] font-700 uppercase leading-tight text-white">
               Tu email no está vinculado a un atleta
             </h1>
+            {sessionEmail && (
+              <p
+                className="mx-auto mb-3 inline-block rounded-full px-4 py-1.5 text-[13px]"
+                style={{ background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.12)", color: "rgba(255,255,255,.75)" }}
+              >
+                Sesión iniciada como <strong className="text-white">{sessionEmail}</strong>
+              </p>
+            )}
             <p className="mb-6 text-[14px] leading-relaxed text-white/55">
-              Entraste bien, pero este email no corresponde a ningún perfil de atleta aprobado.
-              Puede que te hayamos invitado con otro email — probá con ese — o que todavía
-              no te hayas postulado.
+              Ese email no corresponde a ningún perfil de atleta aprobado. Puede que
+              te hayamos invitado con otro email — salí y probá con ese — o que
+              todavía no te hayas postulado.
             </p>
             <div className="flex flex-col gap-3">
               <Link
@@ -745,6 +868,50 @@ export default function MiPerfilPage() {
               {pendingChange ? "Cambio pendiente…" : "Editar perfil"}
             </button>
           </div>
+        </Card>
+
+        {/* Seguridad: crear/cambiar contraseña */}
+        <Card title="Contraseña" className="mb-4">
+          <p className="mb-4 text-[13px] leading-relaxed text-white/50">
+            Con una contraseña entrás directo con tu email, sin esperar el link.
+            La podés cambiar cuando quieras.
+          </p>
+          <form onSubmit={handleSetPassword} className="flex flex-col gap-3 sm:max-w-[380px]">
+            <input
+              type="password"
+              value={secPass1}
+              onChange={(e) => { setSecPass1(e.target.value); setSecMsg(null); }}
+              placeholder="Contraseña nueva (mínimo 8 caracteres)"
+              autoComplete="new-password"
+              className="rounded-[10px] border border-white/[.12] bg-white/[.04] px-4 py-3 text-[14px] text-white outline-none placeholder:text-white/30 focus:border-white/35"
+            />
+            <input
+              type="password"
+              value={secPass2}
+              onChange={(e) => { setSecPass2(e.target.value); setSecMsg(null); }}
+              placeholder="Repetila para confirmar"
+              autoComplete="new-password"
+              className="rounded-[10px] border border-white/[.12] bg-white/[.04] px-4 py-3 text-[14px] text-white outline-none placeholder:text-white/30 focus:border-white/35"
+            />
+            {secMsg && (
+              <p
+                className="rounded-[8px] p-3 text-[13px]"
+                style={secMsg.ok
+                  ? { background: "rgba(34,197,94,.1)", border: "1px solid rgba(34,197,94,.35)", color: "#22c55e" }
+                  : { background: "rgba(220,38,38,.12)", color: "#f87171" }}
+              >
+                {secMsg.text}
+              </p>
+            )}
+            <button
+              type="submit"
+              disabled={secBusy || !secPass1 || !secPass2}
+              className="self-start rounded-[10px] px-5 py-2.5 font-display text-[13px] font-600 uppercase tracking-wide text-ink disabled:opacity-50"
+              style={{ background: "#C9A227" }}
+            >
+              {secBusy ? "Guardando…" : "Guardar contraseña"}
+            </button>
+          </form>
         </Card>
 
         {/* Link al perfil público */}
