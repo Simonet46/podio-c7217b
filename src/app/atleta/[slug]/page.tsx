@@ -65,15 +65,18 @@ export default async function AthletePage({
         {/* ── Hero ── */}
         <section className="relative">
 
-          {/* Cover foto */}
-          <div className="relative h-[260px] overflow-hidden sm:h-[380px] lg:h-[420px]">
-            {hasCover ? (
+          {/* Cover: fondo ambiente (la foto difuminada + oscurecida). Robusto a
+              cualquier proporción — nunca queda estirado ni recorta mal al atleta.
+              El retrato nítido de abajo es el protagonista. */}
+          <div className="relative h-[220px] overflow-hidden sm:h-[300px] lg:h-[340px]">
+            {hasCover || hasPortrait ? (
               <Image
-                src={asset(athlete.photo_secondary_url!)}
-                alt={`${athlete.full_name} en acción`}
+                src={asset((athlete.photo_secondary_url ?? athlete.photo_url)!)}
+                alt=""
                 fill
                 priority
-                className="object-cover object-top"
+                aria-hidden
+                className="scale-110 object-cover blur-xl"
               />
             ) : (
               <div
@@ -83,12 +86,13 @@ export default async function AthletePage({
                 }}
               />
             )}
-            {/* Gradient overlay */}
+            {/* Velo + gradient para legibilidad */}
+            <div className="absolute inset-0 pointer-events-none" style={{ background: "rgba(10,26,47,.34)" }} aria-hidden />
             <div
               className="absolute inset-0 pointer-events-none"
               style={{
                 background:
-                  "linear-gradient(180deg,rgba(10,26,47,.1) 0%,transparent 30%,rgba(10,26,47,.55) 70%,rgba(10,26,47,.95) 100%)",
+                  "linear-gradient(180deg,rgba(10,26,47,.25) 0%,transparent 35%,rgba(10,26,47,.6) 72%,rgba(10,26,47,.97) 100%)",
               }}
               aria-hidden
             />
