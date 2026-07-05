@@ -207,11 +207,10 @@ export default function MiPerfilPage() {
     setLoginBusy(true);
     setLoginError("");
     const supabase = await getSupabase();
-    // Manda el email de recuperación; el link cae en /bienvenida con type=recovery,
-    // donde el atleta crea su contraseña nueva.
-    await supabase?.auth.resetPasswordForEmail(loginEmail, {
-      redirectTo: `${SITE_URL}/bienvenida/`,
-    });
+    // Función inteligente: si el atleta ya tiene cuenta, manda recuperación;
+    // si todavía no la activó, le crea la cuenta y manda el link para activarla.
+    // El link cae en /bienvenida, donde crea/cambia su contraseña.
+    await supabase?.functions.invoke("athlete-recover", { body: { email: loginEmail } });
     setLoginBusy(false);
     setForgotSent(true);
   }
@@ -456,9 +455,11 @@ export default function MiPerfilPage() {
                 className="rounded-[10px] p-5 text-center text-[15px] leading-relaxed"
                 style={{ background: "rgba(34,197,94,.1)", border: "1px solid rgba(34,197,94,.4)", color: "#22c55e" }}
               >
-                ✓ Te mandamos un email a <strong>{loginEmail}</strong> para crear
-                una contraseña nueva.<br />
-                <span className="text-[13px] opacity-80">Revisá tu bandeja de entrada.</span>
+                ✓ Si <strong>{loginEmail}</strong> corresponde a una cuenta de atleta,
+                te llega un email para entrar y crear tu contraseña.<br />
+                <span className="text-[13px] opacity-80">
+                  Revisá tu bandeja (y spam). Si no llega en unos minutos, escribinos a hola@somosgranito.com.
+                </span>
               </div>
             ) : (
               <form onSubmit={handleLogin} className="flex flex-col gap-4">
