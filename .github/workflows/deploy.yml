@@ -10,10 +10,12 @@ permissions:
   pages: write
   id-token: write
 
-# Un solo deploy a la vez.
+# Un deploy a la vez, PERO sin cancelar los que están en curso: si en el medio
+# se dispara otra publicación (p. ej. un atleta conecta su MP), se encola en
+# vez de perderse. Así ninguna publicación queda silenciosamente descartada.
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   build:
@@ -22,7 +24,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: npm
       - run: npm ci
       - name: Build (export estático — dominio propio somosgranito.com)
