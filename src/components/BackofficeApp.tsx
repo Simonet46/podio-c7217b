@@ -73,6 +73,9 @@ type TeamApp = {
   notes: string | null;
   status: string;
   created_at: string;
+  goal_amount: number | null;
+  goal_purpose: string | null;
+  active: boolean | null;
 };
 
 type MpInfo = {
@@ -91,6 +94,7 @@ type Section =
   | "Resumen"
   | "Postulaciones"
   | "Atletas"
+  | "Equipos"
   | "Selecciones"
   | "Cambios"
   | "Novedades"
@@ -253,6 +257,7 @@ const NAV_MAIN: { label: Section; icon: string }[] = [
   { label: "Resumen", icon: "◧" },
   { label: "Postulaciones", icon: "◔" },
   { label: "Atletas", icon: "◉" },
+  { label: "Equipos", icon: "🛡" },
   { label: "Selecciones", icon: "🇦🇷" },
   { label: "Cambios", icon: "✎" },
   { label: "Novedades", icon: "✦" },
@@ -268,6 +273,7 @@ const PAGE_META: Record<Section, { t: string; s: string }> = {
   Resumen: { t: "Resumen general", s: "Lo que pasó esta semana" },
   Postulaciones: { t: "Postulaciones", s: "Revisá cada caso a mano, uno por uno" },
   Atletas: { t: "Atletas", s: "Atletas publicados en la plataforma" },
+  Equipos: { t: "Equipos", s: "Equipos aprobados — objetivos, fechas y estado" },
   Selecciones: { t: "Selecciones nacionales", s: "Los Gladiadores, Las Leonas y compañía — armá los planteles" },
   Cambios: { t: "Cambios de perfil", s: "Pedidos de edición enviados por atletas" },
   Novedades: { t: "Novedades", s: "Publicaciones que los atletas quieren mostrar en su perfil" },
@@ -579,6 +585,53 @@ export function BackofficeApp() {
     const { error } = await supa.from("athletes").update(patch).eq("id", athlete.id);
     if (error) { setToast("Error al guardar el perfil: " + error.message); loadApps(); return; }
     setToast(`✓ Perfil de ${athlete.full_name} actualizado. Tocá "Publicar ahora" para verlo en su perfil.`);
+  }
+
+  // ── Equipos: mismo control que atletas (aprobar, editar, activar/suspender) ──
+  async function handleApproveTeam(team: TeamApp) {
+    const supa = sb();
+    if (!supa) return;
+    const { error } = await supa
+      .from("team_applications")
+      .update({ status: "approved", active: true, reviewed_at: new Date().toISOString() })
+      .eq("id", team.id);
+    if (error) { setToast("Error al aprobar: " + error.message); return; }
+    setTeamApps((prev) => prev.map((t) => t.id === team.id ? { ...t, status: "approved", active: true } : t));
+    setToast(`✓ ${team.team_name} aprobado. Ya lo podés gestionar en "Equipos".`);
+  }
+
+  async function handleRejectTeam(team: TeamApp) {
+    const supa = sb();
+    if (!supa) return;
+    if (!confirm(`¿Rechazar la postulación de ${team.team_name}?`)) return;
+    const { error } = await supa
+      .from("team_applications")
+      .update({ status: "rejected", reviewed_at: new Date().toISOString() })
+      .eq("id", team.id);
+    if (error) { setToast("Error al rechazar: " + error.message); return; }
+    setTeamApps((prev) => prev.map((t) => t.id === team.id ? { ...t, status: "rejected" } : t));
+    setToast(`Postulación de ${team.team_name} rechazada.`);
+  }
+
+  async function handleToggleTeamActive(team: TeamApp) {
+    const supa = sb();
+    if (!supa) return;
+    const next = !team.active;
+    const msg = next ? `¿Reactivar a ${team.team_name}?` : `¿Suspender a ${team.team_name}?`;
+    if (!confirm(msg)) return;
+    const { error } = await supa.from("team_applications").update({ active: next }).eq("id", team.id);
+    if (error) { setToast("Error: " + error.message); return; }
+    setTeamApps((prev) => prev.map((t) => t.id === team.id ? { ...t, active: next } : t));
+    setToast(`${team.team_name} ${next ? "reactivado ✓" : "suspendido."}`);
+  }
+
+  async function handleSaveTeam(team: TeamApp, patch: Partial<TeamApp>) {
+    const supa = sb();
+    if (!supa) return;
+    setTeamApps((prev) => prev.map((t) => t.id === team.id ? { ...t, ...patch } : t));
+    const { error } = await supa.from("team_applications").update(patch).eq("id", team.id);
+    if (error) { setToast("Error al guardar el equipo: " + error.message); loadApps(); return; }
+    setToast(`✓ ${team.team_name} actualizado.`);
   }
 
   async function handleViewMpInfo(athlete: AthleteRow) {
@@ -893,11 +946,24 @@ export function BackofficeApp() {
               onMoreInfo={askMoreInfo}
               busy={busy}
               teamApps={teamApps}
+              onApproveTeam={handleApproveTeam}
+              onRejectTeam={handleRejectTeam}
+              onSaveTeam={handleSaveTeam}
             />
           )}
 
           {/* ===== ATLETAS ===== */}
           {active === "Atletas" && <AtletasSection athletes={athletes} loading={loadingList} onConnect={genMpLink} onToggleStatus={handleToggleStatus} onViewMpInfo={handleViewMpInfo} onSetTeam={handleSetTeam} onSendAccess={sendAccess} onSave={handleSaveAthlete} />}
+
+          {/* ===== EQUIPOS ===== */}
+          {active === "Equipos" && (
+            <EquiposSection
+              teams={teamApps}
+              loading={loadingList}
+              onToggleActive={handleToggleTeamActive}
+              onSave={handleSaveTeam}
+            />
+          )}
 
           {/* ===== SELECCIONES ===== */}
           {active === "Selecciones" && (
@@ -1220,6 +1286,9 @@ function PostulacionesSection({
   onMoreInfo,
   busy,
   teamApps,
+  onApproveTeam,
+  onRejectTeam,
+  onSaveTeam,
 }: {
   filter: StatusFilter;
   counts: Record<StatusFilter, number>;
@@ -1233,7 +1302,14 @@ function PostulacionesSection({
   onMoreInfo: (app: Application) => void;
   busy: boolean;
   teamApps: TeamApp[];
+  onApproveTeam: (team: TeamApp) => Promise<void>;
+  onRejectTeam: (team: TeamApp) => Promise<void>;
+  onSaveTeam: (team: TeamApp, patch: Partial<TeamApp>) => Promise<void>;
 }) {
+  const [editingTeam, setEditingTeam] = useState<TeamApp | null>(null);
+  // En Postulaciones solo mostramos los equipos PENDIENTES (los aprobados
+  // pasan a la sección "Equipos"). Espejo del flujo de atletas.
+  const pendingTeams = teamApps.filter((t) => t.status === "pending");
   const filters: { key: StatusFilter; label: string }[] = [
     { key: "pending", label: "Pendientes" },
     { key: "approved", label: "Aprobadas" },
@@ -1406,30 +1482,30 @@ function PostulacionesSection({
         )}
       </div>
 
-      {/* ── Equipos postulados ── */}
+      {/* ── Equipos postulados (pendientes) ── */}
       <div className="mt-9">
         <div className="mb-3 flex items-center gap-2.5">
           <h2 className="m-0 font-display text-[19px] font-600">Equipos postulados</h2>
           <span className="rounded-full px-2.5 py-0.5 font-display text-[12px] font-600" style={{ background: "rgba(255,255,255,.08)", color: "rgba(255,255,255,.65)" }}>
-            {teamApps.length}
+            {pendingTeams.length}
           </span>
         </div>
-        {teamApps.length === 0 ? (
+        {pendingTeams.length === 0 ? (
           <div className="rounded-[13px] px-6 py-10 text-center text-[13px]" style={{ border: `1px dashed ${C.border}`, color: C.txtDim }}>
-            Todavía no hay equipos postulados.
+            No hay equipos pendientes de revisión.
           </div>
         ) : (
           <section style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, overflow: "hidden" }}>
-            <div style={{ display: "grid", gridTemplateColumns: "1.6fr 1fr 1.4fr 1.4fr 1fr", gap: 12, padding: "13px 22px", borderBottom: `1px solid rgba(255,255,255,.06)` }}>
-              {["Equipo", "Deporte", "Competencia", "Recaudación", "Contacto"].map((h) => (
-                <span key={h} className="text-[11px] font-600 uppercase tracking-[.06em]" style={{ color: C.txtFaint }}>{h}</span>
+            <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr 1.3fr 1.2fr 1.4fr", gap: 12, padding: "13px 22px", borderBottom: `1px solid rgba(255,255,255,.06)` }}>
+              {["Equipo", "Deporte", "Competencia", "Campaña", "Acciones"].map((h, i) => (
+                <span key={h} className="text-[11px] font-600 uppercase tracking-[.06em]" style={{ color: C.txtFaint, textAlign: i === 4 ? "right" : "left" }}>{h}</span>
               ))}
             </div>
-            {teamApps.map((t) => (
-              <div key={t.id} style={{ display: "grid", gridTemplateColumns: "1.6fr 1fr 1.4fr 1.4fr 1fr", gap: 12, alignItems: "center", padding: "14px 22px", borderBottom: `1px solid ${C.borderSoft}` }}>
+            {pendingTeams.map((t) => (
+              <div key={t.id} style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr 1.3fr 1.2fr 1.4fr", gap: 12, alignItems: "center", padding: "14px 22px", borderBottom: `1px solid ${C.borderSoft}` }}>
                 <div className="min-w-0">
                   <div className="truncate text-[14px] font-600">{t.team_name}</div>
-                  <div className="text-[11px]" style={{ color: C.txtFaint }}>{timeAgo(t.created_at)}</div>
+                  <div className="text-[11px]" style={{ color: C.txtFaint }}>{timeAgo(t.created_at)} · {t.email}</div>
                 </div>
                 <div><SportPill label={t.sport} /></div>
                 <div className="truncate text-[13px]" style={{ color: "rgba(255,255,255,.7)" }}>{t.competition ?? "—"}</div>
@@ -1438,15 +1514,277 @@ function PostulacionesSection({
                     ? `${t.fundraising_start ?? "?"} → ${t.fundraising_end ?? "?"}`
                     : "—"}
                 </div>
-                <a href={`mailto:${t.email}`} className="truncate text-[13px]" style={{ color: C.celeste }}>{t.email}</a>
+                <div className="flex items-center justify-end gap-1.5">
+                  <button
+                    onClick={() => setEditingTeam(t)}
+                    title="Revisar y editar antes de aprobar"
+                    className="rounded-full px-3 py-[5px] font-display text-[11px] font-600 uppercase tracking-[.04em]"
+                    style={{ background: "rgba(108,180,228,.12)", border: `1px solid rgba(108,180,228,.4)`, color: C.celeste, cursor: "pointer" }}
+                  >
+                    Ver / editar
+                  </button>
+                  <button
+                    onClick={() => onRejectTeam(t)}
+                    className="rounded-full px-3 py-[5px] font-display text-[11px] font-600 uppercase tracking-[.04em]"
+                    style={{ background: "rgba(223,0,36,.14)", border: "none", color: C.redBright, cursor: "pointer" }}
+                  >
+                    Rechazar
+                  </button>
+                  <button
+                    onClick={() => onApproveTeam(t)}
+                    className="rounded-full px-3 py-[5px] font-display text-[11px] font-600 uppercase tracking-[.04em] text-white"
+                    style={{ background: C.green, border: "none", cursor: "pointer" }}
+                  >
+                    Aprobar
+                  </button>
+                </div>
               </div>
             ))}
           </section>
         )}
       </div>
 
+      {editingTeam && (
+        <TeamEditModal
+          team={editingTeam}
+          onClose={() => setEditingTeam(null)}
+          onSave={onSaveTeam}
+          onApprove={onApproveTeam}
+        />
+      )}
+
       <ResponsiveCSS />
     </>
+  );
+}
+
+// ── Equipos (aprobados): mismo control que atletas ───────────────────────
+function EquiposSection({
+  teams,
+  loading,
+  onToggleActive,
+  onSave,
+}: {
+  teams: TeamApp[];
+  loading: boolean;
+  onToggleActive: (t: TeamApp) => void;
+  onSave: (t: TeamApp, patch: Partial<TeamApp>) => Promise<void>;
+}) {
+  const [editing, setEditing] = useState<TeamApp | null>(null);
+  const approved = teams.filter((t) => t.status === "approved");
+  const cols = "1.6fr 1fr 1.3fr 1fr 1.1fr .8fr .6fr";
+  return (
+    <section style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, overflow: "hidden" }}>
+      <div style={{ display: "grid", gridTemplateColumns: cols, gap: 12, padding: "13px 24px", borderBottom: `1px solid rgba(255,255,255,.06)` }}>
+        {["Equipo", "Deporte", "Competencia", "Objetivo", "Campaña", "Estado", "Editar"].map((h, i) => (
+          <span key={h} className="text-[11px] font-600 uppercase tracking-[.06em]" style={{ color: C.txtFaint, textAlign: i >= 3 ? "right" : "left" }}>{h}</span>
+        ))}
+      </div>
+      {loading && <div className="px-6 py-10 text-center text-[13px]" style={{ color: C.txtDim }}>Cargando…</div>}
+      {!loading && approved.length === 0 && (
+        <div className="px-6 py-12 text-center text-[13px]" style={{ color: C.txtDim }}>
+          Todavía no hay equipos aprobados. Aprobá una postulación desde “Postulaciones”.
+        </div>
+      )}
+      {approved.map((t) => (
+        <div key={t.id} style={{ display: "grid", gridTemplateColumns: cols, gap: 12, alignItems: "center", padding: "14px 24px", borderBottom: `1px solid ${C.borderSoft}` }}>
+          <div className="min-w-0">
+            <div className="truncate text-[14px] font-600">{t.team_name}</div>
+            <div className="truncate text-[11px]" style={{ color: C.txtFaint }}>{t.contact_name ?? t.email}</div>
+          </div>
+          <div><SportPill label={t.sport} /></div>
+          <div className="truncate text-[13px]" style={{ color: "rgba(255,255,255,.7)" }}>{t.competition ?? "—"}</div>
+          <div className="text-right font-display text-[14px] font-600" style={{ color: C.gold }}>
+            {t.goal_amount ? formatMoney(t.goal_amount) : "—"}
+          </div>
+          <div className="text-right text-[12px]" style={{ color: C.txtDim }}>
+            {t.fundraising_start || t.fundraising_end ? `${t.fundraising_start ?? "?"} → ${t.fundraising_end ?? "?"}` : "—"}
+          </div>
+          <div className="flex justify-end">
+            <button
+              onClick={() => onToggleActive(t)}
+              title={t.active ? "Suspender equipo" : "Reactivar equipo"}
+              className="rounded-full px-2.5 py-[3px] font-display text-[10px] font-600 uppercase tracking-[.04em] transition-opacity hover:opacity-70"
+              style={t.active
+                ? { background: "rgba(34,197,94,.14)", color: C.greenBright, border: "none", cursor: "pointer" }
+                : { background: "rgba(223,0,36,.12)", color: C.redBright, border: "none", cursor: "pointer" }}
+            >
+              {t.active ? "Activo" : "Suspendido"}
+            </button>
+          </div>
+          <div className="flex justify-end">
+            <button
+              onClick={() => setEditing(t)}
+              title="Editar el equipo (objetivo, fechas, competencia, contacto)"
+              className="flex h-[26px] w-[26px] items-center justify-center rounded-full text-[12px] transition-opacity hover:opacity-70"
+              style={{ background: "rgba(108,180,228,.14)", color: C.celeste, border: "none", cursor: "pointer" }}
+            >
+              ✎
+            </button>
+          </div>
+        </div>
+      ))}
+      {editing && (
+        <TeamEditModal team={editing} onClose={() => setEditing(null)} onSave={onSave} />
+      )}
+    </section>
+  );
+}
+
+// ── Modal de edición de un equipo (postulación pendiente o aprobado) ──────
+function TeamEditModal({
+  team,
+  onClose,
+  onSave,
+  onApprove,
+}: {
+  team: TeamApp;
+  onClose: () => void;
+  onSave: (t: TeamApp, patch: Partial<TeamApp>) => Promise<void>;
+  onApprove?: (t: TeamApp) => Promise<void>;
+}) {
+  const [form, setForm] = useState({
+    team_name: team.team_name ?? "",
+    sport: team.sport ?? "",
+    competition: team.competition ?? "",
+    contact_name: team.contact_name ?? "",
+    email: team.email ?? "",
+    goal_amount: team.goal_amount != null ? String(team.goal_amount) : "",
+    goal_purpose: team.goal_purpose ?? "",
+    fundraising_start: team.fundraising_start ?? "",
+    fundraising_end: team.fundraising_end ?? "",
+    notes: team.notes ?? "",
+  });
+  const [busy, setBusy] = useState(false);
+  const isPending = team.status === "pending";
+
+  function set<K extends keyof typeof form>(k: K, v: string) {
+    setForm((f) => ({ ...f, [k]: v }));
+  }
+
+  function buildPatch(): Partial<TeamApp> {
+    const patch: Partial<TeamApp> = {};
+    const map: Record<string, string | number | null> = {
+      team_name: form.team_name,
+      sport: form.sport,
+      competition: form.competition || null,
+      contact_name: form.contact_name || null,
+      email: form.email,
+      goal_amount: Number(form.goal_amount) || 0,
+      goal_purpose: form.goal_purpose || null,
+      fundraising_start: form.fundraising_start || null,
+      fundraising_end: form.fundraising_end || null,
+      notes: form.notes || null,
+    };
+    for (const k of Object.keys(map)) {
+      const cur = (team[k as keyof TeamApp] ?? (k === "goal_amount" ? 0 : null)) as string | number | null;
+      if (map[k] !== cur) (patch as Record<string, unknown>)[k] = map[k];
+    }
+    return patch;
+  }
+
+  async function save(thenApprove: boolean) {
+    setBusy(true);
+    const patch = buildPatch();
+    if (Object.keys(patch).length > 0) await onSave(team, patch);
+    if (thenApprove && onApprove) await onApprove({ ...team, ...patch });
+    setBusy(false);
+    onClose();
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center sm:items-center"
+      style={{ background: "rgba(0,0,0,.72)" }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div
+        className="max-h-[92vh] w-full max-w-[560px] overflow-y-auto rounded-t-[20px] p-6 sm:rounded-[20px]"
+        style={{ background: C.surface, border: `1px solid ${C.border}` }}
+      >
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="font-display text-[19px] font-700 uppercase leading-none tracking-tight text-white">
+            {isPending ? "Revisar equipo" : "Editar equipo"} · {team.team_name}
+          </h2>
+          <button onClick={onClose} className="text-[22px] leading-none text-white/40 hover:text-white/80">✕</button>
+        </div>
+        <p className="mb-5 text-[13px] leading-relaxed" style={{ color: C.txtDim }}>
+          {isPending
+            ? "Revisá y corregí los datos antes de aprobar. Podés cargar el objetivo de recaudación y las fechas de campaña."
+            : "Editás y guardás directamente. El equipo lleva su objetivo de recaudación, para qué lo necesita y las fechas de campaña."}
+        </p>
+
+        <div className="flex flex-col gap-4">
+          <EditRow label="Nombre del equipo">
+            <input value={form.team_name} onChange={(e) => set("team_name", e.target.value)} style={inputDark} />
+          </EditRow>
+          <div className="grid grid-cols-2 gap-3">
+            <EditRow label="Deporte">
+              <input value={form.sport} onChange={(e) => set("sport", e.target.value)} style={inputDark} />
+            </EditRow>
+            <EditRow label="Competencia">
+              <input value={form.competition} onChange={(e) => set("competition", e.target.value)} style={inputDark} />
+            </EditRow>
+          </div>
+
+          <EditRow label="Objetivo de recaudación (ARS)">
+            <input type="number" min="0" value={form.goal_amount} onChange={(e) => set("goal_amount", e.target.value)} placeholder="Ej: 500000" style={inputDark} />
+          </EditRow>
+          <EditRow label="¿Para qué lo necesitan?">
+            <textarea rows={3} value={form.goal_purpose} onChange={(e) => set("goal_purpose", e.target.value)} placeholder="Ej: pasajes y alojamiento para el Mundial, indumentaria, entrenador…" style={{ ...inputDark, resize: "vertical" }} />
+          </EditRow>
+
+          <div className="grid grid-cols-2 gap-3">
+            <EditRow label="Inicio de campaña">
+              <input type="date" value={form.fundraising_start} onChange={(e) => set("fundraising_start", e.target.value)} style={inputDark} />
+            </EditRow>
+            <EditRow label="Fin de campaña">
+              <input type="date" value={form.fundraising_end} onChange={(e) => set("fundraising_end", e.target.value)} style={inputDark} />
+            </EditRow>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <EditRow label="Contacto">
+              <input value={form.contact_name} onChange={(e) => set("contact_name", e.target.value)} style={inputDark} />
+            </EditRow>
+            <EditRow label="Email">
+              <input value={form.email} onChange={(e) => set("email", e.target.value)} style={inputDark} />
+            </EditRow>
+          </div>
+          <EditRow label="Notas internas">
+            <textarea rows={2} value={form.notes} onChange={(e) => set("notes", e.target.value)} style={{ ...inputDark, resize: "vertical" }} />
+          </EditRow>
+
+          <div className="flex gap-3 pt-1">
+            <button
+              onClick={onClose}
+              className="flex-1 rounded-[10px] py-3 font-display text-[13px] font-600 uppercase tracking-wide"
+              style={{ border: "1px solid rgba(255,255,255,.15)", color: C.txtDim }}
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={() => save(false)}
+              disabled={busy}
+              className="flex-1 rounded-[10px] py-3 font-display text-[13px] font-600 uppercase tracking-wide text-ink disabled:opacity-50"
+              style={{ background: C.gold }}
+            >
+              {busy ? "Guardando…" : "Guardar"}
+            </button>
+            {isPending && onApprove && (
+              <button
+                onClick={() => save(true)}
+                disabled={busy}
+                className="flex-1 rounded-[10px] py-3 font-display text-[13px] font-600 uppercase tracking-wide text-white disabled:opacity-50"
+                style={{ background: C.green }}
+              >
+                {busy ? "…" : "Guardar y aprobar"}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
