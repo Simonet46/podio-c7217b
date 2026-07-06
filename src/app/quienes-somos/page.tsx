@@ -26,7 +26,7 @@ const FOUNDERS = [
     name: "Pablo Simonet",
     tag: "Handball · Los Gladiadores",
     color: "#009F3D",
-    photo: "/founders/pablo-simonet.webp",
+    photo: "/founders/pablo-simonet-founder.jpeg",
     bio: [
       "El menor de los hermanos Simonet, también Gladiador. Se formó jugando junto a sus hermanos en la Selección y desarrolló su carrera profesional en España.",
       "Defendió a la Argentina en los Juegos Olímpicos de París 2024. Conoce de primera mano lo que cuesta sostener una carrera de alto rendimiento lejos de casa.",
@@ -36,7 +36,7 @@ const FOUNDERS = [
     name: "Pilar Campoy",
     tag: '"Pilu" · Hockey · Las Leonas',
     color: "#DF0024",
-    photo: "/founders/pilar-campoy.webp",
+    photo: "/founders/pilu-founder.jpeg",
     bio: [
       "Jugadora de la Selección Argentina de hockey, Las Leonas. Disputó los Juegos Olímpicos de Río 2016 y, ocho años después, volvió a vestir la celeste y blanca en París 2024.",
       "Medallista de oro en los Juegos Panamericanos 2023, vivió todo el ciclo olímpico desde adentro: la preparación, los viajes y el esfuerzo que casi nunca se ve.",
@@ -85,10 +85,11 @@ export default function QuienesSomosPage() {
               className="mx-auto text-white/72"
               style={{ fontSize: "19px", lineHeight: "1.65", maxWidth: "680px" }}
             >
-              Somos tres atletas que dedicamos la vida entera a un sueño: ponernos la
-              celeste y blanca y representar a la Argentina. Lo logramos. Y en el camino
-              conocimos, de primera mano, lo poco que se apoya a quienes dejan todo por
-              el país. {SITE.brand} es nuestra forma de devolver algo de eso.
+              Somos tres atletas que dedicamos la vida a un mismo sueño: vestir la
+              celeste y blanca y representar a la Argentina. Lo cumplimos. Y en ese
+              camino entendimos que detrás de cada logro hay un enorme esfuerzo que
+              muchas veces necesita más apoyo. {SITE.brand} nació para que cualquier
+              persona pueda ser parte de ese camino.
             </p>
           </Reveal>
         </section>

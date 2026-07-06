@@ -1,3 +1,5 @@
+import Image from "next/image";
+import Link from "next/link";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { AthleteGrid } from "@/components/AthleteGrid";
@@ -6,6 +8,7 @@ import { HomeHero, type HeroAthlete } from "@/components/HomeHero";
 import { getAthletes, getTeams, getAllAthletes, getGlobalStats } from "@/lib/data/athletes";
 import { getSport } from "@/config/sports";
 import { formatMoney } from "@/lib/money";
+import { asset, SITE } from "@/config/site";
 import { Reveal } from "@/components/Reveal";
 
 export default async function HomePage() {
@@ -133,6 +136,79 @@ export default async function HomePage() {
                   <Founder name="Pablo Simonet" sport="Handball" />
                   <Founder name="Pilar Campoy" sport="Hockey" />
                 </div>
+              </div>
+            </Reveal>
+          </div>
+        </section>
+
+        {/* ───────── Empresas impulsoras ───────── */}
+        <section id="empresas-impulsoras" style={{ background: "#f5f8fb" }}>
+          <div className="mx-auto max-w-[1180px] px-4 py-20 sm:px-6">
+            <Reveal>
+              <div className="mb-12 text-center">
+                <p className="eyebrow text-gold">Empresas impulsoras</p>
+                <h2 className="mt-2 font-display text-4xl font-700 uppercase tracking-tight text-ink sm:text-5xl">
+                  Marcas que juegan de local
+                </h2>
+                <p className="mx-auto mt-4 max-w-2xl text-[17px] leading-relaxed text-ink/60">
+                  Empresas que ponen el hombro para que los atletas argentinos
+                  lleguen más lejos. Con el apoyo de las marcas, cada granito pesa
+                  más.
+                </p>
+              </div>
+            </Reveal>
+
+            <div className="grid gap-6 md:grid-cols-3">
+              {/* Impulsora fundadora: DS Connect */}
+              <Reveal>
+                <div className="flex h-full flex-col rounded-2xl border border-gold/40 bg-white p-8 shadow-[0_10px_40px_rgba(10,26,47,.08)]">
+                  <span className="self-start rounded-full bg-gold/15 px-3 py-1 font-display text-[11px] font-700 uppercase tracking-wide text-[#8a6e15]">
+                    Impulsora fundadora
+                  </span>
+                  <div className="my-9 flex flex-1 items-center justify-center">
+                    <Image
+                      src={asset("/logos/ds-connect.png")}
+                      alt="DS Connect"
+                      width={300}
+                      height={130}
+                      className="h-auto w-[230px] object-contain"
+                    />
+                  </div>
+                  <p className="text-[15px] leading-relaxed text-ink/70">
+                    La primera empresa que impulsa al deporte argentino con{" "}
+                    {SITE.brand}.
+                  </p>
+                </div>
+              </Reveal>
+
+              {/* Casilleros libres: "Tu marca acá" */}
+              {[0, 1].map((i) => (
+                <Reveal key={i} delay={(i + 1) * 100}>
+                  <div className="flex h-full min-h-[280px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-ink/15 p-8 text-center">
+                    <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full border-2 border-dashed border-ink/20 font-display text-2xl text-ink/30">
+                      +
+                    </div>
+                    <p className="font-display text-lg font-700 uppercase tracking-wide text-ink/50">
+                      Tu marca acá
+                    </p>
+                    <p className="mt-1.5 text-[13px] text-ink/40">Lugar disponible</p>
+                  </div>
+                </Reveal>
+              ))}
+            </div>
+
+            {/* Cierre + CTA */}
+            <Reveal>
+              <div className="mt-12 flex flex-col items-center gap-5 text-center sm:flex-row sm:justify-between sm:text-left">
+                <p className="font-display text-xl font-600 uppercase leading-tight text-ink sm:text-2xl">
+                  El próximo lugar puede ser el de tu marca.
+                </p>
+                <Link
+                  href="/empresas"
+                  className="shrink-0 rounded-md bg-gold px-7 py-3.5 font-display text-base font-700 uppercase tracking-wide text-ink transition-transform hover:-translate-y-0.5"
+                >
+                  Quiero impulsar el deporte
+                </Link>
               </div>
             </Reveal>
           </div>

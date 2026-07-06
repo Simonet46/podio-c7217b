@@ -145,9 +145,13 @@ export function HomeHero({ featured }: { featured: HeroAthlete[] }) {
               </div>
             </Link>
 
-            {/* Badge: caso revisado (real — es el proceso de GRANITO) */}
-            <div className="podio-float absolute -right-3 bottom-10 flex items-center gap-2 rounded-full border border-white/[.12] bg-ink-2/95 px-3.5 py-2 shadow-[0_14px_36px_rgba(0,0,0,.45)] sm:-right-16">
-              <span className="h-2 w-2 rounded-full bg-gold" aria-hidden />
+            {/* Badge: caso revisado (real — es el proceso de GRANITO).
+                Anclado arriba a la derecha de la card, con puntito "live". */}
+            <div className="absolute -right-3 -top-3 z-20 flex items-center gap-2 rounded-full border border-white/[.12] bg-ink-2/95 px-3.5 py-2 shadow-[0_14px_36px_rgba(0,0,0,.45)] sm:-right-6">
+              <span className="relative flex h-2 w-2" aria-hidden>
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-gold opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-gold" />
+              </span>
               <span className="text-[13px] font-500 text-white">
                 Historia real, revisada a mano
               </span>

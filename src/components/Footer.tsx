@@ -52,6 +52,9 @@ export function Footer() {
             <Link href="/terminos" className="hover:text-white">
               Términos y Condiciones
             </Link>
+            <Link href="/faq" className="hover:text-white">
+              FAQ
+            </Link>
           </nav>
         </div>
 

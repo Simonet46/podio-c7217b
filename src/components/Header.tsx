@@ -2,6 +2,7 @@ import Link from "next/link";
 import { SITE } from "@/config/site";
 import { Ribbon } from "./Ribbon";
 import { Wordmark } from "./Wordmark";
+import { AuthMenu } from "./AuthMenu";
 
 export function Header() {
   return (
@@ -25,22 +26,10 @@ export function Header() {
               Atletas
             </Link>
             <Link
-              href="/apoyar-a-todos"
-              className="font-display text-sm uppercase tracking-wide text-white/75 transition-colors hover:text-white"
-            >
-              Apoyá a todos
-            </Link>
-            <Link
               href="/quienes-somos"
               className="font-display text-sm uppercase tracking-wide text-white/75 transition-colors hover:text-white"
             >
               Quiénes somos
-            </Link>
-            <Link
-              href="/transparencia"
-              className="font-display text-sm uppercase tracking-wide text-white/75 transition-colors hover:text-white"
-            >
-              Transparencia
             </Link>
             <Link
               href="/para-atletas"
@@ -62,13 +51,16 @@ export function Header() {
             </Link>
           </nav>
 
-          {/* CTA */}
-          <Link
-            href="/#atletas"
-            className="rounded-md bg-gold px-4 py-2 font-display text-sm font-600 uppercase tracking-wide text-ink transition-transform hover:scale-[1.03]"
-          >
-            Apoyar a un atleta
-          </Link>
+          {/* CTA + Login */}
+          <div className="flex items-center gap-3">
+            <Link
+              href="/#atletas"
+              className="rounded-md bg-gold px-4 py-2 font-display text-sm font-600 uppercase tracking-wide text-ink transition-transform hover:scale-[1.03]"
+            >
+              Apoyar a un atleta
+            </Link>
+            <AuthMenu />
+          </div>
         </div>
       </div>
       {/* Franja de 5 colores debajo del header */}
