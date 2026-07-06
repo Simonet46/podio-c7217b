@@ -37,8 +37,8 @@ export function Footer() {
             <Link href="/transparencia" className="hover:text-white">
               Transparencia
             </Link>
-            <Link href="/para-atletas" className="text-gold hover:text-gold-soft">
-              ¿Sos atleta? Postulate
+            <Link href="/postulate" className="text-gold hover:text-gold-soft">
+              ¿Sos atleta o equipo? Postulate
             </Link>
             <Link href="/mi-perfil" className="text-gold hover:text-gold-soft">
               Ya soy atleta GRANITO

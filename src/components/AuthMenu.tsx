@@ -129,7 +129,7 @@ export function AuthMenu() {
                 />
                 <p className="mt-3 text-center text-[13px] text-white/45">
                   ¿Todavía no tenés cuenta?{" "}
-                  <Link href="/para-atletas" onClick={close} className="text-gold underline underline-offset-2 hover:text-gold-soft">
+                  <Link href="/postulate" onClick={close} className="text-gold underline underline-offset-2 hover:text-gold-soft">
                     Postulate
                   </Link>
                 </p>
@@ -200,7 +200,7 @@ export function AuthMenu() {
                 </div>
                 <p className="mt-1 text-center text-[13px] text-white/45">
                   ¿Todavía no tenés cuenta?{" "}
-                  <Link href="/para-atletas" onClick={close} className="text-gold underline underline-offset-2 hover:text-gold-soft">
+                  <Link href="/postulate" onClick={close} className="text-gold underline underline-offset-2 hover:text-gold-soft">
                     Postulate
                   </Link>
                 </p>

@@ -6,6 +6,8 @@ import { AthleteGrid } from "@/components/AthleteGrid";
 import { CoverBand } from "@/components/CoverBand";
 import { HomeHero, type HeroAthlete } from "@/components/HomeHero";
 import { getAthletes, getTeams, getAllAthletes, getGlobalStats } from "@/lib/data/athletes";
+import { getTeamCampaigns } from "@/lib/data/campaigns";
+import { TeamCampaignCard } from "@/components/TeamCampaignCard";
 import { getSport } from "@/config/sports";
 import { formatMoney } from "@/lib/money";
 import { asset, SITE } from "@/config/site";
@@ -18,6 +20,7 @@ export default async function HomePage() {
   // En el home solo mostramos selecciones que ya tienen jugadores en GRANITO
   // (las vacías existen y son accesibles, pero no ensucian la portada).
   const teams = allTeams.filter((t) => allAth.some((a) => a.team === t.slug));
+  const campaigns = await getTeamCampaigns();
   const { athleteCount, sportCount, totalRaised } = await getGlobalStats();
 
   // Atletas destacados del hero: los 3 con más recaudado (con foto si tienen).
@@ -74,6 +77,38 @@ export default async function HomePage() {
             <AthleteGrid athletes={athletes} teams={teams} />
           </div>
         </section>
+
+        {/* ───────── Equipos en campaña (crowdfunding de misiones) ───────── */}
+        {campaigns.length > 0 && (
+          <section id="equipos" className="bg-ink text-white">
+            <div className="mx-auto max-w-container px-4 py-16 sm:px-6">
+              <Reveal>
+                <div className="mb-3 text-center">
+                  <p className="eyebrow text-celeste">Una misión concreta</p>
+                  <h2 className="mt-2 font-display text-3xl font-700 uppercase tracking-tight text-white sm:text-4xl">
+                    Equipos en campaña
+                  </h2>
+                  <p className="mx-auto mt-3 max-w-2xl text-white/60">
+                    Equipos que necesitan llegar a un torneo, viajar o equiparse.
+                    Comprometé tu aporte hoy:{" "}
+                    <strong className="text-white/80">
+                      no se te cobra nada ahora
+                    </strong>
+                    . El aporte se hace efectivo recién cuando la campaña termina
+                    y GRANITO la valida.
+                  </p>
+                </div>
+              </Reveal>
+              <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {campaigns.map((c, i) => (
+                  <Reveal key={c.id} delay={i * 90}>
+                    <TeamCampaignCard campaign={c} />
+                  </Reveal>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* ───────── Cómo funciona ───────── */}
         <section id="como-funciona" className="bg-ink text-white">

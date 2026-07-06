@@ -26,22 +26,22 @@ export function Header() {
               Atletas
             </Link>
             <Link
+              href="/#equipos"
+              className="font-display text-sm uppercase tracking-wide text-white/75 transition-colors hover:text-white"
+            >
+              Equipos
+            </Link>
+            <Link
               href="/quienes-somos"
               className="font-display text-sm uppercase tracking-wide text-white/75 transition-colors hover:text-white"
             >
               Quiénes somos
             </Link>
             <Link
-              href="/para-atletas"
+              href="/postulate"
               className="font-display text-sm uppercase tracking-wide text-gold transition-colors hover:text-gold-soft"
             >
-              ¿Sos atleta?
-            </Link>
-            <Link
-              href="/para-equipos"
-              className="font-display text-sm uppercase tracking-wide text-gold transition-colors hover:text-gold-soft"
-            >
-              Equipos
+              ¿Sos atleta o equipo?
             </Link>
             <Link
               href="/empresas"

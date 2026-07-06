@@ -76,6 +76,20 @@ type TeamApp = {
   goal_amount: number | null;
   goal_purpose: string | null;
   active: boolean | null;
+  slug: string | null;
+  payment_mp: string | null;
+};
+
+/** Compromiso de aporte a un equipo: NO hay dinero cobrado, es una promesa.
+ *  Se hace efectiva cuando el admin valida la campaña al finalizar. */
+type TeamPledge = {
+  id: string;
+  team_id: string;
+  donor_name: string | null;
+  donor_email: string;
+  amount: number;
+  status: string;
+  created_at: string;
 };
 
 type MpInfo = {
@@ -295,6 +309,7 @@ export function BackofficeApp() {
   const [filter, setFilter] = useState<StatusFilter>("pending");
   const [allApps, setAllApps] = useState<Application[]>([]);
   const [teamApps, setTeamApps] = useState<TeamApp[]>([]);
+  const [teamPledges, setTeamPledges] = useState<TeamPledge[]>([]);
   const [athletes, setAthletes] = useState<AthleteRow[]>([]);
   const [selectedAppId, setSelectedAppId] = useState<string | null>(null);
   const [loadingList, setLoadingList] = useState(false);
@@ -341,10 +356,11 @@ export function BackofficeApp() {
     const supa = sb();
     if (!supa) return;
     setLoadingList(true);
-    const [appsRes, athRes, teamRes, changesRes, updatesRes, donationsRes] = await Promise.all([
+    const [appsRes, athRes, teamRes, pledgesRes, changesRes, updatesRes, donationsRes] = await Promise.all([
       supa.from("athlete_applications").select("*").order("created_at", { ascending: false }),
       supa.from("athletes").select("id,slug,full_name,first_name,sport,city,province,raised_amount,verified,mp_connected,dni,team,bio,next_competition,socials,supporter_message,photo_url").order("raised_amount", { ascending: false }),
       supa.from("team_applications").select("*").order("created_at", { ascending: false }),
+      supa.from("team_pledges").select("id,team_id,donor_name,donor_email,amount,status,created_at").order("created_at", { ascending: false }),
       supa
         .from("profile_change_requests")
         .select("id,athlete_id,changes,previous_values,status,admin_note,created_at,athletes(full_name)")
@@ -361,6 +377,9 @@ export function BackofficeApp() {
     if (!appsRes.error && appsRes.data) setAllApps(appsRes.data as Application[]);
     if (!athRes.error && athRes.data) setAthletes(athRes.data as AthleteRow[]);
     if (!teamRes.error && teamRes.data) setTeamApps(teamRes.data as TeamApp[]);
+    if (!pledgesRes.error && pledgesRes.data) {
+      setTeamPledges((pledgesRes.data as TeamPledge[]).map((p) => ({ ...p, amount: Number(p.amount) || 0 })));
+    }
     if (!changesRes.error && changesRes.data) {
       setProfileChanges(
         (changesRes.data as unknown as Array<{ id: string; athlete_id: string; changes: Record<string, string>; previous_values: Record<string, string>; status: string; admin_note: string | null; created_at: string; athletes: { full_name: string } | null }>).map((r) => ({
@@ -591,13 +610,35 @@ export function BackofficeApp() {
   async function handleApproveTeam(team: TeamApp) {
     const supa = sb();
     if (!supa) return;
+    // El slug hace pública la campaña en /equipos/[slug] (tras "Publicar ahora").
+    const slug = team.slug || slugify(team.team_name);
     const { error } = await supa
       .from("team_applications")
-      .update({ status: "approved", active: true, reviewed_at: new Date().toISOString() })
+      .update({ status: "approved", active: true, slug, reviewed_at: new Date().toISOString() })
       .eq("id", team.id);
     if (error) { setToast("Error al aprobar: " + error.message); return; }
-    setTeamApps((prev) => prev.map((t) => t.id === team.id ? { ...t, status: "approved", active: true } : t));
-    setToast(`✓ ${team.team_name} aprobado. Ya lo podés gestionar en "Equipos".`);
+    setTeamApps((prev) => prev.map((t) => t.id === team.id ? { ...t, status: "approved", active: true, slug } : t));
+    setToast(`✓ ${team.team_name} aprobado. Cargale el objetivo en "Equipos" y tocá "Publicar ahora" para que su campaña salga en el sitio.`);
+  }
+
+  /** Valida los compromisos de una campaña terminada: los pasa a 'validated'.
+   *  Recién acá se gestiona el cobro real (link de pago a cada donante) —
+   *  hasta este momento nadie pagó nada. */
+  async function handleValidatePledges(team: TeamApp, pledges: TeamPledge[]) {
+    const supa = sb();
+    if (!supa) return;
+    const pending = pledges.filter((p) => p.status === "pledged");
+    if (pending.length === 0) { setToast("No hay compromisos pendientes de validar."); return; }
+    const total = pending.reduce((s, p) => s + p.amount, 0);
+    if (!confirm(`¿Validar ${pending.length} compromiso(s) por ${formatMoney(total)} de la campaña de ${team.team_name}? Después hay que enviar los links de pago a los donantes.`)) return;
+    const { error } = await supa
+      .from("team_pledges")
+      .update({ status: "validated", validated_at: new Date().toISOString() })
+      .eq("team_id", team.id)
+      .eq("status", "pledged");
+    if (error) { setToast("Error al validar: " + error.message); return; }
+    setTeamPledges((prev) => prev.map((p) => p.team_id === team.id && p.status === "pledged" ? { ...p, status: "validated" } : p));
+    setToast(`✓ ${pending.length} compromisos validados (${formatMoney(total)}). Ahora enviá los links de pago a los donantes.`);
   }
 
   async function handleRejectTeam(team: TeamApp) {
@@ -959,9 +1000,11 @@ export function BackofficeApp() {
           {active === "Equipos" && (
             <EquiposSection
               teams={teamApps}
+              pledges={teamPledges}
               loading={loadingList}
               onToggleActive={handleToggleTeamActive}
               onSave={handleSaveTeam}
+              onValidatePledges={handleValidatePledges}
             />
           )}
 
@@ -1561,22 +1604,33 @@ function PostulacionesSection({
 // ── Equipos (aprobados): mismo control que atletas ───────────────────────
 function EquiposSection({
   teams,
+  pledges,
   loading,
   onToggleActive,
   onSave,
+  onValidatePledges,
 }: {
   teams: TeamApp[];
+  pledges: TeamPledge[];
   loading: boolean;
   onToggleActive: (t: TeamApp) => void;
   onSave: (t: TeamApp, patch: Partial<TeamApp>) => Promise<void>;
+  onValidatePledges: (t: TeamApp, pledges: TeamPledge[]) => Promise<void>;
 }) {
   const [editing, setEditing] = useState<TeamApp | null>(null);
+  const [viewingPledges, setViewingPledges] = useState<TeamApp | null>(null);
   const approved = teams.filter((t) => t.status === "approved");
-  const cols = "1.6fr 1fr 1.3fr 1fr 1.1fr .8fr .6fr";
+  const cols = "1.5fr .9fr 1.2fr .9fr 1fr 1.1fr .75fr .55fr";
+
+  function pledgedOf(teamId: string): { total: number; count: number } {
+    const list = pledges.filter((p) => p.team_id === teamId && p.status !== "cancelled");
+    return { total: list.reduce((s, p) => s + p.amount, 0), count: list.length };
+  }
+
   return (
     <section style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, overflow: "hidden" }}>
       <div style={{ display: "grid", gridTemplateColumns: cols, gap: 12, padding: "13px 24px", borderBottom: `1px solid rgba(255,255,255,.06)` }}>
-        {["Equipo", "Deporte", "Competencia", "Objetivo", "Campaña", "Estado", "Editar"].map((h, i) => (
+        {["Equipo", "Deporte", "Competencia", "Objetivo", "Prometido", "Campaña", "Estado", "Editar"].map((h, i) => (
           <span key={h} className="text-[11px] font-600 uppercase tracking-[.06em]" style={{ color: C.txtFaint, textAlign: i >= 3 ? "right" : "left" }}>{h}</span>
         ))}
       </div>
@@ -1586,48 +1640,192 @@ function EquiposSection({
           Todavía no hay equipos aprobados. Aprobá una postulación desde “Postulaciones”.
         </div>
       )}
-      {approved.map((t) => (
-        <div key={t.id} style={{ display: "grid", gridTemplateColumns: cols, gap: 12, alignItems: "center", padding: "14px 24px", borderBottom: `1px solid ${C.borderSoft}` }}>
-          <div className="min-w-0">
-            <div className="truncate text-[14px] font-600">{t.team_name}</div>
-            <div className="truncate text-[11px]" style={{ color: C.txtFaint }}>{t.contact_name ?? t.email}</div>
+      {approved.map((t) => {
+        const pl = pledgedOf(t.id);
+        const goal = t.goal_amount ?? 0;
+        const pct = goal > 0 ? Math.round((pl.total / goal) * 100) : null;
+        return (
+          <div key={t.id} style={{ display: "grid", gridTemplateColumns: cols, gap: 12, alignItems: "center", padding: "14px 24px", borderBottom: `1px solid ${C.borderSoft}` }}>
+            <div className="min-w-0">
+              <div className="truncate text-[14px] font-600">{t.team_name}</div>
+              <div className="truncate text-[11px]" style={{ color: C.txtFaint }}>
+                {t.slug ? `/equipos/${t.slug}` : "sin slug"} · {t.contact_name ?? t.email}
+              </div>
+            </div>
+            <div><SportPill label={t.sport} /></div>
+            <div className="truncate text-[13px]" style={{ color: "rgba(255,255,255,.7)" }}>{t.competition ?? "—"}</div>
+            <div className="text-right font-display text-[14px] font-600" style={{ color: C.gold }}>
+              {goal > 0 ? formatMoney(goal) : "—"}
+            </div>
+            <div className="text-right">
+              <button
+                onClick={() => setViewingPledges(t)}
+                title="Ver los compromisos de aporte (nadie pagó todavía: se cobran al validar la campaña)"
+                className="rounded-[8px] px-2 py-1 text-right transition-opacity hover:opacity-75"
+                style={{ background: "transparent", border: "none", cursor: "pointer" }}
+              >
+                <span className="font-display text-[14px] font-600 tabular-nums" style={{ color: pl.total > 0 ? C.celeste : C.txtDim }}>
+                  {formatMoney(pl.total)}
+                </span>
+                <span className="block text-[10px]" style={{ color: C.txtFaint }}>
+                  {pl.count} compromiso{pl.count === 1 ? "" : "s"}{pct !== null ? ` · ${pct}%` : ""}
+                </span>
+              </button>
+            </div>
+            <div className="text-right text-[12px]" style={{ color: C.txtDim }}>
+              {t.fundraising_start || t.fundraising_end ? `${t.fundraising_start ?? "?"} → ${t.fundraising_end ?? "?"}` : "—"}
+            </div>
+            <div className="flex justify-end">
+              <button
+                onClick={() => onToggleActive(t)}
+                title={t.active ? "Suspender equipo" : "Reactivar equipo"}
+                className="rounded-full px-2.5 py-[3px] font-display text-[10px] font-600 uppercase tracking-[.04em] transition-opacity hover:opacity-70"
+                style={t.active
+                  ? { background: "rgba(34,197,94,.14)", color: C.greenBright, border: "none", cursor: "pointer" }
+                  : { background: "rgba(223,0,36,.12)", color: C.redBright, border: "none", cursor: "pointer" }}
+              >
+                {t.active ? "Activo" : "Suspendido"}
+              </button>
+            </div>
+            <div className="flex justify-end">
+              <button
+                onClick={() => setEditing(t)}
+                title="Editar el equipo (objetivo, fechas, competencia, contacto, MP)"
+                className="flex h-[26px] w-[26px] items-center justify-center rounded-full text-[12px] transition-opacity hover:opacity-70"
+                style={{ background: "rgba(108,180,228,.14)", color: C.celeste, border: "none", cursor: "pointer" }}
+              >
+                ✎
+              </button>
+            </div>
           </div>
-          <div><SportPill label={t.sport} /></div>
-          <div className="truncate text-[13px]" style={{ color: "rgba(255,255,255,.7)" }}>{t.competition ?? "—"}</div>
-          <div className="text-right font-display text-[14px] font-600" style={{ color: C.gold }}>
-            {t.goal_amount ? formatMoney(t.goal_amount) : "—"}
-          </div>
-          <div className="text-right text-[12px]" style={{ color: C.txtDim }}>
-            {t.fundraising_start || t.fundraising_end ? `${t.fundraising_start ?? "?"} → ${t.fundraising_end ?? "?"}` : "—"}
-          </div>
-          <div className="flex justify-end">
-            <button
-              onClick={() => onToggleActive(t)}
-              title={t.active ? "Suspender equipo" : "Reactivar equipo"}
-              className="rounded-full px-2.5 py-[3px] font-display text-[10px] font-600 uppercase tracking-[.04em] transition-opacity hover:opacity-70"
-              style={t.active
-                ? { background: "rgba(34,197,94,.14)", color: C.greenBright, border: "none", cursor: "pointer" }
-                : { background: "rgba(223,0,36,.12)", color: C.redBright, border: "none", cursor: "pointer" }}
-            >
-              {t.active ? "Activo" : "Suspendido"}
-            </button>
-          </div>
-          <div className="flex justify-end">
-            <button
-              onClick={() => setEditing(t)}
-              title="Editar el equipo (objetivo, fechas, competencia, contacto)"
-              className="flex h-[26px] w-[26px] items-center justify-center rounded-full text-[12px] transition-opacity hover:opacity-70"
-              style={{ background: "rgba(108,180,228,.14)", color: C.celeste, border: "none", cursor: "pointer" }}
-            >
-              ✎
-            </button>
-          </div>
-        </div>
-      ))}
+        );
+      })}
       {editing && (
         <TeamEditModal team={editing} onClose={() => setEditing(null)} onSave={onSave} />
       )}
+      {viewingPledges && (
+        <TeamPledgesModal
+          team={viewingPledges}
+          pledges={pledges.filter((p) => p.team_id === viewingPledges.id)}
+          onClose={() => setViewingPledges(null)}
+          onValidate={onValidatePledges}
+        />
+      )}
     </section>
+  );
+}
+
+// ── Modal de compromisos de una campaña (validación al cierre) ────────────
+function TeamPledgesModal({
+  team,
+  pledges,
+  onClose,
+  onValidate,
+}: {
+  team: TeamApp;
+  pledges: TeamPledge[];
+  onClose: () => void;
+  onValidate: (t: TeamApp, pledges: TeamPledge[]) => Promise<void>;
+}) {
+  const [busy, setBusy] = useState(false);
+  const activePledges = pledges.filter((p) => p.status !== "cancelled");
+  const total = activePledges.reduce((s, p) => s + p.amount, 0);
+  const pendingCount = pledges.filter((p) => p.status === "pledged").length;
+  const ended = !!team.fundraising_end && new Date(team.fundraising_end + "T23:59:59") < new Date();
+
+  async function validate() {
+    setBusy(true);
+    await onValidate(team, pledges);
+    setBusy(false);
+  }
+
+  function copyEmails() {
+    const rows = activePledges.map((p) => `${p.donor_email}\t${p.donor_name ?? ""}\t${p.amount}`);
+    navigator.clipboard?.writeText(rows.join("\n"));
+  }
+
+  const badge: Record<string, { label: string; color: string }> = {
+    pledged: { label: "Comprometido", color: C.gold },
+    validated: { label: "Validado", color: C.greenBright },
+    cancelled: { label: "Cancelado", color: C.txtFaint as string },
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center sm:items-center"
+      style={{ background: "rgba(0,0,0,.72)" }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div
+        className="max-h-[90vh] w-full max-w-[620px] overflow-y-auto rounded-t-[20px] p-6 sm:rounded-[20px]"
+        style={{ background: C.surface, border: `1px solid ${C.border}` }}
+      >
+        <div className="mb-1 flex items-center justify-between">
+          <h2 className="font-display text-[19px] font-700 uppercase leading-none tracking-tight text-white">
+            Compromisos · {team.team_name}
+          </h2>
+          <button onClick={onClose} className="text-[22px] leading-none text-white/40 hover:text-white/80">✕</button>
+        </div>
+        <p className="mb-4 text-[13px] leading-relaxed" style={{ color: C.txtDim }}>
+          <strong style={{ color: C.gold }}>{formatMoney(total)}</strong> comprometidos por {activePledges.length} persona{activePledges.length === 1 ? "" : "s"}.
+          Nadie pagó todavía: al validar, hay que enviarles el link de pago.
+        </p>
+
+        {!ended && pendingCount > 0 && (
+          <p className="mb-4 rounded-[8px] p-3 text-[12px]" style={{ background: "rgba(201,162,39,.1)", border: "1px solid rgba(201,162,39,.3)", color: "#e3c768" }}>
+            La campaña todavía no cerró{team.fundraising_end ? ` (cierra el ${team.fundraising_end})` : ""}. Podés validar igual, pero lo normal es esperar al fin del período.
+          </p>
+        )}
+
+        {pledges.length === 0 ? (
+          <div className="rounded-[12px] px-5 py-8 text-center text-[13px]" style={{ border: `1px dashed ${C.border}`, color: C.txtDim }}>
+            Todavía no hay compromisos para esta campaña.
+          </div>
+        ) : (
+          <div className="flex flex-col">
+            {pledges.map((p) => {
+              const b = badge[p.status] ?? badge.pledged;
+              return (
+                <div key={p.id} className="flex items-center justify-between gap-3 border-b border-white/[.06] py-2.5 last:border-0">
+                  <div className="min-w-0">
+                    <div className="truncate text-[13px] text-white/85">{p.donor_name || "Anónimo"} · <span style={{ color: C.celeste }}>{p.donor_email}</span></div>
+                    <div className="text-[11px]" style={{ color: C.txtFaint }}>{timeAgo(p.created_at)}</div>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-2.5">
+                    <span className="font-display text-[14px] font-600 tabular-nums" style={{ color: C.gold }}>{formatMoney(p.amount)}</span>
+                    <span className="rounded-full px-2 py-0.5 font-display text-[9px] font-600 uppercase tracking-wide" style={{ background: `${b.color}1c`, color: b.color }}>
+                      {b.label}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {pledges.length > 0 && (
+          <div className="mt-5 flex gap-3">
+            <button
+              onClick={copyEmails}
+              className="flex-1 rounded-[10px] py-3 font-display text-[12px] font-600 uppercase tracking-wide"
+              style={{ border: "1px solid rgba(255,255,255,.15)", color: C.txtDim }}
+              title="Copia email, nombre y monto de cada compromiso (para enviar los links de pago)"
+            >
+              Copiar lista
+            </button>
+            <button
+              onClick={validate}
+              disabled={busy || pendingCount === 0}
+              className="flex-1 rounded-[10px] py-3 font-display text-[12px] font-600 uppercase tracking-wide text-white disabled:opacity-40"
+              style={{ background: C.green }}
+              title="Marca los compromisos como validados: el paso previo a cobrar"
+            >
+              {busy ? "Validando…" : pendingCount === 0 ? "Todo validado ✓" : `Validar ${pendingCount} compromiso${pendingCount === 1 ? "" : "s"}`}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -1653,6 +1851,7 @@ function TeamEditModal({
     goal_purpose: team.goal_purpose ?? "",
     fundraising_start: team.fundraising_start ?? "",
     fundraising_end: team.fundraising_end ?? "",
+    payment_mp: team.payment_mp ?? "",
     notes: team.notes ?? "",
   });
   const [busy, setBusy] = useState(false);
@@ -1674,6 +1873,7 @@ function TeamEditModal({
       goal_purpose: form.goal_purpose || null,
       fundraising_start: form.fundraising_start || null,
       fundraising_end: form.fundraising_end || null,
+      payment_mp: form.payment_mp || null,
       notes: form.notes || null,
     };
     for (const k of Object.keys(map)) {
@@ -1751,6 +1951,14 @@ function TeamEditModal({
               <input value={form.email} onChange={(e) => set("email", e.target.value)} style={inputDark} />
             </EditRow>
           </div>
+          <EditRow label="Mercado Pago del equipo (alias / CVU)">
+            <input
+              value={form.payment_mp}
+              onChange={(e) => set("payment_mp", e.target.value)}
+              placeholder="Ej: equipo.handball.mp — adonde va el dinero al validar la campaña"
+              style={inputDark}
+            />
+          </EditRow>
           <EditRow label="Notas internas">
             <textarea rows={2} value={form.notes} onChange={(e) => set("notes", e.target.value)} style={{ ...inputDark, resize: "vertical" }} />
           </EditRow>
