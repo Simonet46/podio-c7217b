@@ -45,6 +45,7 @@ type AthleteRow = {
   id: string;
   slug: string;
   full_name: string;
+  first_name: string | null;
   sport: string;
   city: string | null;
   province: string | null;
@@ -53,6 +54,11 @@ type AthleteRow = {
   mp_connected: boolean | null;
   dni: string | null;
   team: string | null;
+  bio: string | null;
+  next_competition: string | null;
+  socials: string | null;
+  supporter_message: string | null;
+  photo_url: string | null;
 };
 
 type TeamApp = {
@@ -331,7 +337,7 @@ export function BackofficeApp() {
     setLoadingList(true);
     const [appsRes, athRes, teamRes, changesRes, updatesRes, donationsRes] = await Promise.all([
       supa.from("athlete_applications").select("*").order("created_at", { ascending: false }),
-      supa.from("athletes").select("id,slug,full_name,sport,city,province,raised_amount,verified,mp_connected,dni,team").order("raised_amount", { ascending: false }),
+      supa.from("athletes").select("id,slug,full_name,first_name,sport,city,province,raised_amount,verified,mp_connected,dni,team,bio,next_competition,socials,supporter_message,photo_url").order("raised_amount", { ascending: false }),
       supa.from("team_applications").select("*").order("created_at", { ascending: false }),
       supa
         .from("profile_change_requests")
@@ -562,6 +568,17 @@ export function BackofficeApp() {
     if (error) { setToast("Error al asignar la selección: " + error.message); loadApps(); return; }
     const teamName = SEED_TEAMS.find((t) => t.slug === teamSlug)?.name;
     setToast(teamSlug ? `${athlete.full_name} → ${teamName}. Tocá "Publicar ahora".` : `${athlete.full_name} sin selección.`);
+  }
+
+  /** Edición directa del perfil de un atleta desde el backoffice: se publica
+   *  al instante (el equipo tiene control total sobre lo publicado). */
+  async function handleSaveAthlete(athlete: AthleteRow, patch: Partial<AthleteRow>) {
+    const supa = sb();
+    if (!supa) return;
+    setAthletes((prev) => prev.map((a) => a.id === athlete.id ? { ...a, ...patch } : a));
+    const { error } = await supa.from("athletes").update(patch).eq("id", athlete.id);
+    if (error) { setToast("Error al guardar el perfil: " + error.message); loadApps(); return; }
+    setToast(`✓ Perfil de ${athlete.full_name} actualizado. Tocá "Publicar ahora" para verlo en su perfil.`);
   }
 
   async function handleViewMpInfo(athlete: AthleteRow) {
@@ -880,7 +897,7 @@ export function BackofficeApp() {
           )}
 
           {/* ===== ATLETAS ===== */}
-          {active === "Atletas" && <AtletasSection athletes={athletes} loading={loadingList} onConnect={genMpLink} onToggleStatus={handleToggleStatus} onViewMpInfo={handleViewMpInfo} onSetTeam={handleSetTeam} onSendAccess={sendAccess} />}
+          {active === "Atletas" && <AtletasSection athletes={athletes} loading={loadingList} onConnect={genMpLink} onToggleStatus={handleToggleStatus} onViewMpInfo={handleViewMpInfo} onSetTeam={handleSetTeam} onSendAccess={sendAccess} onSave={handleSaveAthlete} />}
 
           {/* ===== SELECCIONES ===== */}
           {active === "Selecciones" && (
@@ -892,12 +909,18 @@ export function BackofficeApp() {
             <CambiosSection
               items={profileChanges}
               loading={loadingList}
-              onApprove={async (item) => {
+              onApprove={async (item, edited) => {
                 const supa = sb();
                 if (!supa) return;
-                await supa.from("athletes").update(item.changes).eq("id", item.athlete_id);
-                await supa.from("profile_change_requests").update({ status: "approved" }).eq("id", item.id);
-                setProfileChanges((prev) => prev.map((c) => c.id === item.id ? { ...c, status: "approved" } : c));
+                // El equipo puede haber corregido faltas antes de publicar:
+                // usamos los valores editados y también los guardamos en el
+                // registro, para que quede constancia de lo que se publicó.
+                const changes = edited ?? item.changes;
+                await supa.from("athletes").update(changes).eq("id", item.athlete_id);
+                await supa.from("profile_change_requests").update({ status: "approved", changes }).eq("id", item.id);
+                setProfileChanges((prev) => prev.map((c) => c.id === item.id ? { ...c, status: "approved", changes } : c));
+                // Reflejar el cambio publicado en la lista de atletas cargada en memoria.
+                setAthletes((prev) => prev.map((a) => a.id === item.athlete_id ? { ...a, ...changes } as AthleteRow : a));
                 setToast(`✓ Cambios de ${item.athlete_name} aprobados y publicados.`);
               }}
               onReject={async (item, note) => {
@@ -1436,6 +1459,7 @@ function AtletasSection({
   onViewMpInfo,
   onSetTeam,
   onSendAccess,
+  onSave,
 }: {
   athletes: AthleteRow[];
   loading: boolean;
@@ -1444,7 +1468,9 @@ function AtletasSection({
   onViewMpInfo: (a: AthleteRow) => void;
   onSetTeam: (a: AthleteRow, teamSlug: string) => void;
   onSendAccess: (a: AthleteRow) => void;
+  onSave: (a: AthleteRow, patch: Partial<AthleteRow>) => Promise<void>;
 }) {
+  const [editing, setEditing] = useState<AthleteRow | null>(null);
   const cols = "1.7fr 1fr 1.4fr 1fr .85fr 1fr";
   return (
     <section style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, overflow: "hidden" }}>
@@ -1506,6 +1532,14 @@ function AtletasSection({
             </div>
             <div className="flex items-center justify-end gap-1.5">
               <button
+                onClick={() => setEditing(a)}
+                title="Editar el perfil del atleta (historia, competencia, redes, mensaje, foto)"
+                className="flex h-[26px] w-[26px] items-center justify-center rounded-full text-[12px] transition-opacity hover:opacity-70"
+                style={{ background: "rgba(108,180,228,.14)", color: C.celeste, border: "none", cursor: "pointer" }}
+              >
+                ✎
+              </button>
+              <button
                 onClick={() => onSendAccess(a)}
                 title="Enviar acceso: le llega un email para activar su cuenta y crear su contraseña"
                 className="flex h-[26px] w-[26px] items-center justify-center rounded-full text-[12px] transition-opacity hover:opacity-70"
@@ -1536,7 +1570,184 @@ function AtletasSection({
           </div>
         );
       })}
+      {editing && (
+        <AthleteEditModal
+          athlete={editing}
+          onClose={() => setEditing(null)}
+          onSave={onSave}
+        />
+      )}
     </section>
+  );
+}
+
+// ── Modal de edición directa del perfil (control total del equipo) ──────
+function AthleteEditModal({
+  athlete,
+  onClose,
+  onSave,
+}: {
+  athlete: AthleteRow;
+  onClose: () => void;
+  onSave: (a: AthleteRow, patch: Partial<AthleteRow>) => Promise<void>;
+}) {
+  const [form, setForm] = useState({
+    full_name: athlete.full_name ?? "",
+    bio: athlete.bio ?? "",
+    next_competition: athlete.next_competition ?? "",
+    socials: athlete.socials ?? "",
+    supporter_message: athlete.supporter_message ?? "",
+    city: athlete.city ?? "",
+    province: athlete.province ?? "",
+    photo_url: athlete.photo_url ?? "",
+  });
+  const [busy, setBusy] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [err, setErr] = useState("");
+
+  function set<K extends keyof typeof form>(k: K, v: string) {
+    setForm((f) => ({ ...f, [k]: v }));
+  }
+
+  async function uploadPhoto(file: File) {
+    if (uploading) return;
+    if (file.size > 5 * 1024 * 1024) { setErr("La foto no puede pesar más de 5 MB."); return; }
+    setUploading(true);
+    setErr("");
+    try {
+      const supa = sb();
+      if (!supa) { setErr("No se pudo subir la foto."); return; }
+      const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+      const path = `profiles/${athlete.id}-${Date.now()}.${ext}`;
+      const { error } = await supa.storage.from("athlete-media").upload(path, file, { contentType: file.type, upsert: false });
+      if (error) { setErr("No se pudo subir la foto. Intentá de nuevo."); return; }
+      set("photo_url", supa.storage.from("athlete-media").getPublicUrl(path).data.publicUrl);
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  async function save() {
+    setBusy(true);
+    setErr("");
+    // Solo mandamos lo que cambió.
+    const patch: Partial<AthleteRow> = {};
+    (Object.keys(form) as (keyof typeof form)[]).forEach((k) => {
+      const cur = (athlete[k as keyof AthleteRow] as string | null) ?? "";
+      if (form[k] !== cur) (patch as Record<string, string>)[k] = form[k];
+    });
+    if (Object.keys(patch).length === 0) { onClose(); return; }
+    await onSave(athlete, patch);
+    setBusy(false);
+    onClose();
+  }
+
+  const initials = initialsOf(athlete.full_name);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center sm:items-center"
+      style={{ background: "rgba(0,0,0,.72)" }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div
+        className="max-h-[92vh] w-full max-w-[560px] overflow-y-auto rounded-t-[20px] p-6 sm:rounded-[20px]"
+        style={{ background: C.surface, border: `1px solid ${C.border}` }}
+      >
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="font-display text-[19px] font-700 uppercase leading-none tracking-tight text-white">
+            Editar perfil · {athlete.full_name}
+          </h2>
+          <button onClick={onClose} className="text-[22px] leading-none text-white/40 hover:text-white/80">✕</button>
+        </div>
+        <p className="mb-5 text-[13px] leading-relaxed" style={{ color: C.txtDim }}>
+          Editás y publicás directamente. Los cambios quedan guardados al instante;
+          tocá <strong className="text-white/70">“Publicar ahora”</strong> para verlos en el perfil público.
+        </p>
+
+        <div className="flex flex-col gap-4">
+          <div>
+            <p className="mb-1.5 text-[11px] font-600 uppercase tracking-wide" style={{ color: C.txtFaint }}>Foto de perfil</p>
+            <div className="flex items-center gap-4">
+              <div
+                className="flex h-[60px] w-[60px] shrink-0 items-center justify-center overflow-hidden rounded-full text-[20px] text-white/40"
+                style={{ background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.12)" }}
+              >
+                {form.photo_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={form.photo_url} alt="" className="h-full w-full object-cover" />
+                ) : initials}
+              </div>
+              <label className="cursor-pointer rounded-[9px] border border-white/25 px-4 py-2 font-display text-[12px] font-600 uppercase tracking-wide text-white/80 hover:border-white/50">
+                {uploading ? "Subiendo…" : form.photo_url ? "Cambiar foto" : "Subir foto"}
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="hidden"
+                  disabled={uploading}
+                  onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadPhoto(f); e.target.value = ""; }}
+                />
+              </label>
+            </div>
+          </div>
+
+          <EditRow label="Nombre completo">
+            <input value={form.full_name} onChange={(e) => set("full_name", e.target.value)} style={inputDark} />
+          </EditRow>
+          <div className="grid grid-cols-2 gap-3">
+            <EditRow label="Ciudad">
+              <input value={form.city} onChange={(e) => set("city", e.target.value)} style={inputDark} />
+            </EditRow>
+            <EditRow label="Provincia">
+              <input value={form.province} onChange={(e) => set("province", e.target.value)} style={inputDark} />
+            </EditRow>
+          </div>
+          <EditRow label="Historia / Bio">
+            <textarea rows={4} value={form.bio} onChange={(e) => set("bio", e.target.value)} style={{ ...inputDark, resize: "vertical" }} />
+          </EditRow>
+          <EditRow label="Próxima competencia">
+            <input value={form.next_competition} onChange={(e) => set("next_competition", e.target.value)} style={inputDark} />
+          </EditRow>
+          <EditRow label="Instagram">
+            <input value={form.socials} onChange={(e) => set("socials", e.target.value)} style={inputDark} />
+          </EditRow>
+          <EditRow label="Mensaje para quienes aportan">
+            <textarea rows={3} value={form.supporter_message} onChange={(e) => set("supporter_message", e.target.value)} style={{ ...inputDark, resize: "vertical" }} />
+          </EditRow>
+
+          {err && (
+            <p className="rounded-[8px] p-3 text-[13px]" style={{ background: "rgba(223,0,36,.14)", color: C.redBright }}>{err}</p>
+          )}
+
+          <div className="flex gap-3 pt-1">
+            <button
+              onClick={onClose}
+              className="flex-1 rounded-[10px] py-3 font-display text-[13px] font-600 uppercase tracking-wide"
+              style={{ border: "1px solid rgba(255,255,255,.15)", color: C.txtDim }}
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={save}
+              disabled={busy || uploading}
+              className="flex-1 rounded-[10px] py-3 font-display text-[13px] font-600 uppercase tracking-wide text-ink disabled:opacity-50"
+              style={{ background: C.gold }}
+            >
+              {busy ? "Guardando…" : "Guardar y publicar"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EditRow({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <p className="mb-1.5 text-[11px] font-600 uppercase tracking-wide" style={{ color: C.txtFaint }}>{label}</p>
+      {children}
+    </div>
   );
 }
 
@@ -2393,7 +2604,7 @@ function CambiosSection({
 }: {
   items: ProfileChangeRequest[];
   loading: boolean;
-  onApprove: (item: ProfileChangeRequest) => Promise<void>;
+  onApprove: (item: ProfileChangeRequest, edited?: Record<string, string>) => Promise<void>;
   onReject: (item: ProfileChangeRequest, note: string) => Promise<void>;
 }) {
   const [busy, setBusy] = useState<string | null>(null);
@@ -2404,12 +2615,17 @@ function CambiosSection({
     return <div className="py-16 text-center text-[14px]" style={{ color: C.txtDim }}>Cargando…</div>;
   }
 
-  const pending = items.filter((i) => i.status === "pending");
+  // Pendientes en orden cronológico (los más viejos primero): se validan de
+  // arriba hacia abajo para que los cambios encadenados se apliquen en orden.
+  const pending = items
+    .filter((i) => i.status === "pending")
+    .slice()
+    .sort((a, b) => a.created_at.localeCompare(b.created_at));
   const reviewed = items.filter((i) => i.status !== "pending");
 
-  async function approve(item: ProfileChangeRequest) {
+  async function approve(item: ProfileChangeRequest, edited?: Record<string, string>) {
     setBusy(item.id);
-    await onApprove(item);
+    await onApprove(item, edited);
     setBusy(null);
   }
 
@@ -2431,8 +2647,11 @@ function CambiosSection({
 
       {pending.length > 0 && (
         <section className="mb-6">
-          <div className="mb-3 font-display text-[12px] font-600 uppercase tracking-[.1em]" style={{ color: C.gold }}>
+          <div className="mb-1 font-display text-[12px] font-600 uppercase tracking-[.1em]" style={{ color: C.gold }}>
             Pendientes de revisión ({pending.length})
+          </div>
+          <div className="mb-3 text-[12px]" style={{ color: C.txtFaint }}>
+            Podés corregir el texto de cada campo antes de publicarlo. Se validan del más viejo al más nuevo.
           </div>
           <div className="flex flex-col gap-4">
             {pending.map((item) => (
@@ -2441,7 +2660,7 @@ function CambiosSection({
                 item={item}
                 busy={busy === item.id}
                 rejectBusy={busy === item.id + "-reject"}
-                onApprove={() => approve(item)}
+                onApprove={(edited) => approve(item, edited)}
                 onReject={() => { setRejectNote(""); setRejectModal(item); }}
               />
             ))}
@@ -2517,12 +2736,18 @@ function ChangeCard({
   item: ProfileChangeRequest;
   busy: boolean;
   rejectBusy: boolean;
-  onApprove: () => void;
+  onApprove: (edited?: Record<string, string>) => void;
   onReject: () => void;
   readOnly?: boolean;
 }) {
   const statusColor = item.status === "approved" ? C.greenBright : item.status === "rejected" ? C.redBright : C.gold;
   const statusLabel = item.status === "approved" ? "Aprobado" : item.status === "rejected" ? "Rechazado" : "Pendiente";
+  const editable = !readOnly && item.status === "pending";
+
+  // Copia editable de los valores propuestos: el equipo corrige faltas de
+  // ortografía acá y publica la versión corregida. La foto no se edita como
+  // texto (se muestra como imagen).
+  const [draft, setDraft] = useState<Record<string, string>>(() => ({ ...item.changes }));
 
   return (
     <div className="rounded-[14px] p-5" style={{ background: C.surface, border: `1px solid ${C.border}` }}>
@@ -2555,9 +2780,19 @@ function ChangeCard({
                 <DiffValue field={field} value={item.previous_values[field]} removed />
               </div>
             )}
-            <div className="rounded-[6px] px-2 py-1 text-[13px] leading-relaxed" style={{ background: "rgba(34,197,94,.08)", color: "#86efac" }}>
-              <DiffValue field={field} value={newVal} />
-            </div>
+            {editable && field !== "photo_url" ? (
+              <textarea
+                value={draft[field] ?? ""}
+                onChange={(e) => setDraft((d) => ({ ...d, [field]: e.target.value }))}
+                rows={field === "bio" || field === "supporter_message" ? 3 : 1}
+                className="w-full resize-y rounded-[6px] px-2 py-1.5 text-[13px] leading-relaxed text-white outline-none"
+                style={{ background: "rgba(34,197,94,.08)", border: "1px solid rgba(34,197,94,.25)" }}
+              />
+            ) : (
+              <div className="rounded-[6px] px-2 py-1 text-[13px] leading-relaxed" style={{ background: "rgba(34,197,94,.08)", color: "#86efac" }}>
+                <DiffValue field={field} value={(readOnly ? newVal : draft[field]) ?? newVal} />
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -2569,7 +2804,7 @@ function ChangeCard({
       )}
 
       {/* Actions */}
-      {!readOnly && item.status === "pending" && (
+      {editable && (
         <div className="flex gap-2.5">
           <button
             onClick={onReject}
@@ -2580,7 +2815,7 @@ function ChangeCard({
             Rechazar
           </button>
           <button
-            onClick={onApprove}
+            onClick={() => onApprove(draft)}
             disabled={busy || rejectBusy}
             className="flex-1 rounded-[10px] py-2.5 font-display text-[13px] font-600 uppercase tracking-wide disabled:opacity-40"
             style={{ background: C.green, color: "#fff" }}

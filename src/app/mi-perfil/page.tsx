@@ -70,7 +70,7 @@ export default function MiPerfilPage() {
   const [authState, setAuthState] = useState<AuthState>("loading");
   const [atleta, setAtleta] = useState<Atleta | null>(null);
   const [mpConectado, setMpConectado] = useState(false);
-  const [pendingChange, setPendingChange] = useState<PendingChange | null>(null);
+  const [pendingChanges, setPendingChanges] = useState<PendingChange[]>([]);
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPass, setLoginPass] = useState("");
   // "password" = email + contraseña (default) · "magic" = link por email.
@@ -144,13 +144,13 @@ export default function MiPerfilPage() {
       // Cargar datos paralelos.
       const [{ data: mp }, { data: changes }, { data: dons }, { data: novs }] = await Promise.all([
         supabase.from("athlete_mp_accounts").select("mp_user_id").eq("athlete_id", a.id).maybeSingle(),
-        supabase.from("profile_change_requests").select("id,changes,status,created_at").eq("athlete_id", a.id).eq("status", "pending").maybeSingle(),
+        supabase.from("profile_change_requests").select("id,changes,status,created_at").eq("athlete_id", a.id).eq("status", "pending").order("created_at", { ascending: true }),
         supabase.from("donations").select("id,amount,net_amount,type,status,created_at").eq("athlete_id", a.id).order("created_at", { ascending: false }).limit(10),
         supabase.from("athlete_updates").select("id,title,body,image_url,status,admin_note,created_at").eq("athlete_id", a.id).order("created_at", { ascending: false }),
       ]);
 
       setMpConectado(!!mp?.mp_user_id);
-      setPendingChange(changes as PendingChange | null);
+      setPendingChanges((changes as PendingChange[]) ?? []);
       setAportes((dons as Aporte[]) ?? []);
       setNovedades((novs as Novedad[]) ?? []);
       setAuthState("ok");
@@ -246,14 +246,25 @@ export default function MiPerfilPage() {
     setSecMsg({ ok: true, text: "✓ Contraseña guardada. Ya podés entrar con email y contraseña." });
   }
 
+  // Valor "efectivo" de un campo: lo publicado en el perfil, pisado por los
+  // cambios que el atleta ya envió y siguen en cola (el último gana). Así, si
+  // hace un segundo cambio, arranca desde lo que ya pidió y no desde lo viejo.
+  function effectiveValue(field: keyof EditForm): string {
+    let v = (atleta?.[field as keyof Atleta] as string | null) ?? "";
+    for (const pc of pendingChanges) {
+      if (pc.changes[field] !== undefined) v = pc.changes[field];
+    }
+    return v;
+  }
+
   function openEditModal() {
     if (!atleta) return;
     setEditForm({
-      photo_url: atleta.photo_url ?? "",
-      bio: atleta.bio ?? "",
-      next_competition: atleta.next_competition ?? "",
-      socials: atleta.socials ?? "",
-      supporter_message: atleta.supporter_message ?? "",
+      photo_url: effectiveValue("photo_url"),
+      bio: effectiveValue("bio"),
+      next_competition: effectiveValue("next_competition"),
+      socials: effectiveValue("socials"),
+      supporter_message: effectiveValue("supporter_message"),
     });
     setEditError("");
     setShowEditModal(true);
@@ -291,11 +302,13 @@ export default function MiPerfilPage() {
     setEditBusy(true);
     setEditError("");
 
-    // Solo enviamos los campos que cambiaron.
+    // Solo enviamos los campos que cambiaron respecto de lo efectivo (lo
+    // publicado + lo que ya está en cola). El "previo" es ese valor efectivo,
+    // así el diff que ve el equipo encadena bien con los cambios anteriores.
     const changes: Record<string, string> = {};
     const previous: Record<string, string> = {};
     (["photo_url", "bio", "next_competition", "socials", "supporter_message"] as (keyof EditForm)[]).forEach((k) => {
-      const current = (atleta[k as keyof Atleta] as string | null) ?? "";
+      const current = effectiveValue(k);
       if (editForm[k] !== current) {
         changes[k] = editForm[k];
         previous[k] = current;
@@ -309,24 +322,27 @@ export default function MiPerfilPage() {
     }
 
     const supabase = await getSupabase();
-    const { error } = await supabase!.from("profile_change_requests").insert({
-      athlete_id: atleta.id,
-      changes,
-      previous_values: previous,
-    });
+    const { data, error } = await supabase!
+      .from("profile_change_requests")
+      .insert({
+        athlete_id: atleta.id,
+        changes,
+        previous_values: previous,
+      })
+      .select("id,changes,status,created_at")
+      .single();
 
     if (error) {
-      setEditError(
-        error.message?.includes("policy") || error.code === "42501"
-          ? "Ya tenés un cambio pendiente de revisión. Esperá a que el equipo lo apruebe."
-          : "No se pudo enviar. Intentá de nuevo.",
-      );
+      setEditError("No se pudo enviar. Intentá de nuevo.");
       setEditBusy(false);
       return;
     }
 
-    // Actualizar estado local para mostrar el banner.
-    setPendingChange({ id: "", changes, status: "pending", created_at: new Date().toISOString() });
+    // Encolamos el nuevo cambio (podés tener varios pendientes a la vez).
+    setPendingChanges((prev) => [
+      ...prev,
+      (data as PendingChange) ?? { id: "", changes, status: "pending", created_at: new Date().toISOString() },
+    ]);
     setEditBusy(false);
     setShowEditModal(false);
   }
@@ -608,16 +624,25 @@ export default function MiPerfilPage() {
           </div>
         )}
 
-        {/* Cambio de perfil pendiente */}
-        {pendingChange && (
+        {/* Cambios de perfil pendientes (podés tener varios en cola) */}
+        {pendingChanges.length > 0 && (
           <div
             className="mb-6 rounded-[12px] p-5 text-[14px] leading-relaxed"
             style={{ background: "rgba(201,162,39,.08)", border: "1px solid rgba(201,162,39,.25)", color: "rgba(255,255,255,.75)" }}
           >
             <span style={{ color: "#C9A227" }}>●</span>{" "}
-            Tenés un <strong style={{ color: "#C9A227" }}>cambio de perfil pendiente</strong> enviado el{" "}
-            {new Date(pendingChange.created_at).toLocaleDateString("es-AR", { day: "numeric", month: "long" })}.
-            El equipo lo está revisando.
+            {pendingChanges.length === 1 ? (
+              <>
+                Tenés un <strong style={{ color: "#C9A227" }}>cambio de perfil pendiente</strong> enviado el{" "}
+                {new Date(pendingChanges[0].created_at).toLocaleDateString("es-AR", { day: "numeric", month: "long" })}.
+                El equipo lo está revisando.
+              </>
+            ) : (
+              <>
+                Tenés <strong style={{ color: "#C9A227" }}>{pendingChanges.length} cambios de perfil pendientes</strong> de
+                revisión. El equipo los revisa uno por uno, en orden. Podés seguir enviando más.
+              </>
+            )}
           </div>
         )}
 
@@ -862,12 +887,15 @@ export default function MiPerfilPage() {
           <div className="mt-5 border-t border-white/[.07] pt-4">
             <button
               onClick={openEditModal}
-              disabled={!!pendingChange}
-              title={pendingChange ? "Ya tenés un cambio pendiente de revisión" : undefined}
-              className="rounded-[10px] border border-white/25 px-5 py-2.5 font-display text-[13px] font-600 uppercase tracking-wide text-white transition hover:border-white/50 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+              className="rounded-[10px] border border-white/25 px-5 py-2.5 font-display text-[13px] font-600 uppercase tracking-wide text-white transition hover:border-white/50 hover:text-white"
             >
-              {pendingChange ? "Cambio pendiente…" : "Editar perfil"}
+              Editar perfil
             </button>
+            {pendingChanges.length > 0 && (
+              <p className="mt-2 text-[12px]" style={{ color: "rgba(255,255,255,.4)" }}>
+                Podés enviar otro cambio aunque tengas alguno en revisión.
+              </p>
+            )}
           </div>
         </Card>
 
