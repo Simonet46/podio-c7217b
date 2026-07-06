@@ -36,14 +36,11 @@ export function CoverBand() {
         <div className="max-w-xl">
           <p className="eyebrow text-gold">El camino es largo</p>
           <h2 className="mt-4 font-display text-4xl font-700 uppercase leading-[1.03] tracking-tight text-white sm:text-5xl md:text-6xl">
-            Hoy lo hacen
-            <br />
-            solos. Cambiémoslo.
+            El camino de un atleta va mucho más allá de la competencia.
           </h2>
           <p className="mt-5 max-w-md text-lg leading-relaxed text-white/80">
-            Madrugadas, rutas, viajes que pagan de su bolsillo. Detrás de cada
-            clasificación hay un atleta costeándose todo. Tu aporte les saca peso
-            de encima.
+            Cada entrenamiento, cada viaje y cada torneo requieren esfuerzo y
+            recursos. Tu apoyo puede marcar la diferencia.
           </p>
           <div className="mt-7 max-w-[220px]">
             <Ribbon tall />

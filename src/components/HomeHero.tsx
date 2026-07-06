@@ -51,11 +51,11 @@ export function HomeHero({ featured }: { featured: HeroAthlete[] }) {
           <h1 className="mt-5 font-display text-4xl font-700 uppercase leading-[0.95] tracking-tight sm:text-6xl lg:text-[80px]">
             Cada atleta es
             <br />
-            una historia <span className="text-gold">épica</span>
+            una historia <span className="text-gold">única</span>
           </h1>
           <p className="mx-auto mt-5 max-w-xl text-lg leading-relaxed text-white/70">
-            No es lástima, es aguante. Metete en lo que hacen todos los días y
-            apoyalos directo.
+            LOS LOGROS SE CELEBRAN, EL ESFUERZO SE APOYA. Se parte del camino de
+            un atleta argentino.
           </p>
         </div>
 
