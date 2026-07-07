@@ -43,9 +43,11 @@ function thankYouHtml(opts: {
   amount: number;
   message: string | null;
   monthly: boolean;
+  /** URL del perfil a linkear (default: perfil de atleta por slug). */
+  profileUrl?: string;
 }): string {
   const { athleteName, athleteSlug, amount, message, monthly } = opts;
-  const profileUrl = `${SITE_URL}/atleta/${encodeURIComponent(athleteSlug)}/`;
+  const profileUrl = opts.profileUrl ?? `${SITE_URL}/atleta/${encodeURIComponent(athleteSlug)}/`;
   const firstName = athleteName.split(" ")[0];
 
   const quote = message
@@ -135,6 +137,7 @@ async function sendThankYou(opts: {
   amount: number;
   message: string | null;
   monthly: boolean;
+  profileUrl?: string;
 }) {
   const key = (Deno.env.get("RESEND_API_KEY") ?? "").trim();
   if (!key) {
@@ -167,6 +170,7 @@ Deno.serve(async (req) => {
   let topic = u.searchParams.get("type") ?? u.searchParams.get("topic");
   let paymentId = u.searchParams.get("data.id") ?? u.searchParams.get("id");
   const athleteHint = u.searchParams.get("athlete");
+  const teamHint = u.searchParams.get("team");
 
   if (!topic || !paymentId) {
     const body = await req.json().catch(() => ({} as Record<string, unknown>));
@@ -191,13 +195,29 @@ Deno.serve(async (req) => {
       .maybeSingle();
     if (data?.access_token) tokens.push(data.access_token);
   }
+  if (teamHint) {
+    const { data } = await supa
+      .from("team_mp_accounts")
+      .select("access_token")
+      .eq("team_id", teamHint)
+      .maybeSingle();
+    if (data?.access_token) tokens.push(data.access_token);
+  }
   const platformToken = (Deno.env.get("MP_ACCESS_TOKEN") ?? "").trim();
   if (platformToken) tokens.push(platformToken);
-  if (!athleteHint) {
+  if (!athleteHint && !teamHint) {
     const { data } = await supa
       .from("athlete_mp_accounts")
       .select("access_token");
     for (const row of data ?? []) {
+      if (row.access_token && !tokens.includes(row.access_token)) {
+        tokens.push(row.access_token);
+      }
+    }
+    const { data: teamAccts } = await supa
+      .from("team_mp_accounts")
+      .select("access_token");
+    for (const row of teamAccts ?? []) {
       if (row.access_token && !tokens.includes(row.access_token)) {
         tokens.push(row.access_token);
       }
@@ -214,8 +234,52 @@ Deno.serve(async (req) => {
     return json({ ok: true, error: "pago_no_encontrado" });
   }
 
+  const extRef = String(p.external_reference ?? "");
+
+  // ── Pago de un COMPROMISO de equipo: external_reference = "team:<pledge_id>" ──
+  // El dinero va a la cuenta MP del equipo; acá solo marcamos el compromiso
+  // como pagado y agradecemos al donante.
+  if (extRef.startsWith("team:")) {
+    const pledgeId = extRef.slice("team:".length);
+    if (p.status !== "approved") return json({ ok: true, team_pledge: pledgeId, status: p.status });
+
+    const { data: pledge } = await supa
+      .from("team_pledges")
+      .select("id, team_id, donor_email, donor_name, amount, status")
+      .eq("id", pledgeId)
+      .maybeSingle();
+    if (!pledge) return json({ ok: true, ignored: "compromiso_no_encontrado" });
+
+    const alreadyPaid = pledge.status === "paid";
+    await supa
+      .from("team_pledges")
+      .update({ status: "paid", mp_payment_id: String(p.id), paid_at: new Date().toISOString() })
+      .eq("id", pledgeId);
+
+    // Gracias al donante (una sola vez, con el estilo de los aportes a atletas).
+    if (!alreadyPaid && pledge.donor_email) {
+      const { data: team } = await supa
+        .from("team_applications")
+        .select("team_name, slug")
+        .eq("id", pledge.team_id)
+        .maybeSingle();
+      if (team) {
+        await sendThankYou({
+          to: pledge.donor_email,
+          athleteName: team.team_name,
+          athleteSlug: team.slug ?? "",
+          profileUrl: `${SITE_URL}/equipos/${encodeURIComponent(team.slug ?? "")}/`,
+          amount: Number(pledge.amount),
+          message: null,
+          monthly: false,
+        });
+      }
+    }
+    return json({ ok: true, team_pledge: pledgeId, paid: true });
+  }
+
   // external_reference = "<athlete_id>:<type>"
-  const [athleteId, refType] = String(p.external_reference ?? "").split(":");
+  const [athleteId, refType] = extRef.split(":");
   if (!athleteId) return json({ ok: true, ignored: "sin external_reference" });
 
   const amount = Number(p.transaction_amount ?? 0);

@@ -1,8 +1,8 @@
 // Edge Function: mp-connect-link
-// El admin (backoffice) pide el link de conexión de Mercado Pago para un atleta.
-// Devuelve la URL de autorización OAuth de MP con un `state` firmado que ata el
-// athlete_id. Solo un admin puede emitirlo => nadie puede conectar SU MP a la
-// cuenta de otro atleta.
+// El admin (backoffice) pide el link de conexión de Mercado Pago para un
+// atleta (athlete_id) o un EQUIPO (team_id). Devuelve la URL de autorización
+// OAuth de MP con un `state` firmado que ata el id. Solo un admin puede
+// emitirlo => nadie puede conectar SU MP a la cuenta de otro.
 //
 // Secrets: MP_CLIENT_ID, MP_REDIRECT_URI, STATE_SECRET, SUPABASE_ANON_KEY.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -23,15 +23,15 @@ Deno.serve(async (req) => {
   if (error) return json({ error: "No se pudo validar el usuario." }, 401);
   if (isAdmin !== true) return json({ error: "No autorizado." }, 403);
 
-  const { athlete_id } = await req.json().catch(() => ({}));
-  if (!athlete_id) return json({ error: "Falta athlete_id." }, 400);
+  const { athlete_id, team_id } = await req.json().catch(() => ({}));
+  if (!athlete_id && !team_id) return json({ error: "Falta athlete_id o team_id." }, 400);
 
   // state firmado, válido 7 días.
-  const state = await signState({
-    athlete_id,
-    kind: "mp-connect",
-    exp: Date.now() + 1000 * 60 * 60 * 24 * 7,
-  });
+  const state = await signState(
+    team_id
+      ? { team_id, kind: "mp-connect-team", exp: Date.now() + 1000 * 60 * 60 * 24 * 7 }
+      : { athlete_id, kind: "mp-connect", exp: Date.now() + 1000 * 60 * 60 * 24 * 7 },
+  );
 
   const clientId = (Deno.env.get("MP_CLIENT_ID") ?? "").trim();
   const redirectUri = (Deno.env.get("MP_REDIRECT_URI") ?? "").trim();

@@ -47,27 +47,33 @@ Deno.serve(async (req) => {
     athlete_id?: string;
     connect_token?: string;
     application_id?: string;
+    team_id?: string;
     kind: string;
   }>(state);
   // Kinds: mp-connect (atleta desde su panel) · mp-connect-app (popup del form)
   //        mp-connect-app-direct (link enviado por email, atado a la postulación)
+  //        mp-connect-team (equipo en campaña: cobra los compromisos validados)
   const okKind =
     payload &&
     (payload.kind === "mp-connect" ||
       payload.kind === "mp-connect-app" ||
-      payload.kind === "mp-connect-app-direct");
+      payload.kind === "mp-connect-app-direct" ||
+      payload.kind === "mp-connect-team");
   const isApp = payload?.kind === "mp-connect-app";
   const isAppDirect = payload?.kind === "mp-connect-app-direct";
+  const isTeam = payload?.kind === "mp-connect-team";
   if (!code || !payload || !okKind) {
     const base = isApp || isAppDirect ? `${SITE_URL}/mp-listo/` : `${SITE_URL}/`;
     const reason = !code ? "mp_no_devolvio_code" : "link_invalido_o_vencido";
     return redirect(`${base}?mp=error&reason=${encodeURIComponent(reason)}`);
   }
 
-  // El flujo de postulación vuelve a una página "popup" que se cierra sola.
-  const okTarget = isApp || isAppDirect ? `${SITE_URL}/mp-listo/?mp=ok` : `${SITE_URL}/?mp=ok`;
+  // El flujo de postulación (y el de equipo, que llega por un link enviado
+  // por el admin) vuelve a la página "listo" que se cierra sola.
+  const usesDonePage = isApp || isAppDirect || isTeam;
+  const okTarget = usesDonePage ? `${SITE_URL}/mp-listo/?mp=ok` : `${SITE_URL}/?mp=ok`;
   const errTarget = (reason: string) =>
-    (isApp || isAppDirect ? `${SITE_URL}/mp-listo/?mp=error` : `${SITE_URL}/?mp=error`) +
+    (usesDonePage ? `${SITE_URL}/mp-listo/?mp=error` : `${SITE_URL}/?mp=error`) +
     `&reason=${encodeURIComponent(reason)}`;
 
   // Intercambiar el code por el token del vendedor.
@@ -105,6 +111,22 @@ Deno.serve(async (req) => {
   };
 
   const supa = serviceClient();
+
+  // Conexión del Mercado Pago de un EQUIPO en campaña.
+  if (isTeam) {
+    const teamId = payload.team_id!;
+    const { error } = await supa.from("team_mp_accounts").upsert({
+      team_id: teamId,
+      ...row,
+      connected_at: new Date().toISOString(),
+    });
+    if (error) {
+      console.error("No se pudo guardar el token (equipo):", error.message);
+      return redirect(errTarget("db:" + error.message.slice(0, 150)));
+    }
+    await supa.from("team_applications").update({ mp_connected: true }).eq("id", teamId);
+    return redirect(okTarget);
+  }
 
   // Conexión vía link de email: el token queda atado a la POSTULACIÓN.
   // Si la postulación ya fue aprobada (tiene atleta), lo migramos al toque.
