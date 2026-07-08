@@ -12,6 +12,26 @@ export async function generateStaticParams() {
   return athletes.map((a) => ({ slug: a.slug }));
 }
 
+// satori (motor de next/og) solo entiende JPEG y PNG. Un WebP/AVIF/otro lo
+// hace crashear ("a is not iterable"), así que esos caen a iniciales.
+const OG_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png"];
+
+/** Baja la foto a un data URL si es JPEG/PNG. Devuelve null ante cualquier
+ *  problema (URL rota, formato no soportado) para caer al bloque de iniciales —
+ *  así ninguna foto rompe el build. */
+async function fetchAsDataUrl(url: string): Promise<string | null> {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const type = (res.headers.get("content-type") || "").split(";")[0].trim().toLowerCase();
+    if (!OG_IMAGE_TYPES.includes(type)) return null;
+    const buf = Buffer.from(await res.arrayBuffer());
+    return `data:${type};base64,${buf.toString("base64")}`;
+  } catch {
+    return null;
+  }
+}
+
 export default async function Image({ params }: { params: { slug: string } }) {
   const athlete = await getAthleteBySlug(params.slug);
   const sport = athlete ? getSport(athlete.sport) : undefined;
@@ -21,7 +41,8 @@ export default async function Image({ params }: { params: { slug: string } }) {
   const location = athlete
     ? [...new Set([athlete.city, athlete.province].filter(Boolean))].join(", ")
     : "";
-  const photo = athlete?.photo_url && /^https?:\/\//.test(athlete.photo_url) ? athlete.photo_url : null;
+  const rawPhoto = athlete?.photo_url && /^https?:\/\//.test(athlete.photo_url) ? athlete.photo_url : null;
+  const photo = rawPhoto ? await fetchAsDataUrl(rawPhoto) : null;
   const initials = name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
 
   return new ImageResponse(

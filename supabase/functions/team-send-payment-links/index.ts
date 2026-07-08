@@ -187,8 +187,8 @@ Deno.serve(async (req) => {
         marketplace_fee: fee,
         payer: { email: pledge.donor_email },
         back_urls: {
-          success: `${SITE_URL}/gracias?kind=team&slug=${encodeURIComponent(team.slug ?? "")}&amount=${amt}&mp=ok`,
-          pending: `${SITE_URL}/gracias?kind=team&slug=${encodeURIComponent(team.slug ?? "")}&amount=${amt}&mp=pending`,
+          success: `${SITE_URL}/gracias?kind=campaign&slug=${encodeURIComponent(team.slug ?? "")}&name=${encodeURIComponent(team.team_name)}&amount=${amt}&mp=ok`,
+          pending: `${SITE_URL}/gracias?kind=campaign&slug=${encodeURIComponent(team.slug ?? "")}&name=${encodeURIComponent(team.team_name)}&amount=${amt}&mp=pending`,
           failure: `${SITE_URL}/equipos/${encodeURIComponent(team.slug ?? "")}/?mp=error`,
         },
         auto_return: "approved",

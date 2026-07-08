@@ -22,6 +22,11 @@ function GraciasContent() {
   const perMonth = type === "monthly";
   const { net } = breakdown(amount);
 
+  // Campaña de equipo (crowdfunding de misión): el nombre viene en la URL
+  // porque el equipo no está en el seed local.
+  const isCampaign = kind === "campaign";
+  const campaignName = sp.get("name") ?? "";
+
   const athlete =
     kind === "athlete" && slug
       ? SEED_ATHLETES.find((a) => a.slug === slug) ?? null
@@ -32,10 +37,14 @@ function GraciasContent() {
   const targetName =
     kind === "all"
       ? `los ${split} atletas`
-      : kind === "team"
-        ? team?.name ?? "todo el equipo"
-        : athlete?.full_name ?? null;
+      : isCampaign
+        ? campaignName || "el equipo"
+        : kind === "team"
+          ? team?.name ?? "todo el equipo"
+          : athlete?.full_name ?? null;
 
+  // Las selecciones nacionales (kind=team) reparten entre jugadores; una campaña
+  // de equipo (kind=campaign) va a una sola cuenta, no se reparte.
   const isSplit = kind === "all" || kind === "team";
   const perEach = split > 0 ? net / split : net;
 
@@ -88,7 +97,7 @@ function GraciasContent() {
               />
             ) : (
               <Row
-                label={perMonth ? "El atleta recibe / mes" : "El atleta recibe (neto del 7%)"}
+                label={isCampaign ? "El equipo recibe (neto del 7%)" : perMonth ? "El atleta recibe / mes" : "El atleta recibe (neto del 7%)"}
                 value={formatMoney(net, { cents: true })}
                 accent
               />
@@ -99,7 +108,7 @@ function GraciasContent() {
           {/* Barra 93/7 */}
           <div className="mt-4">
             <div className="mb-1 flex items-center justify-between text-[13px]">
-              <span className="text-white/65">Para {isSplit ? "los atletas" : "el atleta"} <span className="text-white/45">(93%)</span></span>
+              <span className="text-white/65">Para {isSplit ? "los atletas" : isCampaign ? "el equipo" : "el atleta"} <span className="text-white/45">(93%)</span></span>
               <span className="font-display font-700 text-gold">{formatMoney(net, { cents: true })}</span>
             </div>
             <div
@@ -152,6 +161,14 @@ function GraciasContent() {
             className="rounded-md border border-white/25 px-6 py-3 font-display text-sm font-600 uppercase tracking-wide text-white transition-colors hover:border-white"
           >
             Volver al equipo
+          </Link>
+        )}
+        {isCampaign && slug && (
+          <Link
+            href={`/equipos/${slug}`}
+            className="rounded-md border border-white/25 px-6 py-3 font-display text-sm font-600 uppercase tracking-wide text-white transition-colors hover:border-white"
+          >
+            Volver a la campaña
           </Link>
         )}
         <Link

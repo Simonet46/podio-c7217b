@@ -123,7 +123,7 @@ export function AuthMenu() {
                 />
                 <RoleCard
                   title="Soy equipo"
-                  desc="Gestioná la cuenta de tu selección o equipo."
+                  desc="Armá o gestioná la campaña de tu equipo."
                   icon={<TeamIcon />}
                   onClick={() => pickRole("equipo")}
                 />
@@ -133,6 +133,36 @@ export function AuthMenu() {
                     Postulate
                   </Link>
                 </p>
+              </div>
+            ) : role === "equipo" ? (
+              // Los equipos todavía no tienen cuenta propia: su campaña la
+              // gestiona el equipo de GRANITO. Evitamos el login sin salida.
+              <div className="flex flex-col gap-4">
+                <p className="text-[14px] leading-relaxed text-white/70">
+                  Por ahora los equipos <strong className="text-white">no tienen una cuenta para ingresar</strong>.
+                  Tu campaña la gestionás junto al equipo de GRANITO: nos escribís y coordinamos
+                  objetivo, fechas y los cobros.
+                </p>
+                <Link
+                  href="/postulate"
+                  onClick={close}
+                  className="rounded-[10px] bg-gold py-[13px] text-center font-display text-[15px] font-600 uppercase tracking-wide text-ink"
+                >
+                  Postular mi equipo
+                </Link>
+                <a
+                  href="mailto:hola@somosgranito.com"
+                  className="text-center text-[13px] text-white/50 underline underline-offset-4 hover:text-white/80"
+                >
+                  Escribirnos a hola@somosgranito.com
+                </a>
+                <button
+                  type="button"
+                  onClick={() => { setStep("role"); setError(""); }}
+                  className="text-center text-[13px] text-white/40 underline underline-offset-4 hover:text-white/70"
+                >
+                  ← Volver
+                </button>
               </div>
             ) : forgotSent ? (
               <div
