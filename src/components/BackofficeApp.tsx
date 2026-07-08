@@ -645,32 +645,6 @@ export function BackofficeApp() {
     );
   }
 
-  /** Valida la campaña y dispara el cobro automático: la edge function crea
-   *  un link de pago de MP por cada compromiso (con el 7% de comisión) y se
-   *  lo envía por email a cada donante. El webhook los marca 'paid' al pagar. */
-  async function handleValidatePledges(team: TeamApp, pledges: TeamPledge[]) {
-    const supa = sb();
-    if (!supa) return;
-    if (!team.mp_connected) {
-      setToast(`${team.team_name} todavía no conectó su Mercado Pago. Conectalo primero (botón MP) para poder cobrar.`);
-      return;
-    }
-    const pending = pledges.filter((p) => p.status === "pledged" || p.status === "validated");
-    if (pending.length === 0) { setToast("No hay compromisos pendientes de cobro."); return; }
-    const total = pending.reduce((s, p) => s + p.amount, 0);
-    if (!confirm(`¿Validar la campaña de ${team.team_name}? Se genera un link de pago de Mercado Pago por cada compromiso (${pending.length} en total, ${formatMoney(total)}) y se le envía por email a cada donante. Los que ya tenían link reciben un recordatorio.`)) return;
-    setToast(`Generando links de pago y enviando emails a ${pending.length} donante(s)…`);
-    const { data, error } = await supa.functions.invoke("team-send-payment-links", {
-      body: { team_id: team.id },
-    });
-    if (error || data?.error) {
-      setToast("Error al enviar los links: " + (data?.error ?? error?.message ?? "desconocido"));
-      return;
-    }
-    setTeamPledges((prev) => prev.map((p) => p.team_id === team.id && p.status === "pledged" ? { ...p, status: "validated" } : p));
-    setToast(`✓ Campaña de ${team.team_name} validada: ${data.sent} email(s) con link de pago enviados${data.failed ? ` (${data.failed} fallaron — reintentá con el mismo botón)` : ""}. Los compromisos pasan a "Pagado" solos cuando cada donante paga.`);
-  }
-
   async function handleRejectTeam(team: TeamApp) {
     const supa = sb();
     if (!supa) return;
@@ -1034,7 +1008,6 @@ export function BackofficeApp() {
               loading={loadingList}
               onToggleActive={handleToggleTeamActive}
               onSave={handleSaveTeam}
-              onValidatePledges={handleValidatePledges}
               onConnectMp={genTeamMpLink}
             />
           )}
@@ -1639,7 +1612,6 @@ function EquiposSection({
   loading,
   onToggleActive,
   onSave,
-  onValidatePledges,
   onConnectMp,
 }: {
   teams: TeamApp[];
@@ -1647,7 +1619,6 @@ function EquiposSection({
   loading: boolean;
   onToggleActive: (t: TeamApp) => void;
   onSave: (t: TeamApp, patch: Partial<TeamApp>) => Promise<void>;
-  onValidatePledges: (t: TeamApp, pledges: TeamPledge[]) => Promise<void>;
   onConnectMp: (t: TeamApp) => void;
 }) {
   const [editing, setEditing] = useState<TeamApp | null>(null);
@@ -1655,15 +1626,16 @@ function EquiposSection({
   const approved = teams.filter((t) => t.status === "approved");
   const cols = "1.5fr .85fr 1.1fr .9fr 1fr 1fr .7fr .8fr";
 
-  function pledgedOf(teamId: string): { total: number; count: number } {
-    const list = pledges.filter((p) => p.team_id === teamId && p.status !== "cancelled");
+  // Recaudado real: donaciones acreditadas (status 'completed').
+  function raisedOf(teamId: string): { total: number; count: number } {
+    const list = pledges.filter((p) => p.team_id === teamId && p.status === "completed");
     return { total: list.reduce((s, p) => s + p.amount, 0), count: list.length };
   }
 
   return (
     <section style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, overflow: "hidden" }}>
       <div style={{ display: "grid", gridTemplateColumns: cols, gap: 12, padding: "13px 24px", borderBottom: `1px solid rgba(255,255,255,.06)` }}>
-        {["Equipo", "Deporte", "Competencia", "Objetivo", "Prometido", "Campaña", "Estado", "Cobros"].map((h, i) => (
+        {["Equipo", "Deporte", "Competencia", "Objetivo", "Recaudado", "Campaña", "Estado", "Cobros"].map((h, i) => (
           <span key={h} className="text-[11px] font-600 uppercase tracking-[.06em]" style={{ color: C.txtFaint, textAlign: i >= 3 ? "right" : "left" }}>{h}</span>
         ))}
       </div>
@@ -1674,7 +1646,7 @@ function EquiposSection({
         </div>
       )}
       {approved.map((t) => {
-        const pl = pledgedOf(t.id);
+        const pl = raisedOf(t.id);
         const goal = t.goal_amount ?? 0;
         const pct = goal > 0 ? Math.round((pl.total / goal) * 100) : null;
         return (
@@ -1693,15 +1665,15 @@ function EquiposSection({
             <div className="text-right">
               <button
                 onClick={() => setViewingPledges(t)}
-                title="Ver los compromisos de aporte (nadie pagó todavía: se cobran al validar la campaña)"
+                title="Ver los aportes recibidos (van directo a la cuenta del equipo)"
                 className="rounded-[8px] px-2 py-1 text-right transition-opacity hover:opacity-75"
                 style={{ background: "transparent", border: "none", cursor: "pointer" }}
               >
-                <span className="font-display text-[14px] font-600 tabular-nums" style={{ color: pl.total > 0 ? C.celeste : C.txtDim }}>
+                <span className="font-display text-[14px] font-600 tabular-nums" style={{ color: pl.total > 0 ? C.gold : C.txtDim }}>
                   {formatMoney(pl.total)}
                 </span>
                 <span className="block text-[10px]" style={{ color: C.txtFaint }}>
-                  {pl.count} compromiso{pl.count === 1 ? "" : "s"}{pct !== null ? ` · ${pct}%` : ""}
+                  {pl.count} aporte{pl.count === 1 ? "" : "s"}{pct !== null ? ` · ${pct}%` : ""}
                 </span>
               </button>
             </div>
@@ -1731,7 +1703,7 @@ function EquiposSection({
               </button>
               {t.mp_connected ? (
                 <span
-                  title="El equipo ya conectó su Mercado Pago: al validar la campaña, los cobros van directo a su cuenta"
+                  title="El equipo conectó su Mercado Pago: los aportes van directo a su cuenta. La campaña ya es pública."
                   className="rounded-full px-2.5 py-[3px] font-display text-[10px] font-600 uppercase tracking-[.04em]"
                   style={{ background: "rgba(34,197,94,.14)", color: C.greenBright }}
                 >
@@ -1740,7 +1712,7 @@ function EquiposSection({
               ) : (
                 <button
                   onClick={() => onConnectMp(t)}
-                  title="Generar el link OAuth para que el equipo conecte su Mercado Pago (necesario para cobrar los compromisos)"
+                  title="Generar el link OAuth para que el equipo conecte su Mercado Pago (sin esto la campaña no se publica ni puede recibir aportes)"
                   className="rounded-full px-2.5 py-[4px] font-display text-[10px] font-600 uppercase tracking-[.04em] transition-colors"
                   style={{ background: "rgba(108,180,228,.12)", border: `1px solid rgba(108,180,228,.4)`, color: C.celeste, cursor: "pointer" }}
                 >
@@ -1755,53 +1727,35 @@ function EquiposSection({
         <TeamEditModal team={editing} onClose={() => setEditing(null)} onSave={onSave} />
       )}
       {viewingPledges && (
-        <TeamPledgesModal
+        <TeamDonationsModal
           team={viewingPledges}
           pledges={pledges.filter((p) => p.team_id === viewingPledges.id)}
           onClose={() => setViewingPledges(null)}
-          onValidate={onValidatePledges}
         />
       )}
     </section>
   );
 }
 
-// ── Modal de compromisos de una campaña (validación al cierre) ────────────
-function TeamPledgesModal({
+// ── Modal de aportes recibidos por una campaña (solo lectura) ─────────────
+function TeamDonationsModal({
   team,
   pledges,
   onClose,
-  onValidate,
 }: {
   team: TeamApp;
   pledges: TeamPledge[];
   onClose: () => void;
-  onValidate: (t: TeamApp, pledges: TeamPledge[]) => Promise<void>;
 }) {
-  const [busy, setBusy] = useState(false);
-  const activePledges = pledges.filter((p) => p.status !== "cancelled");
-  const total = activePledges.reduce((s, p) => s + p.amount, 0);
-  const paidTotal = pledges.filter((p) => p.status === "paid").reduce((s, p) => s + p.amount, 0);
-  // "Por cobrar": comprometidos sin validar + validados que aún no pagaron.
-  const collectable = pledges.filter((p) => p.status === "pledged" || p.status === "validated").length;
-  const ended = !!team.fundraising_end && new Date(team.fundraising_end + "T23:59:59") < new Date();
-
-  async function validate() {
-    setBusy(true);
-    await onValidate(team, pledges);
-    setBusy(false);
-  }
-
-  function copyEmails() {
-    const rows = activePledges.map((p) => `${p.donor_email}\t${p.donor_name ?? ""}\t${p.amount}`);
-    navigator.clipboard?.writeText(rows.join("\n"));
-  }
+  // Solo aportes reales acreditados (el resto son pendientes/fallidos de MP).
+  const completed = pledges.filter((p) => p.status === "completed");
+  const total = completed.reduce((s, p) => s + p.amount, 0);
 
   const badge: Record<string, { label: string; color: string }> = {
-    pledged: { label: "Comprometido", color: C.gold },
-    validated: { label: "Link enviado", color: C.celeste },
-    paid: { label: "Pagado ✓", color: C.greenBright },
-    cancelled: { label: "Cancelado", color: C.txtFaint as string },
+    completed: { label: "Acreditado ✓", color: C.greenBright },
+    pending: { label: "Pendiente", color: C.gold },
+    failed: { label: "Falló", color: C.redBright },
+    refunded: { label: "Reembolsado", color: C.txtFaint as string },
   };
 
   return (
@@ -1816,42 +1770,27 @@ function TeamPledgesModal({
       >
         <div className="mb-1 flex items-center justify-between">
           <h2 className="font-display text-[19px] font-700 uppercase leading-none tracking-tight text-white">
-            Compromisos · {team.team_name}
+            Aportes · {team.team_name}
           </h2>
           <button onClick={onClose} className="text-[22px] leading-none text-white/40 hover:text-white/80">✕</button>
         </div>
         <p className="mb-4 text-[13px] leading-relaxed" style={{ color: C.txtDim }}>
-          <strong style={{ color: C.gold }}>{formatMoney(total)}</strong> comprometidos por {activePledges.length} persona{activePledges.length === 1 ? "" : "s"}
-          {paidTotal > 0 && (
-            <> · <strong style={{ color: C.greenBright }}>{formatMoney(paidTotal)} ya pagados</strong></>
-          )}.
-          {" "}Al validar, cada donante recibe por email su link de pago de Mercado Pago (el dinero va directo a la cuenta del equipo, menos el 7%).
+          <strong style={{ color: C.gold }}>{formatMoney(total)}</strong> recaudados de {completed.length} aporte{completed.length === 1 ? "" : "s"}.
+          El dinero va directo a la cuenta de Mercado Pago del equipo (el 93%; el 7% sostiene la plataforma).
         </p>
-
-        {!team.mp_connected && (
-          <p className="mb-4 rounded-[8px] p-3 text-[12px]" style={{ background: "rgba(223,0,36,.1)", border: "1px solid rgba(223,0,36,.3)", color: C.redBright }}>
-            El equipo todavía no conectó su Mercado Pago: no se pueden generar los links de cobro. Usá el botón "Conectar MP" de la fila del equipo.
-          </p>
-        )}
-
-        {!ended && collectable > 0 && (
-          <p className="mb-4 rounded-[8px] p-3 text-[12px]" style={{ background: "rgba(201,162,39,.1)", border: "1px solid rgba(201,162,39,.3)", color: "#e3c768" }}>
-            La campaña todavía no cerró{team.fundraising_end ? ` (cierra el ${team.fundraising_end})` : ""}. Podés validar igual, pero lo normal es esperar al fin del período.
-          </p>
-        )}
 
         {pledges.length === 0 ? (
           <div className="rounded-[12px] px-5 py-8 text-center text-[13px]" style={{ border: `1px dashed ${C.border}`, color: C.txtDim }}>
-            Todavía no hay compromisos para esta campaña.
+            Todavía no hay aportes para esta campaña.
           </div>
         ) : (
           <div className="flex flex-col">
             {pledges.map((p) => {
-              const b = badge[p.status] ?? badge.pledged;
+              const b = badge[p.status] ?? badge.pending;
               return (
                 <div key={p.id} className="flex items-center justify-between gap-3 border-b border-white/[.06] py-2.5 last:border-0">
                   <div className="min-w-0">
-                    <div className="truncate text-[13px] text-white/85">{p.donor_name || "Anónimo"} · <span style={{ color: C.celeste }}>{p.donor_email}</span></div>
+                    <div className="truncate text-[13px] text-white/85"><span style={{ color: C.celeste }}>{p.donor_email}</span></div>
                     <div className="text-[11px]" style={{ color: C.txtFaint }}>{timeAgo(p.created_at)}</div>
                   </div>
                   <div className="flex shrink-0 items-center gap-2.5">
@@ -1863,32 +1802,6 @@ function TeamPledgesModal({
                 </div>
               );
             })}
-          </div>
-        )}
-
-        {pledges.length > 0 && (
-          <div className="mt-5 flex gap-3">
-            <button
-              onClick={copyEmails}
-              className="flex-1 rounded-[10px] py-3 font-display text-[12px] font-600 uppercase tracking-wide"
-              style={{ border: "1px solid rgba(255,255,255,.15)", color: C.txtDim }}
-              title="Copia email, nombre y monto de cada compromiso (para enviar los links de pago)"
-            >
-              Copiar lista
-            </button>
-            <button
-              onClick={validate}
-              disabled={busy || collectable === 0 || !team.mp_connected}
-              className="flex-1 rounded-[10px] py-3 font-display text-[12px] font-600 uppercase tracking-wide text-white disabled:opacity-40"
-              style={{ background: C.green }}
-              title="Genera los links de pago de Mercado Pago y se los envía por email a los donantes"
-            >
-              {busy
-                ? "Enviando…"
-                : collectable === 0
-                  ? "Todo cobrado ✓"
-                  : `Validar y enviar ${collectable} link${collectable === 1 ? "" : "s"} de pago`}
-            </button>
           </div>
         )}
       </div>

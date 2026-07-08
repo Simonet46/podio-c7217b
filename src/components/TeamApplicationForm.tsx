@@ -20,6 +20,8 @@ export function TeamApplicationForm() {
   const [hasta, setHasta] = useState("");
   const [contacto, setContacto] = useState("");
   const [email, setEmail] = useState("");
+  const [objetivo, setObjetivo] = useState("");
+  const [proposito, setProposito] = useState("");
   const [notas, setNotas] = useState("");
   const [acepta, setAcepta] = useState(false);
   const [status, setStatus] = useState<"idle" | "loading" | "ok" | "error">("idle");
@@ -44,6 +46,8 @@ export function TeamApplicationForm() {
         competition: competencia || null,
         fundraising_start: desde || null,
         fundraising_end: hasta || null,
+        goal_amount: Number(objetivo) || 0,
+        goal_purpose: proposito || null,
         contact_name: contacto || null,
         email,
         notes: notas || null,
@@ -64,6 +68,7 @@ export function TeamApplicationForm() {
       deporte: deporteEfectivo,
       competencia,
       recaudacion: [desde, hasta].filter(Boolean).join(" → "),
+      objetivo: objetivo ? `$${objetivo} — ${proposito}` : proposito,
       contacto,
       email,
       notas,
@@ -139,8 +144,9 @@ export function TeamApplicationForm() {
         Postulá a tu equipo
       </h2>
       <p className="mb-6 text-[15px] text-white/60">
-        Contanos del equipo y cuándo querés correr la campaña. Lo revisamos a mano
-        y coordinamos el reparto entre los jugadores.
+        Contanos del equipo, tu objetivo y cuándo querés correr la campaña. Lo
+        revisamos a mano y, una vez aprobado, los aportes van directo a la cuenta
+        de Mercado Pago del equipo.
       </p>
 
       <div className="mb-[18px]">
@@ -232,6 +238,42 @@ export function TeamApplicationForm() {
               onChange={(e) => setHasta(e.target.value)}
               className={`${inputCls} mt-[7px]`}
               style={{ colorScheme: "dark" }}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Objetivo de recaudación */}
+      <div
+        className="mb-[18px] rounded-[12px] border border-white/[.08] p-[18px]"
+        style={{ background: "#0d2238" }}
+      >
+        <div className="mb-1 font-display text-[15px] font-600 uppercase tracking-wide">
+          Objetivo de recaudación
+        </div>
+        <p className="mb-4 text-[13px] leading-relaxed text-white/55">
+          ¿Cuánto necesitan juntar y para qué? El objetivo es una referencia
+          visual: aunque no se llegue, el equipo recibe todo lo recaudado.
+        </p>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label className={labelCls}>Monto a recaudar (ARS)</label>
+            <input
+              type="number"
+              min={0}
+              value={objetivo}
+              onChange={(e) => setObjetivo(e.target.value)}
+              placeholder="Ej: 500000"
+              className={`${inputCls} mt-[7px]`}
+            />
+          </div>
+          <div>
+            <label className={labelCls}>¿Para qué?</label>
+            <input
+              value={proposito}
+              onChange={(e) => setProposito(e.target.value)}
+              placeholder="Ej: pasajes al Mundial, indumentaria…"
+              className={`${inputCls} mt-[7px]`}
             />
           </div>
         </div>

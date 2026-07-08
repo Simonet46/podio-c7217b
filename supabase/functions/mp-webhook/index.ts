@@ -236,46 +236,64 @@ Deno.serve(async (req) => {
 
   const extRef = String(p.external_reference ?? "");
 
-  // ── Pago de un COMPROMISO de equipo: external_reference = "team:<pledge_id>" ──
-  // El dinero va a la cuenta MP del equipo; acá solo marcamos el compromiso
-  // como pagado y agradecemos al donante.
-  if (extRef.startsWith("team:")) {
-    const pledgeId = extRef.slice("team:".length);
-    if (p.status !== "approved") return json({ ok: true, team_pledge: pledgeId, status: p.status });
+  // ── Aporte DIRECTO a un equipo: external_reference = "teamdon:<team_id>" ──
+  // El dinero se debitó y fue directo a la cuenta MP del equipo (split 93/7).
+  // Registramos la donación en team_pledges (idempotente por mp_payment_id) y,
+  // cuando queda completada, agradecemos al donante.
+  if (extRef.startsWith("teamdon:")) {
+    const teamId = extRef.slice("teamdon:".length);
+    const amount = Number(p.transaction_amount ?? 0);
+    const payer = p.payer as { email?: string } | undefined;
+    const statusMap: Record<string, string> = {
+      approved: "completed", pending: "pending", in_process: "pending",
+      rejected: "failed", cancelled: "failed", refunded: "refunded", charged_back: "refunded",
+    };
+    const status = statusMap[p.status as string] ?? "pending";
 
-    const { data: pledge } = await supa
+    const { data: existing } = await supa
       .from("team_pledges")
-      .select("id, team_id, donor_email, donor_name, amount, status")
-      .eq("id", pledgeId)
+      .select("id, status")
+      .eq("mp_payment_id", String(p.id))
       .maybeSingle();
-    if (!pledge) return json({ ok: true, ignored: "compromiso_no_encontrado" });
 
-    const alreadyPaid = pledge.status === "paid";
-    await supa
-      .from("team_pledges")
-      .update({ status: "paid", mp_payment_id: String(p.id), paid_at: new Date().toISOString() })
-      .eq("id", pledgeId);
+    let justCompleted = false;
+    if (existing) {
+      if (existing.status !== status) {
+        await supa.from("team_pledges").update({ status, paid_at: status === "completed" ? new Date().toISOString() : null }).eq("id", existing.id);
+        justCompleted = existing.status !== "completed" && status === "completed";
+      }
+    } else {
+      const { error } = await supa.from("team_pledges").insert({
+        team_id: teamId,
+        donor_email: payer?.email ?? "sin-email@granito",
+        amount,
+        status,
+        mp_payment_id: String(p.id),
+        paid_at: status === "completed" ? new Date().toISOString() : null,
+      });
+      if (error) console.error("Insert donación de equipo falló (¿duplicado?):", error.message);
+      else justCompleted = status === "completed";
+    }
 
-    // Gracias al donante (una sola vez, con el estilo de los aportes a atletas).
-    if (!alreadyPaid && pledge.donor_email) {
+    if (justCompleted && payer?.email) {
       const { data: team } = await supa
         .from("team_applications")
         .select("team_name, slug")
-        .eq("id", pledge.team_id)
+        .eq("id", teamId)
         .maybeSingle();
       if (team) {
         await sendThankYou({
-          to: pledge.donor_email,
+          to: payer.email,
           athleteName: team.team_name,
           athleteSlug: team.slug ?? "",
           profileUrl: `${SITE_URL}/equipos/${encodeURIComponent(team.slug ?? "")}/`,
-          amount: Number(pledge.amount),
+          amount,
           message: null,
           monthly: false,
         });
       }
     }
-    return json({ ok: true, team_pledge: pledgeId, paid: true });
+    return json({ ok: true, team_donation: teamId, status });
   }
 
   // external_reference = "<athlete_id>:<type>"

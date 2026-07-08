@@ -155,9 +155,9 @@ export default async function TeamCampaignPage({
                     <p className="eyebrow text-celeste">Cómo funciona</p>
                     <div className="mt-4 flex flex-col gap-3">
                       {[
-                        ["01", "Comprometés tu aporte hoy", "Elegís el monto y dejás tu email. No pagás nada ahora."],
-                        ["02", "La campaña junta granitos", "El equipo suma compromisos hasta la fecha de cierre. El objetivo se puede superar."],
-                        ["03", "GRANITO valida y recién ahí pagás", "Al cierre revisamos la campaña. Si se valida, te llega el link de pago a tu email y el dinero va al equipo."],
+                        ["01", "Elegís el monto y aportás", "Tu aporte se debita al instante, con Mercado Pago. Sin vueltas."],
+                        ["02", "Va directo al equipo", "El 93% llega directo a la cuenta del equipo; el 7% sostiene la plataforma. No pasa por nosotros."],
+                        ["03", "El objetivo es una referencia", "La barra muestra cuánto va juntando. Aunque no llegue al objetivo, el equipo recibe todo lo recaudado."],
                       ].map(([n, t, b]) => (
                         <div
                           key={n}

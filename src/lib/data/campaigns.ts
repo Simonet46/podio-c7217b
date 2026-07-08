@@ -2,9 +2,10 @@ import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
 
 /**
  * Campañas de equipos (crowdfunding de misiones).
- * Lee la vista `public_teams`: solo equipos aprobados, sin datos de contacto,
- * con el total COMPROMETIDO agregado. El dinero no se cobra al aportar:
- * queda en standby hasta que GRANITO valida la campaña al finalizar.
+ * Lee la vista `public_teams`: solo equipos aprobados y con Mercado Pago
+ * conectado, con el total RECAUDADO agregado. El aporte se cobra al instante
+ * y va directo al equipo (igual que un atleta); el objetivo es solo una
+ * referencia visual: el dinero se entrega aunque no se llegue.
  */
 export interface TeamCampaign {
   id: string;
@@ -17,8 +18,8 @@ export interface TeamCampaign {
   fundraising_start: string | null;
   fundraising_end: string | null;
   active: boolean;
-  pledged_amount: number;
-  pledge_count: number;
+  raised_amount: number;
+  donor_count: number;
 }
 
 function normalize(row: Record<string, unknown>): TeamCampaign {
@@ -26,8 +27,8 @@ function normalize(row: Record<string, unknown>): TeamCampaign {
     ...(row as unknown as TeamCampaign),
     // numeric de Postgres llega como string por la API.
     goal_amount: Number(row.goal_amount) || 0,
-    pledged_amount: Number(row.pledged_amount) || 0,
-    pledge_count: Number(row.pledge_count) || 0,
+    raised_amount: Number(row.raised_amount) || 0,
+    donor_count: Number(row.donor_count) || 0,
   };
 }
 

@@ -27,9 +27,9 @@ export function CampaignBar({
   campaign: TeamCampaign;
   compact?: boolean;
 }) {
-  const { goal_amount: goal, pledged_amount: pledged } = campaign;
-  const pct = goal > 0 ? (pledged / goal) * 100 : 0;
-  const over = goal > 0 && pledged > goal;
+  const { goal_amount: goal, raised_amount: raised } = campaign;
+  const pct = goal > 0 ? (raised / goal) * 100 : 0;
+  const over = goal > 0 && raised > goal;
 
   return (
     <div>
@@ -38,10 +38,10 @@ export function CampaignBar({
           <span
             className={`font-display font-700 tabular-nums text-gold ${compact ? "text-[20px]" : "text-[26px]"}`}
           >
-            {formatMoney(pledged)}
+            {formatMoney(raised)}
           </span>
           <span className="ml-1.5 text-[12px] text-white/45">
-            comprometidos
+            recaudados
           </span>
         </div>
         {goal > 0 && (

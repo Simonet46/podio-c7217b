@@ -90,12 +90,12 @@ export default async function HomePage() {
                   </h2>
                   <p className="mx-auto mt-3 max-w-2xl text-white/60">
                     Equipos que necesitan llegar a un torneo, viajar o equiparse.
-                    Comprometé tu aporte hoy:{" "}
+                    Tu aporte va{" "}
                     <strong className="text-white/80">
-                      no se te cobra nada ahora
+                      directo al equipo
                     </strong>
-                    . El aporte se hace efectivo recién cuando la campaña termina
-                    y GRANITO la valida.
+                    , al instante. El objetivo es una referencia: aunque no se
+                    llegue, el equipo recibe todo lo recaudado.
                   </p>
                 </div>
               </Reveal>

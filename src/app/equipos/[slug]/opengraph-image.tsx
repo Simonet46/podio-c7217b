@@ -20,9 +20,9 @@ export default async function Image({ params }: { params: { slug: string } }) {
   const name = c?.team_name ?? "GRANITO";
   const color = c ? sportColorForTeam(c.sport) : "#6CB4E4";
   const goal = c?.goal_amount ?? 0;
-  const pledged = c?.pledged_amount ?? 0;
-  const pct = goal > 0 ? Math.min(Math.round((pledged / goal) * 100), 100) : 0;
-  const over = goal > 0 && pledged > goal;
+  const raised = c?.raised_amount ?? 0;
+  const pct = goal > 0 ? Math.min(Math.round((raised / goal) * 100), 100) : 0;
+  const over = goal > 0 && raised > goal;
   const initials = name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
 
   return new ImageResponse(
@@ -68,7 +68,7 @@ export default async function Image({ params }: { params: { slug: string } }) {
           {goal > 0 ? (
             <>
               <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
-                <div style={{ display: "flex", color: "#C9A227", fontSize: 40, fontWeight: 800 }}>{money(pledged)}</div>
+                <div style={{ display: "flex", color: "#C9A227", fontSize: 40, fontWeight: 800 }}>{money(raised)}</div>
                 <div style={{ display: "flex", color: "rgba(255,255,255,0.55)", fontSize: 26 }}>objetivo {money(goal)}</div>
               </div>
               <div style={{ display: "flex", width: "100%", height: 20, borderRadius: 999, background: "rgba(255,255,255,0.1)", marginTop: 14 }}>
