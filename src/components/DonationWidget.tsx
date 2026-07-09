@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { DonationType } from "@/lib/data/types";
 import { PRESET_AMOUNTS, PLATFORM_FEE_RATE } from "@/config/site";
 import { breakdown, formatMoney } from "@/lib/money";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
@@ -20,25 +19,21 @@ export interface DonationTarget {
 }
 
 export function DonationWidget({ target }: { target: DonationTarget }) {
-  const [type, setType] = useState<DonationType>("once");
   const [amount, setAmount] = useState<number>(PRESET_AMOUNTS.once[1]);
   const [custom, setCustom] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const presets = PRESET_AMOUNTS[type];
+  const presets = PRESET_AMOUNTS.once;
   const { fee, net } = breakdown(amount);
   const feePct = Math.round(PLATFORM_FEE_RATE * 100);
-  const perMonth = type === "monthly";
   const split = target.splitCount && target.splitCount > 0 ? target.splitCount : null;
   const perEach = split ? net / split : net;
 
   const cta = useMemo(() => {
     if (amount <= 0) return "Ingresá un monto";
-    return perMonth
-      ? `Aportar ${formatMoney(amount)} por mes`
-      : `Aportar ${formatMoney(amount)}`;
-  }, [amount, perMonth]);
+    return `Aportar ${formatMoney(amount)}`;
+  }, [amount]);
 
   function selectPreset(value: number) {
     setAmount(value);
@@ -49,12 +44,6 @@ export function DonationWidget({ target }: { target: DonationTarget }) {
     setCustom(raw);
     const parsed = parseFloat(raw);
     setAmount(Number.isFinite(parsed) && parsed > 0 ? parsed : 0);
-  }
-
-  function switchType(next: DonationType) {
-    setType(next);
-    setAmount(PRESET_AMOUNTS[next][1]);
-    setCustom("");
   }
 
   async function handleSubmit() {
@@ -69,7 +58,7 @@ export function DonationWidget({ target }: { target: DonationTarget }) {
         if (supabase) {
           const { data } = await supabase.functions.invoke(
             "mp-create-preference",
-            { body: { slug: target.slug, amount, type } },
+            { body: { slug: target.slug, amount, type: "once" } },
           );
           const url = data?.init_point ?? data?.sandbox_init_point;
           if (url) {
@@ -86,7 +75,7 @@ export function DonationWidget({ target }: { target: DonationTarget }) {
     const params = new URLSearchParams({
       kind: target.kind,
       amount: String(amount),
-      type,
+      type: "once",
     });
     if (target.slug) params.set("slug", target.slug);
     if (split) params.set("split", String(split));
@@ -108,32 +97,8 @@ export function DonationWidget({ target }: { target: DonationTarget }) {
           {target.title}
         </h2>
 
-        {/* Toggle único / mensual */}
-        <div
-          className="mt-4 grid grid-cols-2 rounded-lg p-1"
-          style={{ background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.1)" }}
-          role="tablist"
-          aria-label="Tipo de aporte"
-        >
-          {(["once", "monthly"] as const).map((t) => (
-            <button
-              key={t}
-              role="tab"
-              aria-selected={type === t}
-              onClick={() => switchType(t)}
-              className={`rounded-md py-2 font-display text-sm font-600 uppercase tracking-wide transition-colors ${
-                type === t
-                  ? "bg-gold text-ink"
-                  : "text-white/50 hover:text-white/80"
-              }`}
-            >
-              {t === "once" ? "Aporte único" : "Por mes"}
-            </button>
-          ))}
-        </div>
-
         {/* Montos preset */}
-        <div className="mt-4 grid grid-cols-3 gap-2">
+        <div className="mt-5 grid grid-cols-3 gap-2">
           {presets.map((value) => {
             const selected = !custom && amount === value;
             return (
@@ -157,11 +122,6 @@ export function DonationWidget({ target }: { target: DonationTarget }) {
                 }
               >
                 {formatMoney(value)}
-                {perMonth && (
-                  <span className="block text-[0.65rem] font-500 opacity-60">
-                    por mes
-                  </span>
-                )}
               </button>
             );
           })}
@@ -183,12 +143,9 @@ export function DonationWidget({ target }: { target: DonationTarget }) {
               value={custom}
               onChange={(e) => onCustom(e.target.value)}
               placeholder="0"
-              aria-label="Monto personalizado en dólares"
+              aria-label="Monto personalizado en pesos"
               className="w-full bg-transparent px-2 py-2.5 font-display text-lg text-white outline-none placeholder:text-white/25"
             />
-            {perMonth && (
-              <span className="font-display text-sm text-white/40">/ mes</span>
-            )}
           </div>
         </label>
 
@@ -211,14 +168,14 @@ export function DonationWidget({ target }: { target: DonationTarget }) {
                 value={formatMoney(net, { cents: true })}
               />
               <Row
-                label={perMonth ? "Cada uno recibe / mes" : "Cada uno recibe"}
+                label="Cada uno recibe"
                 value={formatMoney(perEach, { cents: true })}
                 strong
               />
             </>
           ) : (
             <Row
-              label={perMonth ? "El atleta recibe / mes" : "El atleta recibe"}
+              label="El atleta recibe"
               value={formatMoney(net, { cents: true })}
               strong
             />
