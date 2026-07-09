@@ -25,6 +25,12 @@ export function TeamApplicationForm() {
   const [notas, setNotas] = useState("");
   const [acepta, setAcepta] = useState(false);
   const [status, setStatus] = useState<"idle" | "loading" | "ok" | "error">("idle");
+  // Fotos: la primera es obligatoria, la segunda opcional.
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [photo2File, setPhoto2File] = useState<File | null>(null);
+  const [photo2Preview, setPhoto2Preview] = useState<string | null>(null);
+  const [fileMsg, setFileMsg] = useState("");
 
   const esOtro = deporte === "Otro";
   const deporteEfectivo = esOtro ? deporteOtro.trim() : deporte;
@@ -33,7 +39,37 @@ export function TeamApplicationForm() {
     email.trim() &&
     deporteEfectivo &&
     (!esOtro || deporteOtro.trim()) &&
+    photoFile &&
     acepta;
+
+  function pickPhoto(which: 1 | 2, e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0] ?? null;
+    setFileMsg("");
+    if (file && file.size > 5 * 1024 * 1024) {
+      setFileMsg("La imagen supera los 5 MB. Probá con una más liviana.");
+      e.target.value = "";
+      return;
+    }
+    const preview = file ? URL.createObjectURL(file) : null;
+    if (which === 1) { setPhotoFile(file); setPhotoPreview(preview); }
+    else { setPhoto2File(file); setPhoto2Preview(preview); }
+  }
+
+  /** Sube las fotos al bucket athlete-media (como anon, antes de aprobar). */
+  async function uploadPhotos(): Promise<{ photo_url: string | null; photo_secondary_url: string | null }> {
+    const supabase = await getSupabase();
+    if (!supabase) return { photo_url: null, photo_secondary_url: null };
+    async function up(file: File | null): Promise<string | null> {
+      if (!file) return null;
+      const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+      const path = `teams/${crypto.randomUUID()}.${ext}`;
+      const { error } = await supabase!.storage.from("athlete-media").upload(path, file, { contentType: file.type, upsert: false });
+      if (error) return null;
+      return supabase!.storage.from("athlete-media").getPublicUrl(path).data.publicUrl;
+    }
+    const [photo_url, photo_secondary_url] = await Promise.all([up(photoFile), up(photo2File)]);
+    return { photo_url, photo_secondary_url };
+  }
 
   /** Guarda la postulación y devuelve su id (para avisar por email), o null. */
   async function saveToSupabase(): Promise<string | null> {
@@ -44,6 +80,7 @@ export function TeamApplicationForm() {
       // Generamos el id en el cliente: anon no puede leerlo de vuelta tras el
       // insert (RLS), pero lo necesitamos para disparar el email de aviso.
       const id = crypto.randomUUID();
+      const { photo_url, photo_secondary_url } = await uploadPhotos();
       const { error } = await supabase.from("team_applications").insert({
         id,
         team_name: equipo,
@@ -53,6 +90,8 @@ export function TeamApplicationForm() {
         fundraising_end: hasta || null,
         goal_amount: Number(objetivo) || 0,
         goal_purpose: proposito || null,
+        photo_url,
+        photo_secondary_url,
         contact_name: contacto || null,
         email,
         notes: notas || null,
@@ -172,6 +211,42 @@ export function TeamApplicationForm() {
           placeholder="Ej: Selección Argentina de Handball"
           className={`${inputCls} mt-[7px]`}
         />
+      </div>
+
+      {/* Fotos del equipo */}
+      <div className="mb-[18px] rounded-[12px] border border-white/[.08] p-[18px]" style={{ background: "#0d2238" }}>
+        <div className="mb-1 font-display text-[15px] font-600 uppercase tracking-wide">
+          Fotos del equipo
+        </div>
+        <p className="mb-4 text-[13px] leading-relaxed text-white/55">
+          Al menos <strong className="text-white/80">una foto</strong> que represente al equipo (es
+          la que se ve en la campaña). Podés sumar una segunda, opcional.
+        </p>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {([1, 2] as const).map((n) => {
+            const preview = n === 1 ? photoPreview : photo2Preview;
+            return (
+              <label key={n} className="group relative flex aspect-[4/3] cursor-pointer items-center justify-center overflow-hidden rounded-[10px] border border-dashed border-white/25 text-center transition-colors hover:border-white/50" style={{ background: "rgba(255,255,255,.03)" }}>
+                {preview ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={preview} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  <span className="px-3 text-[13px] text-white/45">
+                    {n === 1 ? "Foto principal *" : "Foto secundaria (opcional)"}
+                    <span className="mt-1 block text-[11px] text-white/30">Tocá para subir · máx 5 MB</span>
+                  </span>
+                )}
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="hidden"
+                  onChange={(e) => pickPhoto(n, e)}
+                />
+              </label>
+            );
+          })}
+        </div>
+        {fileMsg && <p className="mt-3 text-[13px]" style={{ color: "#DF0024" }}>{fileMsg}</p>}
       </div>
 
       <div className="mb-[18px]">

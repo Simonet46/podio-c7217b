@@ -18,6 +18,8 @@ export interface TeamCampaign {
   fundraising_start: string | null;
   fundraising_end: string | null;
   active: boolean;
+  photo_url: string | null;
+  photo_secondary_url: string | null;
   raised_amount: number;
   donor_count: number;
 }

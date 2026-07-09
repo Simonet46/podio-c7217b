@@ -13,7 +13,7 @@ import {
   getTeamCampaigns,
   getTeamCampaignBySlug,
 } from "@/lib/data/campaigns";
-import { SITE } from "@/config/site";
+import { SITE, asset } from "@/config/site";
 
 export async function generateStaticParams() {
   const campaigns = await getTeamCampaigns();
@@ -87,16 +87,45 @@ export default async function TeamCampaignPage({
               ← Equipos en campaña
             </Link>
 
+            {/* Foto(s) de la campaña */}
+            {campaign.photo_url && (
+              <Reveal>
+                <div className={`mt-6 grid gap-3 ${campaign.photo_secondary_url ? "sm:grid-cols-[2fr_1fr]" : ""}`}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={asset(campaign.photo_url)}
+                    alt={campaign.team_name}
+                    className="h-[260px] w-full rounded-2xl object-cover sm:h-[340px]"
+                    style={{ border: "1px solid rgba(255,255,255,.08)" }}
+                  />
+                  {campaign.photo_secondary_url && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={asset(campaign.photo_secondary_url)}
+                      alt={campaign.team_name}
+                      className="hidden h-[340px] w-full rounded-2xl object-cover sm:block"
+                      style={{ border: "1px solid rgba(255,255,255,.08)" }}
+                    />
+                  )}
+                </div>
+              </Reveal>
+            )}
+
             <div className="mt-6 grid gap-10 lg:grid-cols-[1.25fr_1fr]">
               {/* ── Columna misión ── */}
               <div>
                 <Reveal>
                   <div className="flex items-center gap-5">
                     <div
-                      className="flex h-[84px] w-[84px] shrink-0 items-center justify-center rounded-[20px] font-display text-[30px] font-700"
+                      className="flex h-[84px] w-[84px] shrink-0 items-center justify-center overflow-hidden rounded-[20px] font-display text-[30px] font-700"
                       style={{ background: `${color}22`, border: `2px solid ${color}55`, color }}
                     >
-                      {initials}
+                      {campaign.photo_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={asset(campaign.photo_url)} alt="" className="h-full w-full object-cover" />
+                      ) : (
+                        initials
+                      )}
                     </div>
                     <div className="min-w-0">
                       <span
