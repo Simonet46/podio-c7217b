@@ -23,11 +23,15 @@ async function sendEmail(key: string, to: string[], subject: string, html: strin
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
       body: JSON.stringify({ from: FROM, to, subject, html }),
     });
-    if (!r.ok) console.error("Resend falló:", r.status, await r.text());
-    return r.ok;
+    if (!r.ok) {
+      const detail = await r.text();
+      console.error("Resend falló:", r.status, detail);
+      return { ok: false, status: r.status, detail: detail.slice(0, 300) };
+    }
+    return { ok: true, status: r.status };
   } catch (e) {
     console.error("Error mandando email:", e);
-    return false;
+    return { ok: false, status: 0, detail: String(e).slice(0, 300) };
   }
 }
 
@@ -103,6 +107,36 @@ function teamHtml(a: Record<string, unknown>): string {
 </table>`;
 }
 
+/** Aviso al equipo con los datos de la postulación de un EQUIPO. */
+function teamAppHtml(t: Record<string, unknown>): string {
+  const row = (label: string, value: unknown) =>
+    value ? `<tr><td style="padding:4px 12px 4px 0;color:#6b7a8c;font-size:13px">${label}</td><td style="padding:4px 0;color:#0A1A2F;font-size:13px;font-weight:600">${esc(String(value))}</td></tr>` : "";
+  const goal = Number(t.goal_amount) || 0;
+  const periodo = [t.fundraising_start, t.fundraising_end].filter(Boolean).map(String).join(" → ");
+  return `<table width="100%" cellpadding="0" cellspacing="0" style="font-family:Arial,Helvetica,sans-serif;padding:24px 16px;background:#f4f6f9">
+  <tr><td align="center"><table width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#fff;border:1px solid #e3e8ee;border-radius:12px;overflow:hidden">
+    <tr><td style="height:5px;background:linear-gradient(90deg,#0072CE 0 20%,#F4C300 20% 40%,#111 40% 60%,#009F3D 60% 80%,#DF0024 80% 100%)"></td></tr>
+    <tr><td style="padding:24px 26px">
+      <div style="font-size:12px;letter-spacing:2px;color:#C9A227;font-weight:bold">NUEVA POSTULACIÓN — EQUIPO</div>
+      <h1 style="font-size:22px;margin:6px 0 16px;color:#0A1A2F">${esc(String(t.team_name ?? "Sin nombre"))}</h1>
+      <table cellpadding="0" cellspacing="0" style="width:100%">
+        ${row("Email de contacto", t.email)}
+        ${row("Contacto", t.contact_name)}
+        ${row("Deporte", t.sport)}
+        ${row("Competencia", t.competition)}
+        ${row("Objetivo", goal ? `$${goal.toLocaleString("es-AR")}` : null)}
+        ${row("¿Para qué?", t.goal_purpose)}
+        ${row("Período de campaña", periodo)}
+        ${row("Notas", t.notes)}
+      </table>
+      <a href="${SITE_URL}/backoffice/" style="display:inline-block;margin-top:20px;background:#C9A227;color:#0A1A2F;font-weight:bold;font-size:14px;padding:12px 24px;border-radius:9px;text-decoration:none">
+        Revisar en el backoffice
+      </a>
+    </td></tr>
+  </table></td></tr>
+</table>`;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   if (req.method !== "POST") return json({ error: "Método no permitido" }, 405);
@@ -110,10 +144,38 @@ Deno.serve(async (req) => {
   const key = (Deno.env.get("RESEND_API_KEY") ?? "").trim();
   if (!key) return json({ ok: false, error: "Falta RESEND_API_KEY" });
 
-  const { application_id } = await req.json().catch(() => ({}));
-  if (!application_id) return json({ error: "Falta application_id." }, 400);
+  const body = await req.json().catch(() => ({}));
+  const { application_id, team_application_id } = body;
+  if (!application_id && !team_application_id) {
+    return json({ error: "Falta application_id o team_application_id." }, 400);
+  }
 
   const supa = serviceClient();
+  const team = (Deno.env.get("TEAM_EMAILS") ?? "appidisko@gmail.com")
+    .split(",").map((s) => s.trim()).filter(isEmail);
+
+  // ── Postulación de EQUIPO ──────────────────────────────────────────────
+  if (team_application_id) {
+    const { data: t } = await supa
+      .from("team_applications")
+      .select("team_name, email, contact_name, sport, competition, goal_amount, goal_purpose, fundraising_start, fundraising_end, notes")
+      .eq("id", team_application_id)
+      .maybeSingle();
+    if (!t) return json({ ok: false, error: "Postulación de equipo no encontrada." }, 404);
+
+    const teamResult = team.length
+      ? await sendEmail(key, team, `Nueva postulación de EQUIPO — ${t.team_name ?? "equipo"}`, teamAppHtml(t))
+      : { ok: false, status: 0, detail: "TEAM_EMAILS vacío" };
+
+    let contactResult: unknown = null;
+    if (isEmail(t.email as string)) {
+      const firstName = String(t.contact_name ?? t.team_name ?? "").split(" ")[0] || "crack";
+      contactResult = await sendEmail(key, [t.email as string], "Recibimos la postulación de tu equipo a GRANITO 🥇", applicantHtml(firstName, null));
+    }
+    return json({ ok: true, kind: "team", recipients: team, teamResult, contactResult });
+  }
+
+  // ── Postulación de ATLETA ──────────────────────────────────────────────
   const { data: app } = await supa
     .from("athlete_applications")
     .select("full_name, email, sport, discipline, age, location, next_competition, socials, mp_connected")
@@ -122,14 +184,13 @@ Deno.serve(async (req) => {
   if (!app) return json({ ok: false, error: "Postulación no encontrada." }, 404);
 
   // 1) Aviso al equipo (siempre).
-  const team = (Deno.env.get("TEAM_EMAILS") ?? "appidisko@gmail.com")
-    .split(",").map((s) => s.trim()).filter(isEmail);
-  if (team.length) {
-    await sendEmail(key, team, `Nueva postulación — ${app.full_name ?? "atleta"}`, teamHtml(app));
-  }
+  const teamResult = team.length
+    ? await sendEmail(key, team, `Nueva postulación — ${app.full_name ?? "atleta"}`, teamHtml(app))
+    : { ok: false, status: 0, detail: "TEAM_EMAILS vacío" };
 
   // 2) Confirmación al atleta (solo si el email es válido). Si no conectó MP,
   // incluimos el botón para hacerlo directo desde el email (link firmado, 30 días).
+  let applicantResult: unknown = null;
   if (isEmail(app.email as string)) {
     let mpUrl: string | null = null;
     if (!app.mp_connected) {
@@ -148,8 +209,8 @@ Deno.serve(async (req) => {
       }
     }
     const firstName = String(app.full_name ?? "").split(" ")[0] || "crack";
-    await sendEmail(key, [app.email as string], "Recibimos tu postulación a GRANITO 🥇", applicantHtml(firstName, mpUrl));
+    applicantResult = await sendEmail(key, [app.email as string], "Recibimos tu postulación a GRANITO 🥇", applicantHtml(firstName, mpUrl));
   }
 
-  return json({ ok: true });
+  return json({ ok: true, kind: "athlete", recipients: team, teamResult, applicantResult });
 });

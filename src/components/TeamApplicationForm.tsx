@@ -35,12 +35,17 @@ export function TeamApplicationForm() {
     (!esOtro || deporteOtro.trim()) &&
     acepta;
 
-  async function saveToSupabase(): Promise<boolean> {
-    if (!isSupabaseConfigured) return false;
+  /** Guarda la postulación y devuelve su id (para avisar por email), o null. */
+  async function saveToSupabase(): Promise<string | null> {
+    if (!isSupabaseConfigured) return null;
     try {
       const supabase = await getSupabase();
-      if (!supabase) return false;
+      if (!supabase) return null;
+      // Generamos el id en el cliente: anon no puede leerlo de vuelta tras el
+      // insert (RLS), pero lo necesitamos para disparar el email de aviso.
+      const id = crypto.randomUUID();
       const { error } = await supabase.from("team_applications").insert({
+        id,
         team_name: equipo,
         sport: deporteEfectivo,
         competition: competencia || null,
@@ -56,9 +61,18 @@ export function TeamApplicationForm() {
         terms_version: TERMS_VERSION,
         status: "pending",
       });
-      return !error;
+      if (error) return null;
+      // Aviso por email al equipo de GRANITO (y confirmación al contacto).
+      try {
+        await supabase.functions.invoke("notify-application", {
+          body: { team_application_id: id },
+        });
+      } catch {
+        // el email no debe frenar la postulación
+      }
+      return id;
     } catch {
-      return false;
+      return null;
     }
   }
 
@@ -100,8 +114,9 @@ export function TeamApplicationForm() {
   async function handleSubmit() {
     if (!valido || status === "loading") return;
     setStatus("loading");
-    const saved = await saveToSupabase();
-    if (saved) {
+    const savedId = await saveToSupabase();
+    if (savedId) {
+      // Fallback opcional (si hay web3forms configurado, además avisa por ahí).
       if (WEB3FORMS_ACCESS_KEY) void notifyByEmail();
       setStatus("ok");
       return;
