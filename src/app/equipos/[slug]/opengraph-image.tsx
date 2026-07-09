@@ -8,7 +8,10 @@ export const contentType = "image/png";
 
 export async function generateStaticParams() {
   const campaigns = await getTeamCampaigns();
-  return campaigns.map((c) => ({ slug: c.slug }));
+  const params = campaigns.map((c) => ({ slug: c.slug }));
+  // output: export exige al menos un param. Si no hay campañas, placeholder
+  // (la imagen cae al diseño por defecto de la marca). Sin esto, CI falla.
+  return params.length ? params : [{ slug: "__none__" }];
 }
 
 function money(n: number): string {

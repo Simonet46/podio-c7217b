@@ -17,7 +17,12 @@ import { SITE } from "@/config/site";
 
 export async function generateStaticParams() {
   const campaigns = await getTeamCampaigns();
-  return campaigns.map((c) => ({ slug: c.slug }));
+  const params = campaigns.map((c) => ({ slug: c.slug }));
+  // output: export NO admite una ruta dinámica con generateStaticParams vacío
+  // (tira "missing generateStaticParams"). Si todavía no hay campañas (ningún
+  // equipo con MP conectado), devolvemos un slug placeholder que la página
+  // resuelve con notFound(). Sin esto, el build de CI falla.
+  return params.length ? params : [{ slug: "__none__" }];
 }
 
 export async function generateMetadata({
