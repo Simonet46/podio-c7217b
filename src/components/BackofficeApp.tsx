@@ -79,6 +79,8 @@ type TeamApp = {
   slug: string | null;
   payment_mp: string | null;
   mp_connected: boolean | null;
+  photo_url: string | null;
+  photo_secondary_url: string | null;
 };
 
 /** Compromiso de aporte a un equipo: NO hay dinero cobrado, es una promesa.
@@ -1050,7 +1052,24 @@ export function BackofficeApp() {
           {active === "Novedades" && (
             <NovedadesSection
               items={athleteUpdates}
+              athletes={athletes}
               loading={loadingList}
+              onCreate={async (athleteId, title, body, imageUrl) => {
+                const supa = sb();
+                if (!supa) return;
+                const ath = athletes.find((a) => a.id === athleteId);
+                // La publica el equipo → nace aprobada (no necesita moderación).
+                const { data, error } = await supa
+                  .from("athlete_updates")
+                  .insert({ athlete_id: athleteId, title, body, image_url: imageUrl || null, status: "approved" })
+                  .select("id,athlete_id,title,body,image_url,status,admin_note,created_at")
+                  .maybeSingle();
+                if (error) { setToast("Error al crear la novedad: " + error.message); return; }
+                if (data) {
+                  setAthleteUpdates((prev) => [{ ...(data as AthleteUpdateRow), athlete_name: ath?.full_name ?? "Atleta" }, ...prev]);
+                }
+                setToast(`✓ Novedad creada para ${ath?.full_name ?? "el atleta"}. Tocá "Publicar ahora" para verla en su perfil.`);
+              }}
               onApprove={async (item) => {
                 const supa = sb();
                 if (!supa) return;
@@ -1832,13 +1851,34 @@ function TeamEditModal({
     fundraising_start: team.fundraising_start ?? "",
     fundraising_end: team.fundraising_end ?? "",
     payment_mp: team.payment_mp ?? "",
+    photo_url: team.photo_url ?? "",
+    photo_secondary_url: team.photo_secondary_url ?? "",
     notes: team.notes ?? "",
   });
   const [busy, setBusy] = useState(false);
+  const [uploading, setUploading] = useState<1 | 2 | null>(null);
   const isPending = team.status === "pending";
 
   function set<K extends keyof typeof form>(k: K, v: string) {
     setForm((f) => ({ ...f, [k]: v }));
+  }
+
+  async function uploadPhoto(which: 1 | 2, file: File) {
+    if (uploading) return;
+    if (file.size > 5 * 1024 * 1024) return;
+    setUploading(which);
+    try {
+      const supa = sb();
+      if (!supa) return;
+      const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+      const path = `teams/${team.id}-${which}-${Date.now()}.${ext}`;
+      const { error } = await supa.storage.from("athlete-media").upload(path, file, { contentType: file.type, upsert: false });
+      if (error) return;
+      const url = supa.storage.from("athlete-media").getPublicUrl(path).data.publicUrl;
+      set(which === 1 ? "photo_url" : "photo_secondary_url", url);
+    } finally {
+      setUploading(null);
+    }
   }
 
   function buildPatch(): Partial<TeamApp> {
@@ -1854,6 +1894,8 @@ function TeamEditModal({
       fundraising_start: form.fundraising_start || null,
       fundraising_end: form.fundraising_end || null,
       payment_mp: form.payment_mp || null,
+      photo_url: form.photo_url || null,
+      photo_secondary_url: form.photo_secondary_url || null,
       notes: form.notes || null,
     };
     for (const k of Object.keys(map)) {
@@ -1898,6 +1940,28 @@ function TeamEditModal({
           <EditRow label="Nombre del equipo">
             <input value={form.team_name} onChange={(e) => set("team_name", e.target.value)} style={inputDark} />
           </EditRow>
+
+          <EditRow label="Fotos del equipo (la 1ª es la que se ve en la campaña)">
+            <div className="grid grid-cols-2 gap-3">
+              {([1, 2] as const).map((n) => {
+                const url = n === 1 ? form.photo_url : form.photo_secondary_url;
+                return (
+                  <label key={n} className="relative flex aspect-[4/3] cursor-pointer items-center justify-center overflow-hidden rounded-[10px] border border-dashed text-center" style={{ borderColor: "rgba(255,255,255,.25)", background: "rgba(255,255,255,.03)" }}>
+                    {url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={url} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                      <span className="px-2 text-[12px]" style={{ color: C.txtFaint }}>
+                        {uploading === n ? "Subiendo…" : n === 1 ? "Foto principal" : "Foto secundaria (opcional)"}
+                      </span>
+                    )}
+                    <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadPhoto(n, f); e.target.value = ""; }} />
+                  </label>
+                );
+              })}
+            </div>
+          </EditRow>
+
           <div className="grid grid-cols-2 gap-3">
             <EditRow label="Deporte">
               <input value={form.sport} onChange={(e) => set("sport", e.target.value)} style={inputDark} />
@@ -1953,7 +2017,7 @@ function TeamEditModal({
             </button>
             <button
               onClick={() => save(false)}
-              disabled={busy}
+              disabled={busy || uploading !== null}
               className="flex-1 rounded-[10px] py-3 font-display text-[13px] font-600 uppercase tracking-wide text-ink disabled:opacity-50"
               style={{ background: C.gold }}
             >
@@ -1962,7 +2026,7 @@ function TeamEditModal({
             {isPending && onApprove && (
               <button
                 onClick={() => save(true)}
-                disabled={busy}
+                disabled={busy || uploading !== null}
                 className="flex-1 rounded-[10px] py-3 font-display text-[13px] font-600 uppercase tracking-wide text-white disabled:opacity-50"
                 style={{ background: C.green }}
               >
@@ -3356,18 +3420,53 @@ function ChangeCard({
 
 function NovedadesSection({
   items,
+  athletes,
   loading,
+  onCreate,
   onApprove,
   onReject,
 }: {
   items: AthleteUpdateRow[];
+  athletes: AthleteRow[];
   loading: boolean;
+  onCreate: (athleteId: string, title: string, body: string, imageUrl: string) => Promise<void>;
   onApprove: (item: AthleteUpdateRow) => Promise<void>;
   onReject: (item: AthleteUpdateRow, note: string) => Promise<void>;
 }) {
   const [busy, setBusy] = useState<string | null>(null);
   const [rejectModal, setRejectModal] = useState<AthleteUpdateRow | null>(null);
   const [rejectNote, setRejectNote] = useState("");
+  // Alta de novedad por el equipo (nace aprobada).
+  const [nvAthlete, setNvAthlete] = useState("");
+  const [nvTitle, setNvTitle] = useState("");
+  const [nvBody, setNvBody] = useState("");
+  const [nvImage, setNvImage] = useState("");
+  const [nvUploading, setNvUploading] = useState(false);
+  const [nvBusy, setNvBusy] = useState(false);
+
+  async function uploadNvImage(file: File) {
+    if (nvUploading || file.size > 5 * 1024 * 1024) return;
+    setNvUploading(true);
+    try {
+      const supa = sb();
+      if (!supa) return;
+      const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+      const path = `updates/admin-${Date.now()}.${ext}`;
+      const { error } = await supa.storage.from("athlete-media").upload(path, file, { contentType: file.type, upsert: false });
+      if (error) return;
+      setNvImage(supa.storage.from("athlete-media").getPublicUrl(path).data.publicUrl);
+    } finally {
+      setNvUploading(false);
+    }
+  }
+
+  async function createNovedad() {
+    if (!nvAthlete || !nvTitle.trim() || !nvBody.trim() || nvBusy) return;
+    setNvBusy(true);
+    await onCreate(nvAthlete, nvTitle.trim(), nvBody.trim(), nvImage);
+    setNvBusy(false);
+    setNvTitle(""); setNvBody(""); setNvImage(""); setNvAthlete("");
+  }
 
   if (loading) {
     return <div className="py-16 text-center text-[14px]" style={{ color: C.txtDim }}>Cargando…</div>;
@@ -3391,9 +3490,44 @@ function NovedadesSection({
 
   return (
     <>
+      {/* Alta de novedad por el equipo de GRANITO (se publica aprobada). */}
+      <section className="mb-7 rounded-[14px] p-5" style={{ background: C.surface, border: `1px solid ${C.border}` }}>
+        <div className="mb-3 font-display text-[13px] font-600 uppercase tracking-[.08em]" style={{ color: C.gold }}>
+          Publicar una novedad
+        </div>
+        <div className="flex flex-col gap-3">
+          <select value={nvAthlete} onChange={(e) => setNvAthlete(e.target.value)} style={inputDark}>
+            <option value="" style={{ background: C.sidebar }}>— Elegí el atleta —</option>
+            {[...athletes].sort((a, b) => a.full_name.localeCompare(b.full_name)).map((a) => (
+              <option key={a.id} value={a.id} style={{ background: C.sidebar }}>{a.full_name}</option>
+            ))}
+          </select>
+          <input value={nvTitle} onChange={(e) => setNvTitle(e.target.value)} maxLength={90} placeholder="Título (ej: Ganó la clasificación nacional)" style={inputDark} />
+          <textarea value={nvBody} onChange={(e) => setNvBody(e.target.value)} rows={3} placeholder="Contá qué pasó…" style={{ ...inputDark, resize: "vertical" }} />
+          <div className="flex flex-wrap items-center gap-3">
+            <label className="cursor-pointer rounded-[9px] border px-4 py-2.5 font-display text-[12px] font-600 uppercase tracking-wide" style={{ borderColor: "rgba(255,255,255,.25)", color: "rgba(255,255,255,.8)" }}>
+              {nvUploading ? "Subiendo…" : nvImage ? "Cambiar foto" : "Agregar foto"}
+              <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadNvImage(f); e.target.value = ""; }} />
+            </label>
+            {nvImage && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={nvImage} alt="" className="h-11 w-11 rounded-lg object-cover" />
+            )}
+            <button
+              onClick={createNovedad}
+              disabled={!nvAthlete || !nvTitle.trim() || !nvBody.trim() || nvBusy || nvUploading}
+              className="ml-auto rounded-[10px] px-5 py-2.5 font-display text-[13px] font-600 uppercase tracking-wide text-ink disabled:opacity-40"
+              style={{ background: C.gold }}
+            >
+              {nvBusy ? "Publicando…" : "Publicar novedad"}
+            </button>
+          </div>
+        </div>
+      </section>
+
       {pending.length === 0 && reviewed.length === 0 && (
-        <div className="py-20 text-center text-[15px]" style={{ color: C.txtDim }}>
-          Ningún atleta publicó novedades todavía.
+        <div className="py-10 text-center text-[14px]" style={{ color: C.txtDim }}>
+          Todavía no hay novedades enviadas por atletas.
         </div>
       )}
 

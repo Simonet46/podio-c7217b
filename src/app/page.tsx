@@ -7,7 +7,7 @@ import { CoverBand } from "@/components/CoverBand";
 import { HomeHero, type HeroAthlete } from "@/components/HomeHero";
 import { getAthletes, getTeams, getAllAthletes, getGlobalStats } from "@/lib/data/athletes";
 import { getTeamCampaigns } from "@/lib/data/campaigns";
-import { TeamCampaignCard } from "@/components/TeamCampaignCard";
+import { TeamCampaignCard, sportColorForTeam } from "@/components/TeamCampaignCard";
 import { getSport } from "@/config/sports";
 import { formatMoney } from "@/lib/money";
 import { asset, SITE } from "@/config/site";
@@ -23,20 +23,31 @@ export default async function HomePage() {
   const campaigns = await getTeamCampaigns();
   const { athleteCount, sportCount, totalRaised } = await getGlobalStats();
 
-  // Atletas destacados del hero: los 3 con más recaudado (con foto si tienen).
-  const featured: HeroAthlete[] = [...athletes]
-    .sort((a, b) => b.raised_amount - a.raised_amount)
-    .slice(0, 6)
-    .map((a) => ({
-      slug: a.slug,
-      name: a.full_name,
-      firstName: a.first_name,
-      sportLabel: getSport(a.sport)?.label ?? a.sport,
-      color: getSport(a.sport)?.color ?? "#1E6E8C",
-      location: `${a.city}, ${a.province}`,
-      nextCompetition: a.next_competition ?? null,
-      photo: a.photo_url,
-    }));
+  // Desfile del hero: atletas + equipos en campaña. El orden se mezcla en el
+  // cliente en cada visita (no siempre el mismo primero).
+  const heroAthletes: HeroAthlete[] = athletes.map((a) => ({
+    slug: a.slug,
+    name: a.full_name,
+    firstName: a.first_name,
+    sportLabel: getSport(a.sport)?.label ?? a.sport,
+    color: getSport(a.sport)?.color ?? "#1E6E8C",
+    location: `${a.city}, ${a.province}`,
+    nextCompetition: a.next_competition ?? null,
+    photo: a.photo_url,
+    href: `/atleta/${a.slug}`,
+  }));
+  const heroTeams: HeroAthlete[] = campaigns.map((c) => ({
+    slug: c.slug,
+    name: c.team_name,
+    firstName: c.team_name.split(" ")[0] || c.team_name,
+    sportLabel: c.sport,
+    color: sportColorForTeam(c.sport),
+    location: c.competition ?? "",
+    nextCompetition: c.competition ?? null,
+    photo: c.photo_url,
+    href: `/equipos/${c.slug}`,
+  }));
+  const featured: HeroAthlete[] = [...heroAthletes, ...heroTeams].slice(0, 9);
 
   return (
     <>

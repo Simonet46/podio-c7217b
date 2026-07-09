@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { asset } from "@/config/site";
@@ -15,16 +15,37 @@ export type HeroAthlete = {
   location: string;
   nextCompetition?: string | null;
   photo: string | null;
+  /** Adónde linkea (por defecto /atleta/slug; los equipos usan /equipos/slug). */
+  href?: string;
 };
 
-export function HomeHero({ featured }: { featured: HeroAthlete[] }) {
-  const [idx, setIdx] = useState(0);
-  if (!featured.length) return null;
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
 
-  const n = featured.length;
-  const center = featured[idx];
-  const left = n > 1 ? featured[(idx - 1 + n) % n] : null;
-  const right = n > 1 ? featured[(idx + 1) % n] : null;
+export function HomeHero({ featured }: { featured: HeroAthlete[] }) {
+  const [items, setItems] = useState<HeroAthlete[]>(featured);
+  const [idx, setIdx] = useState(0);
+  // Orden distinto en cada visita. Mezclamos en el cliente (no en el render)
+  // para no romper la hidratación: el primer pintado usa el orden del server
+  // y apenas monta, se reordena.
+  useEffect(() => {
+    setItems(shuffle(featured));
+    setIdx(0);
+  }, [featured]);
+
+  if (!items.length) return null;
+
+  const n = items.length;
+  const center = items[idx];
+  const left = n > 1 ? items[(idx - 1 + n) % n] : null;
+  const right = n > 1 ? items[(idx + 1) % n] : null;
+  const centerHref = center.href ?? `/atleta/${center.slug}`;
 
   const prev = () => setIdx((i) => (i - 1 + n) % n);
   const next = () => setIdx((i) => (i + 1) % n);
@@ -115,7 +136,7 @@ export function HomeHero({ featured }: { featured: HeroAthlete[] }) {
           {/* ── Card central — re-monta al cambiar idx → dispara hero-card-in ── */}
           <div className="hero-card-in relative z-10" key={center.slug}>
             <Link
-              href={`/atleta/${center.slug}`}
+              href={centerHref}
               className="group relative block h-[360px] w-[260px] overflow-hidden rounded-2xl shadow-[0_50px_110px_rgba(0,0,0,.6),0_0_0_1px_rgba(255,255,255,.08)] sm:h-[540px] sm:w-[400px]"
             >
               <PhotoOrMono athlete={center} priority />
@@ -183,7 +204,7 @@ export function HomeHero({ featured }: { featured: HeroAthlete[] }) {
 
             {/* Dots */}
             <div className="flex gap-1.5">
-              {featured.map((_, i) => (
+              {items.map((_, i) => (
                 <button
                   key={i}
                   onClick={() => setIdx(i)}
@@ -219,7 +240,7 @@ export function HomeHero({ featured }: { featured: HeroAthlete[] }) {
         {/* Dots — desktop */}
         {n > 1 && (
           <div className="mt-3 hidden items-center justify-center gap-1.5 lg:flex">
-            {featured.map((_, i) => (
+            {items.map((_, i) => (
               <button
                 key={i}
                 onClick={() => setIdx(i)}
@@ -235,7 +256,7 @@ export function HomeHero({ featured }: { featured: HeroAthlete[] }) {
         {/* ── CTA ── */}
         <div className="mt-8 text-center sm:mt-6">
           <Link
-            href={`/atleta/${center.slug}`}
+            href={centerHref}
             className="inline-block rounded-md bg-gold px-8 py-4 font-display text-base font-700 uppercase tracking-wide text-ink transition-transform hover:-translate-y-0.5"
           >
             Conocé la historia de {center.firstName}
