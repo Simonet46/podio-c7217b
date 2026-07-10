@@ -3,6 +3,7 @@ import { SITE } from "@/config/site";
 import { Ribbon } from "./Ribbon";
 import { Wordmark } from "./Wordmark";
 import { AuthMenu } from "./AuthMenu";
+import { MobileMenu } from "./MobileMenu";
 
 export function Header() {
   return (
@@ -51,15 +52,17 @@ export function Header() {
             </Link>
           </nav>
 
-          {/* CTA + Login */}
-          <div className="flex items-center gap-3">
+          {/* CTA + Login + hamburguesa (mobile) */}
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            {/* En pantallas chicas el CTA vive dentro del menú hamburguesa. */}
             <Link
               href="/#atletas"
-              className="rounded-md bg-gold px-4 py-2 font-display text-sm font-600 uppercase tracking-wide text-ink transition-transform hover:scale-[1.03]"
+              className="hidden rounded-md bg-gold px-4 py-2 font-display text-sm font-600 uppercase tracking-wide text-ink transition-transform hover:scale-[1.03] sm:inline-block"
             >
               Apoyar a un atleta
             </Link>
             <AuthMenu />
+            <MobileMenu />
           </div>
         </div>
       </div>
