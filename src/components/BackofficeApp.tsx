@@ -155,6 +155,18 @@ type AthleteUpdateRow = {
   created_at: string;
 };
 
+/** Novedad de una campaña de equipo (las crea el admin, nacen aprobadas). */
+type TeamUpdateRow = {
+  id: string;
+  team_id: string;
+  team_name: string;
+  title: string;
+  body: string;
+  image_url: string | null;
+  status: string;
+  created_at: string;
+};
+
 type Draft = {
   appId: string;
   email: string;
@@ -325,6 +337,7 @@ export function BackofficeApp() {
   const [mpModal, setMpModal] = useState<MpModalState>(null);
   const [profileChanges, setProfileChanges] = useState<ProfileChangeRequest[]>([]);
   const [athleteUpdates, setAthleteUpdates] = useState<AthleteUpdateRow[]>([]);
+  const [teamUpdates, setTeamUpdates] = useState<TeamUpdateRow[]>([]);
   const [donations, setDonations] = useState<AdminDonation[]>([]);
   // Modal "pedir más info" a un postulante (email vía Resend, sin mailto).
   const [infoModal, setInfoModal] = useState<Application | null>(null);
@@ -359,7 +372,7 @@ export function BackofficeApp() {
     const supa = sb();
     if (!supa) return;
     setLoadingList(true);
-    const [appsRes, athRes, teamRes, pledgesRes, changesRes, updatesRes, donationsRes] = await Promise.all([
+    const [appsRes, athRes, teamRes, pledgesRes, changesRes, updatesRes, teamUpdatesRes, donationsRes] = await Promise.all([
       supa.from("athlete_applications").select("*").order("created_at", { ascending: false }),
       supa.from("athletes").select("id,slug,full_name,first_name,sport,city,province,raised_amount,verified,mp_connected,dni,team,bio,next_competition,socials,supporter_message,photo_url").order("raised_amount", { ascending: false }),
       supa.from("team_applications").select("*").order("created_at", { ascending: false }),
@@ -371,6 +384,10 @@ export function BackofficeApp() {
       supa
         .from("athlete_updates")
         .select("id,athlete_id,title,body,image_url,status,admin_note,created_at,athletes(full_name)")
+        .order("created_at", { ascending: false }),
+      supa
+        .from("team_updates")
+        .select("id,team_id,title,body,image_url,status,created_at,team_applications(team_name)")
         .order("created_at", { ascending: false }),
       supa
         .from("donations")
@@ -397,6 +414,14 @@ export function BackofficeApp() {
         (updatesRes.data as unknown as Array<{ id: string; athlete_id: string; title: string; body: string; image_url: string | null; status: string; admin_note: string | null; created_at: string; athletes: { full_name: string } | null }>).map((r) => ({
           ...r,
           athlete_name: r.athletes?.full_name ?? "Atleta desconocido",
+        })),
+      );
+    }
+    if (!teamUpdatesRes.error && teamUpdatesRes.data) {
+      setTeamUpdates(
+        (teamUpdatesRes.data as unknown as Array<{ id: string; team_id: string; title: string; body: string; image_url: string | null; status: string; created_at: string; team_applications: { team_name: string } | null }>).map((r) => ({
+          ...r,
+          team_name: r.team_applications?.team_name ?? "Equipo desconocido",
         })),
       );
     }
@@ -1053,15 +1078,31 @@ export function BackofficeApp() {
             <NovedadesSection
               items={athleteUpdates}
               athletes={athletes}
+              teams={teamApps.filter((t) => t.status === "approved")}
+              teamItems={teamUpdates}
               loading={loadingList}
-              onCreate={async (athleteId, title, body, imageUrl) => {
+              onCreate={async (target, title, body, imageUrl) => {
                 const supa = sb();
                 if (!supa) return;
-                const ath = athletes.find((a) => a.id === athleteId);
-                // La publica el equipo → nace aprobada (no necesita moderación).
+                // La publica el equipo de GRANITO → nace aprobada (sin moderación).
+                if (target.kind === "team") {
+                  const tm = teamApps.find((t) => t.id === target.id);
+                  const { data, error } = await supa
+                    .from("team_updates")
+                    .insert({ team_id: target.id, title, body, image_url: imageUrl || null, status: "approved" })
+                    .select("id,team_id,title,body,image_url,status,created_at")
+                    .maybeSingle();
+                  if (error) { setToast("Error al crear la novedad: " + error.message); return; }
+                  if (data) {
+                    setTeamUpdates((prev) => [{ ...(data as TeamUpdateRow), team_name: tm?.team_name ?? "Equipo" }, ...prev]);
+                  }
+                  setToast(`✓ Novedad creada para ${tm?.team_name ?? "el equipo"}. Tocá "Publicar ahora" para verla en su campaña.`);
+                  return;
+                }
+                const ath = athletes.find((a) => a.id === target.id);
                 const { data, error } = await supa
                   .from("athlete_updates")
-                  .insert({ athlete_id: athleteId, title, body, image_url: imageUrl || null, status: "approved" })
+                  .insert({ athlete_id: target.id, title, body, image_url: imageUrl || null, status: "approved" })
                   .select("id,athlete_id,title,body,image_url,status,admin_note,created_at")
                   .maybeSingle();
                 if (error) { setToast("Error al crear la novedad: " + error.message); return; }
@@ -1069,6 +1110,15 @@ export function BackofficeApp() {
                   setAthleteUpdates((prev) => [{ ...(data as AthleteUpdateRow), athlete_name: ath?.full_name ?? "Atleta" }, ...prev]);
                 }
                 setToast(`✓ Novedad creada para ${ath?.full_name ?? "el atleta"}. Tocá "Publicar ahora" para verla en su perfil.`);
+              }}
+              onDeleteTeamUpdate={async (item) => {
+                const supa = sb();
+                if (!supa) return;
+                if (!confirm(`¿Borrar la novedad "${item.title}" de ${item.team_name}?`)) return;
+                const { error } = await supa.from("team_updates").delete().eq("id", item.id);
+                if (error) { setToast("Error al borrar: " + error.message); return; }
+                setTeamUpdates((prev) => prev.filter((u) => u.id !== item.id));
+                setToast(`Novedad de ${item.team_name} borrada. Tocá "Publicar ahora" para actualizar el sitio.`);
               }}
               onApprove={async (item) => {
                 const supa = sb();
@@ -3421,23 +3471,30 @@ function ChangeCard({
 function NovedadesSection({
   items,
   athletes,
+  teams,
+  teamItems,
   loading,
   onCreate,
+  onDeleteTeamUpdate,
   onApprove,
   onReject,
 }: {
   items: AthleteUpdateRow[];
   athletes: AthleteRow[];
+  teams: TeamApp[];
+  teamItems: TeamUpdateRow[];
   loading: boolean;
-  onCreate: (athleteId: string, title: string, body: string, imageUrl: string) => Promise<void>;
+  onCreate: (target: { kind: "athlete" | "team"; id: string }, title: string, body: string, imageUrl: string) => Promise<void>;
+  onDeleteTeamUpdate: (item: TeamUpdateRow) => Promise<void>;
   onApprove: (item: AthleteUpdateRow) => Promise<void>;
   onReject: (item: AthleteUpdateRow, note: string) => Promise<void>;
 }) {
   const [busy, setBusy] = useState<string | null>(null);
   const [rejectModal, setRejectModal] = useState<AthleteUpdateRow | null>(null);
   const [rejectNote, setRejectNote] = useState("");
-  // Alta de novedad por el equipo (nace aprobada).
-  const [nvAthlete, setNvAthlete] = useState("");
+  // Alta de novedad por el equipo de GRANITO (nace aprobada).
+  // El destino se codifica "a:<id>" (atleta) o "t:<id>" (equipo).
+  const [nvTarget, setNvTarget] = useState("");
   const [nvTitle, setNvTitle] = useState("");
   const [nvBody, setNvBody] = useState("");
   const [nvImage, setNvImage] = useState("");
@@ -3461,11 +3518,12 @@ function NovedadesSection({
   }
 
   async function createNovedad() {
-    if (!nvAthlete || !nvTitle.trim() || !nvBody.trim() || nvBusy) return;
+    if (!nvTarget || !nvTitle.trim() || !nvBody.trim() || nvBusy) return;
+    const [prefix, id] = nvTarget.split(":");
     setNvBusy(true);
-    await onCreate(nvAthlete, nvTitle.trim(), nvBody.trim(), nvImage);
+    await onCreate({ kind: prefix === "t" ? "team" : "athlete", id }, nvTitle.trim(), nvBody.trim(), nvImage);
     setNvBusy(false);
-    setNvTitle(""); setNvBody(""); setNvImage(""); setNvAthlete("");
+    setNvTitle(""); setNvBody(""); setNvImage(""); setNvTarget("");
   }
 
   if (loading) {
@@ -3496,11 +3554,18 @@ function NovedadesSection({
           Publicar una novedad
         </div>
         <div className="flex flex-col gap-3">
-          <select value={nvAthlete} onChange={(e) => setNvAthlete(e.target.value)} style={inputDark}>
-            <option value="" style={{ background: C.sidebar }}>— Elegí el atleta —</option>
-            {[...athletes].sort((a, b) => a.full_name.localeCompare(b.full_name)).map((a) => (
-              <option key={a.id} value={a.id} style={{ background: C.sidebar }}>{a.full_name}</option>
-            ))}
+          <select value={nvTarget} onChange={(e) => setNvTarget(e.target.value)} style={inputDark}>
+            <option value="" style={{ background: C.sidebar }}>— Elegí el atleta o equipo —</option>
+            <optgroup label="Atletas" style={{ background: C.sidebar }}>
+              {[...athletes].sort((a, b) => a.full_name.localeCompare(b.full_name)).map((a) => (
+                <option key={a.id} value={`a:${a.id}`} style={{ background: C.sidebar }}>{a.full_name}</option>
+              ))}
+            </optgroup>
+            <optgroup label="Equipos en campaña" style={{ background: C.sidebar }}>
+              {[...teams].sort((a, b) => a.team_name.localeCompare(b.team_name)).map((t) => (
+                <option key={t.id} value={`t:${t.id}`} style={{ background: C.sidebar }}>{t.team_name}</option>
+              ))}
+            </optgroup>
           </select>
           <input value={nvTitle} onChange={(e) => setNvTitle(e.target.value)} maxLength={90} placeholder="Título (ej: Ganó la clasificación nacional)" style={inputDark} />
           <textarea value={nvBody} onChange={(e) => setNvBody(e.target.value)} rows={3} placeholder="Contá qué pasó…" style={{ ...inputDark, resize: "vertical" }} />
@@ -3515,7 +3580,7 @@ function NovedadesSection({
             )}
             <button
               onClick={createNovedad}
-              disabled={!nvAthlete || !nvTitle.trim() || !nvBody.trim() || nvBusy || nvUploading}
+              disabled={!nvTarget || !nvTitle.trim() || !nvBody.trim() || nvBusy || nvUploading}
               className="ml-auto rounded-[10px] px-5 py-2.5 font-display text-[13px] font-600 uppercase tracking-wide text-ink disabled:opacity-40"
               style={{ background: C.gold }}
             >
@@ -3524,6 +3589,45 @@ function NovedadesSection({
           </div>
         </div>
       </section>
+
+      {/* Novedades de equipos publicadas (las gestiona el equipo de GRANITO) */}
+      {teamItems.length > 0 && (
+        <section className="mb-7">
+          <div className="mb-3 font-display text-[12px] font-600 uppercase tracking-[.1em]" style={{ color: C.celeste }}>
+            Novedades de equipos ({teamItems.length})
+          </div>
+          <div className="flex flex-col gap-2.5">
+            {teamItems.map((u) => (
+              <div key={u.id} className="flex items-start justify-between gap-3 rounded-[12px] p-4" style={{ background: C.surface, border: `1px solid ${C.border}` }}>
+                <div className="flex min-w-0 items-start gap-3">
+                  {u.image_url && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={u.image_url} alt="" className="h-12 w-12 shrink-0 rounded-lg object-cover" />
+                  )}
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="rounded-full px-2 py-0.5 font-display text-[9px] font-600 uppercase tracking-wide" style={{ background: "rgba(108,180,228,.14)", color: C.celeste }}>
+                        {u.team_name}
+                      </span>
+                      <span className="text-[11px]" style={{ color: C.txtFaint }}>{timeAgo(u.created_at)}</span>
+                    </div>
+                    <p className="mt-1 truncate text-[14px] font-600 text-white">{u.title}</p>
+                    <p className="mt-0.5 line-clamp-2 text-[12px] leading-relaxed" style={{ color: C.txtDim }}>{u.body}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => onDeleteTeamUpdate(u)}
+                  title="Borrar esta novedad"
+                  className="flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full text-[12px] transition-opacity hover:opacity-70"
+                  style={{ background: "rgba(223,0,36,.12)", color: C.redBright, border: "none", cursor: "pointer" }}
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {pending.length === 0 && reviewed.length === 0 && (
         <div className="py-10 text-center text-[14px]" style={{ color: C.txtDim }}>

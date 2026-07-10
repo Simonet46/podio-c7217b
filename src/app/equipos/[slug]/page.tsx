@@ -12,7 +12,9 @@ import {
 import {
   getTeamCampaigns,
   getTeamCampaignBySlug,
+  getTeamUpdates,
 } from "@/lib/data/campaigns";
+import { AthleteTimeline } from "@/components/AthleteTimeline";
 import { SITE, asset } from "@/config/site";
 
 export async function generateStaticParams() {
@@ -57,6 +59,7 @@ export default async function TeamCampaignPage({
   const campaign = await getTeamCampaignBySlug(params.slug);
   if (!campaign) notFound();
 
+  const updates = await getTeamUpdates(campaign.id);
   const color = sportColorForTeam(campaign.sport);
   const initials = campaign.team_name
     .split(" ")
@@ -208,6 +211,15 @@ export default async function TeamCampaignPage({
                     </div>
                   </div>
                 </Reveal>
+
+                {/* Novedades de la campaña (las publica el equipo de GRANITO) */}
+                {updates.length > 0 && (
+                  <Reveal>
+                    <div className="mt-12">
+                      <AthleteTimeline updates={updates} firstName={campaign.team_name} />
+                    </div>
+                  </Reveal>
+                )}
               </div>
 
               {/* ── Columna aporte ── */}

@@ -53,6 +53,30 @@ export async function getTeamCampaignBySlug(slug: string): Promise<TeamCampaign 
   return all.find((t) => t.slug === slug) ?? null;
 }
 
+/** Novedad publicada de una campaña de equipo (mismo shape que las de atleta,
+ *  así reusamos el componente de timeline). */
+export interface TeamUpdate {
+  id: string;
+  title: string;
+  body: string;
+  image_url: string | null;
+  created_at: string;
+}
+
+/** Novedades APROBADAS de un equipo. Vacío si no hay Supabase. */
+export async function getTeamUpdates(teamId: string): Promise<TeamUpdate[]> {
+  if (!isSupabaseConfigured) return [];
+  const supabase = await getSupabase();
+  if (!supabase) return [];
+  const { data } = await supabase
+    .from("team_updates")
+    .select("id,title,body,image_url,created_at")
+    .eq("team_id", teamId)
+    .eq("status", "approved")
+    .order("created_at", { ascending: false });
+  return (data as TeamUpdate[]) ?? [];
+}
+
 /** Días restantes de campaña (null si no tiene fecha de fin). */
 export function campaignDaysLeft(c: TeamCampaign): number | null {
   if (!c.fundraising_end) return null;
