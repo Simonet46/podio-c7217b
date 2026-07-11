@@ -7,9 +7,9 @@ import { TeamApplicationForm } from "@/components/TeamApplicationForm";
 import { SITE } from "@/config/site";
 
 export const metadata: Metadata = {
-  title: `Para equipos — ${SITE.brand}`,
+  title: `Proyectos deportivos — ${SITE.brand}`,
   description:
-    "Postulá a tu equipo para correr una campaña de apoyo. El aporte se reparte entre los jugadores. Cada caso lo revisamos a mano.",
+    "Postulá tu proyecto deportivo para correr una campaña de apoyo: un viaje, un torneo, materiales. Los aportes van directo a la cuenta del proyecto. Cada caso lo revisamos a mano.",
 };
 
 export default function ParaEquiposPage() {
@@ -31,15 +31,16 @@ export default function ParaEquiposPage() {
             <Reveal>
               <div className="mb-[22px] inline-flex items-center gap-2.5">
                 <span className="podio-pulse h-2 w-2 rounded-full bg-gold" aria-hidden />
-                <span className="eyebrow text-gold">Para equipos argentinos</span>
+                <span className="eyebrow text-gold">Proyectos deportivos argentinos</span>
               </div>
               <h1 className="font-display text-[54px] font-700 uppercase leading-[.92] tracking-tight sm:text-[68px]">
-                Todo el equipo,<br />
+                Tu proyecto,<br />
                 <span className="text-gold">una sola campaña</span>
               </h1>
               <p className="mx-auto mt-5 max-w-[560px] text-[19px] leading-relaxed text-white/72">
-                Postulá a tu equipo y la gente lo apoya. El aporte se reparte en
-                partes iguales entre los jugadores. El 93% va a ellos.
+                Postulá tu proyecto deportivo — un viaje, un torneo, materiales —
+                y la gente lo apoya. El 93% de cada aporte va directo a la cuenta
+                del proyecto.
               </p>
             </Reveal>
 
@@ -56,7 +57,7 @@ export default function ParaEquiposPage() {
                   className="rounded-full px-5 py-2.5 font-display text-[13px] font-600 uppercase tracking-wide text-ink"
                   style={{ background: "#C9A227" }}
                 >
-                  Somos un equipo
+                  Somos un proyecto
                 </span>
               </div>
             </Reveal>

@@ -87,7 +87,7 @@ export default async function TeamCampaignPage({
               href="/#equipos"
               className="text-[13px] text-white/40 transition-colors hover:text-white/70"
             >
-              ← Equipos en campaña
+              ← Proyectos deportivos
             </Link>
 
             {/* Foto(s) de la campaña */}

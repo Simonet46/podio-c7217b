@@ -89,7 +89,7 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* ───────── Equipos en campaña (crowdfunding de misiones) ───────── */}
+        {/* ───────── Proyectos deportivos en campaña ───────── */}
         {campaigns.length > 0 && (
           <section id="equipos" className="bg-ink text-white">
             <div className="mx-auto max-w-container px-4 py-16 sm:px-6">
@@ -97,16 +97,16 @@ export default async function HomePage() {
                 <div className="mb-3 text-center">
                   <p className="eyebrow text-celeste">Una misión concreta</p>
                   <h2 className="mt-2 font-display text-3xl font-700 uppercase tracking-tight text-white sm:text-4xl">
-                    Equipos en campaña
+                    Proyectos deportivos
                   </h2>
                   <p className="mx-auto mt-3 max-w-2xl text-white/60">
-                    Equipos que necesitan llegar a un torneo, viajar o equiparse.
-                    Tu aporte va{" "}
+                    Equipos y proyectos que necesitan llegar a un torneo, viajar
+                    o equiparse. Tu aporte va{" "}
                     <strong className="text-white/80">
-                      directo al equipo
+                      directo al proyecto
                     </strong>
                     , al instante. El objetivo es una referencia: aunque no se
-                    llegue, el equipo recibe todo lo recaudado.
+                    llegue, reciben todo lo recaudado.
                   </p>
                 </div>
               </Reveal>

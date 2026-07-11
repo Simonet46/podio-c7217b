@@ -8,7 +8,7 @@ import { SITE } from "@/config/site";
 export const metadata: Metadata = {
   title: `Postulate — ${SITE.brand}`,
   description:
-    "¿Sos atleta o tenés un equipo? Postulate a GRANITO y recibí el apoyo directo de la comunidad.",
+    "¿Sos atleta o tenés un proyecto deportivo? Postulate a GRANITO y recibí el apoyo directo de la comunidad.",
 };
 
 const OPTIONS = [
@@ -23,10 +23,10 @@ const OPTIONS = [
   {
     href: "/para-equipos",
     icon: "🛡️",
-    title: "Somos un equipo",
-    desc: "Armás una campaña con una misión concreta: un viaje, un torneo, materiales. La comunidad compromete aportes hasta la fecha de cierre.",
-    cta: "Postular mi equipo",
-    bullets: ["Campaña con objetivo y plazo", "Ideal para viajes y equipamiento", "El objetivo se puede superar"],
+    title: "Somos un proyecto deportivo",
+    desc: "Armás una campaña con una misión concreta: un viaje, un torneo, materiales. Los aportes van directo a la cuenta del proyecto.",
+    cta: "Postular mi proyecto",
+    bullets: ["Campaña con objetivo y plazo", "Ideal para viajes y equipamiento", "Recibís todo, aunque no llegues al objetivo"],
   },
 ] as const;
 
@@ -46,7 +46,7 @@ export default function PostulatePage() {
               <p className="eyebrow text-gold">Sumate a {SITE.brand}</p>
               <h1 className="mt-3 font-display text-4xl font-700 uppercase leading-[.95] tracking-tight sm:text-6xl">
                 ¿Sos atleta
-                <br />o un equipo?
+                <br />o un proyecto?
               </h1>
               <p className="mx-auto mt-4 max-w-xl text-lg leading-relaxed text-white/65">
                 Elegí tu camino. En los dos casos revisamos cada postulación a

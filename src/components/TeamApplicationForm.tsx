@@ -174,7 +174,7 @@ export function TeamApplicationForm() {
           ✓
         </div>
         <h2 className="font-display text-[40px] font-700 uppercase leading-none tracking-tight">
-          ¡Equipo postulado!
+          ¡Proyecto postulado!
         </h2>
         <p className="mx-auto mt-[14px] max-w-[460px] text-[17px] leading-relaxed text-white/70">
           Recibimos la postulación de <strong className="text-white">{equipo}</strong>.
@@ -195,12 +195,12 @@ export function TeamApplicationForm() {
   return (
     <section className="mx-auto max-w-[760px] px-4 pb-24 pt-[30px] sm:px-6">
       <h2 className="mb-2 font-display text-[32px] font-700 uppercase leading-none tracking-tight">
-        Postulá a tu equipo
+        Postulá tu proyecto deportivo
       </h2>
       <p className="mb-6 text-[15px] text-white/60">
-        Contanos del equipo, tu objetivo y cuándo querés correr la campaña. Lo
+        Contanos del proyecto, tu objetivo y cuándo querés correr la campaña. Lo
         revisamos a mano y, una vez aprobado, los aportes van directo a la cuenta
-        de Mercado Pago del equipo.
+        de Mercado Pago del proyecto.
       </p>
 
       <div className="mb-[18px]">
@@ -440,7 +440,7 @@ export function TeamApplicationForm() {
         className="w-full cursor-pointer rounded-[10px] border-0 bg-gold py-[16px] font-display text-[16px] font-600 uppercase tracking-wide text-ink transition-all hover:-translate-y-0.5 hover:bg-[#dcb433] disabled:opacity-50"
         style={{ boxShadow: "0 14px 34px rgba(201,162,39,.3)" }}
       >
-        {status === "loading" ? "Enviando…" : "Postular al equipo"}
+        {status === "loading" ? "Enviando…" : "Postular el proyecto"}
       </button>
     </section>
   );

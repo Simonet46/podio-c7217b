@@ -105,7 +105,7 @@ export function AuthMenu() {
             {/* Header del modal */}
             <div className="mb-5 flex items-center justify-between">
               <h2 className="font-display text-[22px] font-700 uppercase leading-none tracking-tight text-white">
-                {step === "role" ? "Ingresar" : role === "atleta" ? "Acceso atleta" : "Acceso equipo"}
+                {step === "role" ? "Ingresar" : role === "atleta" ? "Acceso atleta" : "Acceso proyecto"}
               </h2>
               <button onClick={close} className="text-[22px] leading-none text-white/40 hover:text-white/80" aria-label="Cerrar">
                 ✕
@@ -122,8 +122,8 @@ export function AuthMenu() {
                   onClick={() => pickRole("atleta")}
                 />
                 <RoleCard
-                  title="Soy equipo"
-                  desc="Armá o gestioná la campaña de tu equipo."
+                  title="Somos un proyecto deportivo"
+                  desc="Armá o gestioná la campaña de tu equipo o proyecto."
                   icon={<TeamIcon />}
                   onClick={() => pickRole("equipo")}
                 />
@@ -139,7 +139,7 @@ export function AuthMenu() {
               // gestiona el equipo de GRANITO. Evitamos el login sin salida.
               <div className="flex flex-col gap-4">
                 <p className="text-[14px] leading-relaxed text-white/70">
-                  Por ahora los equipos <strong className="text-white">no tienen una cuenta para ingresar</strong>.
+                  Por ahora los proyectos <strong className="text-white">no tienen una cuenta para ingresar</strong>.
                   Tu campaña la gestionás junto al equipo de GRANITO: nos escribís y coordinamos
                   objetivo, fechas y los cobros.
                 </p>
@@ -148,7 +148,7 @@ export function AuthMenu() {
                   onClick={close}
                   className="rounded-[10px] bg-gold py-[13px] text-center font-display text-[15px] font-600 uppercase tracking-wide text-ink"
                 >
-                  Postular mi equipo
+                  Postular mi proyecto
                 </Link>
                 <a
                   href="mailto:hola@somosgranito.com"

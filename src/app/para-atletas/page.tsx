@@ -74,7 +74,7 @@ export default function ParaAtletasPage() {
                   href="/para-equipos"
                   className="rounded-full px-5 py-2.5 font-display text-[13px] font-600 uppercase tracking-wide text-white/60 transition-colors hover:text-white"
                 >
-                  Somos un equipo
+                  Somos un proyecto
                 </Link>
               </div>
             </Reveal>

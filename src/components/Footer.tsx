@@ -38,7 +38,7 @@ export function Footer() {
               Transparencia
             </Link>
             <Link href="/postulate" className="text-gold hover:text-gold-soft">
-              ¿Sos atleta o equipo? Postulate
+              ¿Sos atleta o un proyecto? Postulate
             </Link>
             <Link href="/mi-perfil" className="text-gold hover:text-gold-soft">
               Ya soy atleta GRANITO

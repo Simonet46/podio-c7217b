@@ -45,7 +45,7 @@ export default async function Image({ params }: { params: { slug: string } }) {
             <span style={{ color: "#C9A227", fontSize: 38, fontWeight: 800, letterSpacing: 2 }}>O</span>
           </div>
           <div style={{ display: "flex", color: "#6CB4E4", fontSize: 22, fontWeight: 700, textTransform: "uppercase", letterSpacing: 3 }}>
-            Equipo en campaña
+            Proyecto deportivo
           </div>
         </div>
 

@@ -30,7 +30,7 @@ export function Header() {
               href="/#equipos"
               className="font-display text-sm uppercase tracking-wide text-white/75 transition-colors hover:text-white"
             >
-              Equipos
+              Proyectos deportivos
             </Link>
             <Link
               href="/quienes-somos"
@@ -42,7 +42,7 @@ export function Header() {
               href="/postulate"
               className="font-display text-sm uppercase tracking-wide text-gold transition-colors hover:text-gold-soft"
             >
-              ¿Sos atleta o equipo?
+              ¿Sos atleta o un proyecto?
             </Link>
             <Link
               href="/empresas"

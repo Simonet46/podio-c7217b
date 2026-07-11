@@ -7,7 +7,7 @@ import { Wordmark } from "./Wordmark";
 
 const LINKS = [
   { href: "/#atletas", label: "Atletas" },
-  { href: "/#equipos", label: "Equipos" },
+  { href: "/#equipos", label: "Proyectos deportivos" },
   { href: "/quienes-somos", label: "Quiénes somos" },
   { href: "/empresas", label: "Empresas" },
   { href: "/faq", label: "Preguntas frecuentes" },
@@ -90,7 +90,7 @@ export function MobileMenu() {
               onClick={close}
               className="rounded-lg px-3 py-4 font-display text-[22px] font-600 uppercase tracking-wide text-gold transition-colors hover:bg-white/[.05]"
             >
-              ¿Sos atleta o equipo?
+              ¿Sos atleta o un proyecto?
             </Link>
           </nav>
 
