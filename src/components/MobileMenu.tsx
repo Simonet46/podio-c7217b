@@ -40,7 +40,7 @@ export function MobileMenu() {
       <button
         onClick={() => setOpen(true)}
         aria-label="Abrir menú"
-        className="flex h-10 w-10 items-center justify-center rounded-md border border-white/20 text-white md:hidden"
+        className="flex h-10 w-10 items-center justify-center rounded-md border border-white/20 text-white lg:hidden"
       >
         <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" aria-hidden>
           <path d="M4 7h16M4 12h16M4 17h16" />
