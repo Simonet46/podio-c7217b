@@ -86,7 +86,7 @@ export function AuthMenu() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="flex items-center gap-2 rounded-md border border-gold px-4 py-2 font-display text-sm font-600 uppercase tracking-wide text-gold transition-colors hover:bg-gold hover:text-ink"
+        className="flex items-center gap-1.5 whitespace-nowrap px-1 py-2 font-display text-sm uppercase tracking-wide text-white/55 transition-colors hover:text-white"
       >
         <LoginIcon />
         Login

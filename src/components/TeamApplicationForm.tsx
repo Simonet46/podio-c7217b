@@ -5,6 +5,7 @@ import Link from "next/link";
 import { SPORT_LIST } from "@/config/sports";
 import { WEB3FORMS_ACCESS_KEY, APPLICATIONS_EMAIL, SITE } from "@/config/site";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
+import { PhoneField, buildPhone } from "./PhoneField";
 
 const inputCls =
   "w-full rounded-[10px] border border-white/[.14] bg-white/[.05] px-[15px] py-[13px] text-[15px] text-white outline-none placeholder:text-white/35 focus:border-white/40";
@@ -20,6 +21,8 @@ export function TeamApplicationForm() {
   const [hasta, setHasta] = useState("");
   const [contacto, setContacto] = useState("");
   const [email, setEmail] = useState("");
+  const [prefijo, setPrefijo] = useState("+54");
+  const [telefono, setTelefono] = useState("");
   const [objetivo, setObjetivo] = useState("");
   const [proposito, setProposito] = useState("");
   const [notas, setNotas] = useState("");
@@ -37,6 +40,7 @@ export function TeamApplicationForm() {
   const valido =
     equipo.trim() &&
     email.trim() &&
+    telefono.trim() &&
     deporteEfectivo &&
     (!esOtro || deporteOtro.trim()) &&
     photoFile &&
@@ -94,6 +98,7 @@ export function TeamApplicationForm() {
         photo_secondary_url,
         contact_name: contacto || null,
         email,
+        phone: buildPhone(prefijo, telefono) || null,
         notes: notas || null,
         accepted_terms: acepta,
         accepted_at: new Date().toISOString(),
@@ -124,6 +129,7 @@ export function TeamApplicationForm() {
       objetivo: objetivo ? `$${objetivo} — ${proposito}` : proposito,
       contacto,
       email,
+      telefono: buildPhone(prefijo, telefono),
       notas,
     };
     if (WEB3FORMS_ACCESS_KEY) {
@@ -389,6 +395,22 @@ export function TeamApplicationForm() {
             className={`${inputCls} mt-[7px]`}
           />
         </div>
+      </div>
+
+      <div className="mb-[18px]">
+        <label className={labelCls}>Teléfono de contacto (con WhatsApp si tenés)</label>
+        <div className="mt-[7px]">
+          <PhoneField
+            prefix={prefijo}
+            number={telefono}
+            onPrefix={setPrefijo}
+            onNumber={setTelefono}
+            inputClassName={inputCls}
+          />
+        </div>
+        <p className="mt-1.5 text-[12px] text-white/40">
+          Puede que te contactemos por acá para verificar la postulación.
+        </p>
       </div>
 
       <div className="mb-8">

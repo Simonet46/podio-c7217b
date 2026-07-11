@@ -5,6 +5,7 @@ import Link from "next/link";
 import { SPORT_LIST } from "@/config/sports";
 import { WEB3FORMS_ACCESS_KEY, APPLICATIONS_EMAIL, SITE } from "@/config/site";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
+import { PhoneField, buildPhone } from "./PhoneField";
 
 type Step = 1 | 2 | 3 | 4 | 5; // 5 = done
 
@@ -26,6 +27,8 @@ export function AthleteApplicationForm() {
   // Step 1
   const [nombre, setNombre] = useState("");
   const [email, setEmail] = useState("");
+  const [prefijo, setPrefijo] = useState("+54");
+  const [telefono, setTelefono] = useState("");
   const [edad, setEdad] = useState("");
   const [dni, setDni] = useState("");
   const [ciudad, setCiudad] = useState("");
@@ -178,6 +181,7 @@ export function AthleteApplicationForm() {
         discipline: esAtletismo ? disciplina || null : null,
         location: ciudad || null,
         email,
+        phone: buildPhone(prefijo, telefono) || null,
         age: edad ? Number(edad) : null,
         dni: dni || null,
         next_competition: nextComp,
@@ -211,6 +215,7 @@ export function AthleteApplicationForm() {
     const data = {
       nombre,
       email,
+      telefono: buildPhone(prefijo, telefono),
       edad,
       ciudad,
       deporte: deporteEfectivo,
@@ -515,6 +520,22 @@ export function AthleteApplicationForm() {
             </div>
           </div>
 
+          <div className="mb-[18px]">
+            <label className={labelCls}>Teléfono de contacto (con WhatsApp si tenés)</label>
+            <div className="mt-[7px]">
+              <PhoneField
+                prefix={prefijo}
+                number={telefono}
+                onPrefix={setPrefijo}
+                onNumber={setTelefono}
+                inputClassName={inputCls}
+              />
+            </div>
+            <p className="mt-1.5 text-[12px] text-white/40">
+              Puede que te contactemos por acá para verificar tu postulación.
+            </p>
+          </div>
+
           <div
             className="mb-6 grid gap-4"
             style={{ gridTemplateColumns: "160px 1fr" }}
@@ -616,7 +637,7 @@ export function AthleteApplicationForm() {
           {ctaBtn(
             "Continuar",
             () => go(2),
-            !nombre || !email || !deporte || (esOtro && !deporteOtro.trim()),
+            !nombre || !email || !telefono.trim() || !deporte || (esOtro && !deporteOtro.trim()),
           )}
         </section>
       )}

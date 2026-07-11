@@ -91,6 +91,7 @@ function teamHtml(a: Record<string, unknown>): string {
       <h1 style="font-size:22px;margin:6px 0 16px;color:#0A1A2F">${esc(String(a.full_name ?? "Sin nombre"))}</h1>
       <table cellpadding="0" cellspacing="0" style="width:100%">
         ${row("Email", a.email)}
+        ${row("Teléfono", a.phone)}
         ${row("Deporte", a.sport)}
         ${row("Disciplina", a.discipline)}
         ${row("Edad", a.age)}
@@ -122,6 +123,7 @@ function teamAppHtml(t: Record<string, unknown>): string {
       <table cellpadding="0" cellspacing="0" style="width:100%">
         ${row("Email de contacto", t.email)}
         ${row("Contacto", t.contact_name)}
+        ${row("Teléfono", t.phone)}
         ${row("Deporte", t.sport)}
         ${row("Competencia", t.competition)}
         ${row("Objetivo", goal ? `$${goal.toLocaleString("es-AR")}` : null)}
@@ -158,7 +160,7 @@ Deno.serve(async (req) => {
   if (team_application_id) {
     const { data: t } = await supa
       .from("team_applications")
-      .select("team_name, email, contact_name, sport, competition, goal_amount, goal_purpose, fundraising_start, fundraising_end, notes")
+      .select("team_name, email, contact_name, phone, sport, competition, goal_amount, goal_purpose, fundraising_start, fundraising_end, notes")
       .eq("id", team_application_id)
       .maybeSingle();
     if (!t) return json({ ok: false, error: "Postulación de equipo no encontrada." }, 404);
@@ -178,7 +180,7 @@ Deno.serve(async (req) => {
   // ── Postulación de ATLETA ──────────────────────────────────────────────
   const { data: app } = await supa
     .from("athlete_applications")
-    .select("full_name, email, sport, discipline, age, location, next_competition, socials, mp_connected")
+    .select("full_name, email, phone, sport, discipline, age, location, next_competition, socials, mp_connected")
     .eq("id", application_id)
     .maybeSingle();
   if (!app) return json({ ok: false, error: "Postulación no encontrada." }, 404);

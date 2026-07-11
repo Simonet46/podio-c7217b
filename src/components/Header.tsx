@@ -25,7 +25,9 @@ export function Header() {
             </span>
           </Link>
 
-          {/* Nav */}
+          {/* Nav — orden por intención: explorar (Atletas, Proyectos, Empresas)
+              → confianza (Quiénes somos) → conversión secundaria (Postulate).
+              Un solo dorado fuerte en el header: el CTA. */}
           <nav className="hidden items-center gap-6 lg:flex">
             <Link href="/#atletas" className={`${NAV_LINK} text-white/75 hover:text-white`}>
               Atletas
@@ -33,14 +35,14 @@ export function Header() {
             <Link href="/#equipos" className={`${NAV_LINK} text-white/75 hover:text-white`}>
               Proyectos deportivos
             </Link>
+            <Link href="/empresas" className={`${NAV_LINK} text-white/75 hover:text-white`}>
+              Empresas
+            </Link>
             <Link href="/quienes-somos" className={`${NAV_LINK} text-white/75 hover:text-white`}>
               Quiénes somos
             </Link>
-            <Link href="/postulate" className={`${NAV_LINK} text-gold hover:text-gold-soft`}>
-              ¿Sos atleta o un proyecto?
-            </Link>
-            <Link href="/empresas" className={`${NAV_LINK} text-white/75 hover:text-white`}>
-              Empresas
+            <Link href="/postulate" className={`${NAV_LINK} text-white/75 hover:text-white`}>
+              Postulate
             </Link>
           </nav>
 

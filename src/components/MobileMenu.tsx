@@ -5,12 +5,14 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import { Wordmark } from "./Wordmark";
 
+// Orden por intención: explorar → confianza → conversión (Postulate al final).
 const LINKS = [
   { href: "/#atletas", label: "Atletas" },
   { href: "/#equipos", label: "Proyectos deportivos" },
-  { href: "/quienes-somos", label: "Quiénes somos" },
   { href: "/empresas", label: "Empresas" },
+  { href: "/quienes-somos", label: "Quiénes somos" },
   { href: "/faq", label: "Preguntas frecuentes" },
+  { href: "/postulate", label: "Postulate" },
 ];
 
 /**
@@ -85,13 +87,6 @@ export function MobileMenu() {
                 {l.label}
               </Link>
             ))}
-            <Link
-              href="/postulate"
-              onClick={close}
-              className="rounded-lg px-3 py-4 font-display text-[22px] font-600 uppercase tracking-wide text-gold transition-colors hover:bg-white/[.05]"
-            >
-              ¿Sos atleta o un proyecto?
-            </Link>
           </nav>
 
           {/* CTA fija abajo */}
