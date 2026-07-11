@@ -303,7 +303,7 @@ const PAGE_META: Record<Section, { t: string; s: string }> = {
   Postulaciones: { t: "Postulaciones", s: "Revisá cada caso a mano, uno por uno" },
   Atletas: { t: "Atletas", s: "Atletas publicados en la plataforma" },
   Equipos: { t: "Equipos", s: "Equipos aprobados — objetivos, fechas y estado" },
-  Selecciones: { t: "Selecciones nacionales", s: "Los Gladiadores, Las Leonas y compañía — armá los planteles" },
+  Selecciones: { t: "Selecciones nacionales", s: "Armá los planteles de los equipos nacionales" },
   Cambios: { t: "Cambios de perfil", s: "Pedidos de edición enviados por atletas" },
   Novedades: { t: "Novedades", s: "Publicaciones que los atletas quieren mostrar en su perfil" },
   Aportes: { t: "Aportes", s: "Movimientos recientes" },
