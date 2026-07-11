@@ -46,12 +46,11 @@ const FAQS: { q: string; a: React.ReactNode }[] = [
     ),
   },
   {
-    q: "¿El dinero pasa por alguna federación o comité?",
+    q: "¿El dinero pasa por algún intermediario?",
     a: (
       <>
-        No. El aporte no pasa por ninguna federación, comité olímpico ni
-        confederación. Va directo a la cuenta de Mercado Pago o PayPal que el atleta
-        informó.
+        No. El aporte va directo a la cuenta de Mercado Pago o PayPal que el
+        atleta informó, sin intermediarios ni organismos de por medio.
       </>
     ),
   },

@@ -19,8 +19,8 @@ const BENEFITS = [
   {
     color: "#0072CE",
     icon: "🏃",
-    title: "Carreras, no campañas",
-    text: "Tu aporte le da tranquilidad a un atleta para entrenar, viajar y competir. No financiás publicidad: impulsás una carrera deportiva real.",
+    title: "Apoyás a todos los atletas",
+    text: "Tu marca impulsa a toda la comunidad de atletas argentinos de GRANITO. No financiás publicidad: sostenés carreras deportivas reales.",
   },
   {
     color: "#C9A227",
@@ -32,7 +32,7 @@ const BENEFITS = [
     color: "#009F3D",
     icon: "🔍",
     title: "Transparencia total",
-    text: "Sabés exactamente adónde va cada peso. Los aportes llegan directo al atleta y vos recibís informes claros del impacto que generás.",
+    text: "Sabés exactamente adónde va tu aporte. Sostenés la plataforma que impulsa a los atletas y recibís informes claros del impacto que generás.",
   },
 ];
 
@@ -72,13 +72,13 @@ const STEPS = [
   },
   {
     n: "02",
-    title: "Definimos juntos",
-    text: "Un atleta, una disciplina o un proyecto deportivo. El alcance lo elegís vos.",
+    title: "Firmamos el convenio",
+    text: "Tu empresa se suma como Empresa Impulsora de GRANITO: apoya a todos los atletas y aparece en nuestra web.",
   },
   {
     n: "03",
-    title: "Tu aporte llega directo",
-    text: "Sin intermediarios: el dinero va a la cuenta del atleta. Nosotros no custodiamos fondos.",
+    title: "Impulsás a toda la comunidad",
+    text: "Tu aporte sostiene la plataforma y potencia a todos los atletas argentinos que impulsamos.",
   },
   {
     n: "04",
@@ -369,13 +369,13 @@ export default async function EmpresasPage() {
                 </h2>
                 <p className="mt-4 text-[16px] leading-relaxed text-white/70">
                   Contanos de tu empresa y cómo te gustaría impulsar el deporte
-                  argentino. Armamos juntos la forma que mejor encaje — un
-                  atleta, una disciplina o un proyecto.
+                  argentino. Sumás tu marca como Empresa Impulsora de GRANITO:
+                  aparecés en nuestra web apoyando a todos los atletas.
                 </p>
                 <div className="mt-6 flex flex-col gap-3.5">
                   {[
                     "Respuesta del equipo fundador en 48 hs",
-                    "El aporte llega directo al atleta",
+                    "Tu marca visible como Empresa Impulsora",
                     "Informes de impacto y transparencia total",
                   ].map((item) => (
                     <div

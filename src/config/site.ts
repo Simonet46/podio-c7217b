@@ -70,7 +70,7 @@ export const PRESET_AMOUNTS = {
   monthly: [3000, 5000, 10000],
 } as const;
 
-/** Disclaimer legal (footer). NO afiliación con COI/COA ni federaciones. */
+/** Disclaimer legal (footer). Plataforma privada, sin nombrar organismos. */
 export const LEGAL_DISCLAIMER =
-  `${SITE.brand} es una plataforma independiente y no está afiliada al COI, al COA ` +
-  "ni a ningún organismo olímpico. No utilizamos símbolos ni marcas olímpicas.";
+  `${SITE.brand} es una plataforma privada e independiente. No representa ni está ` +
+  "afiliada a ninguna organización deportiva oficial, y no utiliza símbolos ni marcas de terceros.";

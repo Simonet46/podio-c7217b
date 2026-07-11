@@ -6,9 +6,9 @@ import { WEB3FORMS_ACCESS_KEY, APPLICATIONS_EMAIL, SITE } from "@/config/site";
 type Status = "idle" | "loading" | "ok" | "error";
 
 const OPCIONES = [
-  "Impulsar a un atleta",
-  "Impulsar una disciplina o proyecto deportivo",
-  "Impulsar a toda la comunidad GRANITO",
+  "Ser Empresa Impulsora de GRANITO",
+  "Apoyar a todos los atletas",
+  "Convenio o activación a medida",
   "Todavía no sé / quiero explorar",
 ];
 

@@ -119,7 +119,7 @@ function thankYouHtml(opts: {
           <td align="center" style="padding-top:20px">
             <p style="color:rgba(255,255,255,.35);font-size:11px;line-height:1.6;margin:0">
               GRANITO — Hecho en Argentina. Recibís este email porque hiciste un aporte en somosgranito.com.<br>
-              GRANITO es una plataforma independiente, no afiliada al COI ni al COA.
+              GRANITO es una plataforma privada e independiente.
             </p>
           </td>
         </tr>

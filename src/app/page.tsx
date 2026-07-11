@@ -154,7 +154,7 @@ export default async function HomePage() {
                   n="03"
                   numColor="text-[#009F3D]"
                   title="Directo al atleta"
-                  body="El aporte no pasa por ninguna federación, comité olímpico o confederación. Va directo a la cuenta de Mercado Pago o PayPal."
+                  body="El aporte no pasa por intermediarios ni organismos: va directo a la cuenta de Mercado Pago o PayPal del atleta."
                 />
               </Reveal>
             </div>

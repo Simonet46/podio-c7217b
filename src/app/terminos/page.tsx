@@ -49,7 +49,7 @@ export default function TerminosPage() {
             <Section n="2" title="Nuestro rol (y lo que no somos)">
               <p>
                 {SITE.brand} <strong>facilita la conexión y la difusión</strong>; no es un
-                club, una federación, ni un asesor financiero. No garantizamos resultados
+                club, una entidad deportiva, ni un asesor financiero. No garantizamos resultados
                 deportivos ni montos de recaudación. La relación de apoyo se da entre el
                 hincha y el atleta o equipo; {SITE.brand} provee la herramienta para que
                 eso ocurra de forma directa y transparente.
