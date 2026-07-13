@@ -32,6 +32,17 @@ function daysLabel(campaign: TeamCampaign): string {
  *  fila inferior  → % · recaudado (debajo de la manija)
  * El total puede superar el objetivo (manija al 100% + "¡superado!").
  */
+/** Porcentaje SIN mentir: con decimales cuando es chico, en vez de
+ *  redondear a 0% (ej: $1.000 sobre $8.000.000 → "0,01%"). */
+function pctLabel(pct: number): string {
+  if (pct <= 0) return "0%";
+  if (pct < 1)
+    return `${pct.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`;
+  if (pct < 10)
+    return `${pct.toLocaleString("es-AR", { maximumFractionDigits: 1 })}%`;
+  return `${Math.round(pct)}%`;
+}
+
 export function CampaignBar({
   campaign,
   compact,
@@ -55,6 +66,9 @@ export function CampaignBar({
 
   const pct = (raised / goal) * 100;
   const clamped = Math.min(pct, 100);
+  // Piso visual: si ya entró plata, la barra muestra al menos una astillita
+  // perceptible (el % de texto dice el número exacto, sin redondeos).
+  const visual = raised > 0 ? Math.max(clamped, 1.5) : 0;
   const over = raised > goal;
   const fill = over ? "linear-gradient(90deg,#C9A227,#6CB4E4)" : "#C9A227";
   const accent = over ? "#6CB4E4" : "#C9A227";
@@ -76,11 +90,11 @@ export function CampaignBar({
       <div className="relative mt-2.5 h-2.5 rounded-full" style={{ background: "rgba(255,255,255,.1)" }}>
         <div
           className="absolute inset-y-0 left-0 rounded-full transition-[width] duration-700"
-          style={{ width: `${clamped}%`, background: fill }}
+          style={{ width: `${visual}%`, background: fill }}
         />
         <div
           className="absolute top-1/2 h-[18px] w-[18px] -translate-x-1/2 -translate-y-1/2 rounded-full transition-[left] duration-700"
-          style={{ left: `${clamped}%`, background: "#0A1A2F", border: `4px solid ${accent}`, boxShadow: "0 2px 8px rgba(0,0,0,.5)" }}
+          style={{ left: `${visual}%`, background: "#0A1A2F", border: `4px solid ${accent}`, boxShadow: "0 2px 8px rgba(0,0,0,.5)" }}
           aria-hidden
         />
       </div>
@@ -88,7 +102,7 @@ export function CampaignBar({
       {/* % + recaudado bajo la manija */}
       <div className="relative mt-2 h-[20px]">
         <span className="absolute left-0 top-0 font-display text-[14px] font-700 tabular-nums" style={{ color: accent }}>
-          {Math.round(pct)}%
+          {pctLabel(pct)}
         </span>
         <span
           className="absolute top-0 -translate-x-1/2 font-display text-[14px] font-700 tabular-nums"

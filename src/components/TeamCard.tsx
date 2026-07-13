@@ -46,18 +46,26 @@ export function TeamCard({ team }: { team: Team }) {
         </div>
       </Link>
 
-      <div className="flex flex-1 flex-col p-4">
-        <h3 className="font-display text-xl font-600 leading-tight text-ink">
-          <Link href={`/equipo/${team.slug}`} className="hover:text-celeste-deep">
+      {/* Cuerpo con degradé azul oscuro → blanco (pedido de diseño):
+          el título vive en la zona oscura y el CTA en la clara. */}
+      <div
+        className="flex flex-1 flex-col p-4"
+        style={{
+          background:
+            "linear-gradient(180deg, #0d2238 0%, #2b4a6f 55%, #ffffff 100%)",
+        }}
+      >
+        <h3 className="font-display text-xl font-600 leading-tight text-white">
+          <Link href={`/equipo/${team.slug}`} className="hover:text-celeste">
             {team.name}
           </Link>
         </h3>
-        <p className="mt-0.5 text-sm text-steel">{team.discipline}</p>
+        <p className="mt-0.5 text-sm text-white/65">{team.discipline}</p>
 
         {team.raised_amount > 0 && (
           <div className="mt-4 text-right font-display leading-tight">
-            <span className="text-sm font-600 text-ink">{formatMoney(team.raised_amount)}</span>{" "}
-            <span className="text-sm text-steel">entre el plantel</span>
+            <span className="text-sm font-700 text-gold">{formatMoney(team.raised_amount)}</span>{" "}
+            <span className="text-sm text-white/75">entre el plantel</span>
           </div>
         )}
 

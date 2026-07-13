@@ -34,7 +34,6 @@ const ROTATE_MS = 3000;
 export function HomeHero({ featured }: { featured: HeroAthlete[] }) {
   const [items, setItems] = useState<HeroAthlete[]>(featured);
   const [idx, setIdx] = useState(0);
-  const [paused, setPaused] = useState(false);
   // Orden distinto en cada visita. Mezclamos en el cliente (no en el render)
   // para no romper la hidratación: el primer pintado usa el orden del server
   // y apenas monta, se reordena.
@@ -45,13 +44,12 @@ export function HomeHero({ featured }: { featured: HeroAthlete[] }) {
 
   const n = items.length;
 
-  // Desfile automático: avanza solo; se pausa con el mouse encima (para que
-  // nadie pierda la card que estaba mirando).
+  // Desfile automático: avanza SIEMPRE, incluso con el mouse encima.
   useEffect(() => {
-    if (n < 2 || paused) return;
+    if (n < 2) return;
     const t = setInterval(() => setIdx((i) => (i + 1) % n), ROTATE_MS);
     return () => clearInterval(t);
-  }, [n, paused]);
+  }, [n]);
 
   if (!items.length) return null;
 
@@ -67,11 +65,7 @@ export function HomeHero({ featured }: { featured: HeroAthlete[] }) {
   const next = () => setIdx((i) => (i + 1) % n);
 
   return (
-    <section
-      className={`relative overflow-hidden bg-ink text-white ${paused ? "hero-paused" : ""}`}
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-    >
+    <section className="relative overflow-hidden bg-ink text-white">
       {/* Glow celeste/dorado */}
       <div
         className="pointer-events-none absolute left-1/2 top-[-160px] h-[700px] w-[900px] -translate-x-1/2"

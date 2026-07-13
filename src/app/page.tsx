@@ -5,11 +5,10 @@ import { Footer } from "@/components/Footer";
 import { AthleteGrid } from "@/components/AthleteGrid";
 import { CoverBand } from "@/components/CoverBand";
 import { HomeHero, type HeroAthlete } from "@/components/HomeHero";
-import { getAthletes, getTeams, getAllAthletes, getGlobalStats } from "@/lib/data/athletes";
+import { getAthletes, getTeams, getAllAthletes } from "@/lib/data/athletes";
 import { getTeamCampaigns } from "@/lib/data/campaigns";
 import { TeamCampaignCard, sportColorForTeam } from "@/components/TeamCampaignCard";
 import { getSport } from "@/config/sports";
-import { formatMoney } from "@/lib/money";
 import { asset, SITE } from "@/config/site";
 import { Reveal } from "@/components/Reveal";
 
@@ -21,7 +20,6 @@ export default async function HomePage() {
   // (las vacías existen y son accesibles, pero no ensucian la portada).
   const teams = allTeams.filter((t) => allAth.some((a) => a.team === t.slug));
   const campaigns = await getTeamCampaigns();
-  const { athleteCount, sportCount, totalRaised } = await getGlobalStats();
 
   // Desfile del hero: atletas + equipos en campaña. El orden se mezcla en el
   // cliente en cada visita (no siempre el mismo primero).
@@ -47,7 +45,12 @@ export default async function HomePage() {
     photo: c.photo_url,
     href: `/equipos/${c.slug}`,
   }));
-  const featured: HeroAthlete[] = [...heroAthletes, ...heroTeams].slice(0, 9);
+  // Atletas Y proyectos deportivos en el desfile: cupo para cada grupo, así
+  // los proyectos nunca quedan afuera por cantidad de atletas.
+  const featured: HeroAthlete[] = [
+    ...heroAthletes.slice(0, 8),
+    ...heroTeams.slice(0, 4),
+  ];
 
   return (
     <>
@@ -80,23 +83,6 @@ export default async function HomePage() {
                 title="Cada perfil, revisado a mano"
                 text="Nada se publica sin que lo veamos"
               />
-            </div>
-          </div>
-        </section>
-
-        {/* ───────── Franja de stats: credenciales que ya son enormes ─────────
-            El recaudado se muestra recién cuando es un número que impresiona
-            (umbral) — un monto chico en la portada juega en contra. */}
-        <section className="bg-ink text-white">
-          <div className="mx-auto max-w-container px-4 sm:px-6">
-            <div className="flex flex-wrap gap-8 py-8 sm:gap-12">
-              <Stat value={String(athleteCount)} label="Atletas en campaña" />
-              <Stat value="3" label="Fundadores olímpicos" />
-              <Stat value="6" label="Juegos Olímpicos disputados" />
-              <Stat value="1" label="Champions League ganada" />
-              {totalRaised >= 500_000 && (
-                <Stat value={formatMoney(totalRaised)} label="Aportado a la fecha" />
-              )}
             </div>
           </div>
         </section>
@@ -360,17 +346,6 @@ function HandIcon() {
       <path d="M7 11V6.5a1.5 1.5 0 013 0V11m0-5.5v-1a1.5 1.5 0 013 0V11m0-5a1.5 1.5 0 013 0V13" />
       <path d="M16 12.5a1.5 1.5 0 013 0V15a7 7 0 01-7 7h-1a7 7 0 01-7-7v-2.5a1.5 1.5 0 013 0" />
     </svg>
-  );
-}
-
-function Stat({ value, label }: { value: string; label: string }) {
-  return (
-    <div>
-      <div className="font-display text-3xl font-700 tabular-nums text-gold sm:text-4xl">
-        {value}
-      </div>
-      <div className="eyebrow mt-1 text-white/55">{label}</div>
-    </div>
   );
 }
 
