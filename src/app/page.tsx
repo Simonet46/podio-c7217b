@@ -56,14 +56,47 @@ export default async function HomePage() {
         {/* ───────── Hero inmersivo ───────── */}
         <HomeHero featured={featured} />
 
-        {/* ───────── Franja: stats reales ───────── */}
+        {/* ───────── Sellos de confianza (lo que ya es verdad, visible) ───────── */}
         <section className="bg-ink text-white">
           <div className="mx-auto max-w-container px-4 sm:px-6">
-            <div className="flex flex-wrap gap-8 border-t border-white/10 py-8 sm:gap-12">
+            <div className="grid grid-cols-1 gap-x-8 gap-y-5 border-y border-white/10 py-7 sm:grid-cols-2 lg:grid-cols-4">
+              <TrustSeal
+                icon={<ShieldIcon />}
+                title="Identidad verificada"
+                text="DNI + biometría, validados vía Mercado Pago"
+              />
+              <TrustSeal
+                icon={<CardIcon />}
+                title="Pagos por Mercado Pago"
+                text="El dinero va directo: no custodiamos fondos"
+              />
+              <TrustSeal
+                icon={<MedalIcon />}
+                title="Fundado por 3 atletas olímpicos"
+                text="Sabemos lo que cuesta, lo vivimos"
+              />
+              <TrustSeal
+                icon={<HandIcon />}
+                title="Cada perfil, revisado a mano"
+                text="Nada se publica sin que lo veamos"
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* ───────── Franja de stats: credenciales que ya son enormes ─────────
+            El recaudado se muestra recién cuando es un número que impresiona
+            (umbral) — un monto chico en la portada juega en contra. */}
+        <section className="bg-ink text-white">
+          <div className="mx-auto max-w-container px-4 sm:px-6">
+            <div className="flex flex-wrap gap-8 py-8 sm:gap-12">
               <Stat value={String(athleteCount)} label="Atletas en campaña" />
-              <Stat value={String(sportCount)} label={sportCount === 1 ? "Deporte" : "Deportes"} />
-              <Stat value={formatMoney(totalRaised)} label="Aportado a la fecha" />
-              <Stat value="1" label="Empresas impulsoras" />
+              <Stat value="3" label="Fundadores olímpicos" />
+              <Stat value="6" label="Juegos Olímpicos disputados" />
+              <Stat value="1" label="Champions League ganada" />
+              {totalRaised >= 500_000 && (
+                <Stat value={formatMoney(totalRaised)} label="Aportado a la fecha" />
+              )}
             </div>
           </div>
         </section>
@@ -262,6 +295,71 @@ export default async function HomePage() {
       </main>
       <Footer />
     </>
+  );
+}
+
+function TrustSeal({
+  icon,
+  title,
+  text,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  text: string;
+}) {
+  return (
+    <div className="flex items-start gap-3.5">
+      <span
+        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-gold"
+        style={{ background: "rgba(201,162,39,.12)", border: "1px solid rgba(201,162,39,.3)" }}
+      >
+        {icon}
+      </span>
+      <div>
+        <p className="font-display text-[14px] font-600 uppercase tracking-wide text-white">
+          {title}
+        </p>
+        <p className="mt-0.5 text-[13px] leading-snug text-white/50">{text}</p>
+      </div>
+    </div>
+  );
+}
+
+function ShieldIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M12 3l7 3v5c0 4.6-3 8.4-7 10-4-1.6-7-5.4-7-10V6l7-3z" />
+      <path d="M9.2 12.2l2 2 3.8-3.9" />
+    </svg>
+  );
+}
+
+function CardIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <rect x="3" y="6" width="18" height="13" rx="2.5" />
+      <path d="M3 10.5h18" />
+      <path d="M7 15.5h4" />
+    </svg>
+  );
+}
+
+function MedalIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <circle cx="12" cy="14.5" r="5.5" />
+      <path d="M12 12.2l.9 1.8 2 .3-1.4 1.4.3 2-1.8-1-1.8 1 .3-2-1.4-1.4 2-.3.9-1.8z" fill="currentColor" stroke="none" />
+      <path d="M8.5 9.5L5.5 3.5M15.5 9.5l3-6M9.8 3.5h4.4" />
+    </svg>
+  );
+}
+
+function HandIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M7 11V6.5a1.5 1.5 0 013 0V11m0-5.5v-1a1.5 1.5 0 013 0V11m0-5a1.5 1.5 0 013 0V13" />
+      <path d="M16 12.5a1.5 1.5 0 013 0V15a7 7 0 01-7 7h-1a7 7 0 01-7-7v-2.5a1.5 1.5 0 013 0" />
+    </svg>
   );
 }
 

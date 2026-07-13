@@ -195,6 +195,37 @@
   .podio-pulse {
     animation: podioPulse 1.8s infinite;
   }
+
+  /* ── Hero "tapa de revista" ─────────────────────────────────── */
+  /* Zoom cinematográfico lentísimo (Ken Burns) de la foto activa. */
+  @keyframes heroKenburns {
+    from { transform: scale(1.02); }
+    to   { transform: scale(1.1); }
+  }
+  .hero-kenburns {
+    animation: heroKenburns 7.5s ease-out forwards;
+    will-change: transform;
+  }
+  /* Barra de progreso de la rotación automática (se reinicia por key). */
+  @keyframes heroProgress {
+    from { width: 0%; }
+    to   { width: 100%; }
+  }
+  .hero-progress {
+    animation: heroProgress 3s linear forwards;
+  }
+  .hero-paused .hero-progress,
+  .hero-paused .hero-kenburns {
+    animation-play-state: paused;
+  }
+  /* Entrada del bloque de texto al cambiar de atleta. */
+  @keyframes heroTextIn {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: none; }
+  }
+  .hero-text-in {
+    animation: heroTextIn 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
 }
 
 /* prefers-reduced-motion: respetar (sin animaciones). */

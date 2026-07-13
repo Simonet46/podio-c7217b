@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SPORT_LIST } from "@/config/sports";
+import { LiveCampaignBar } from "./LiveCampaignBar";
 import { asset } from "@/config/site";
 import { formatMoney } from "@/lib/money";
 import {
@@ -180,7 +181,7 @@ export function TeamCampaignCard({ campaign }: { campaign: TeamCampaign }) {
         )}
 
         <div className="mt-5">
-          <CampaignBar campaign={campaign} compact />
+          <LiveCampaignBar campaign={campaign} compact />
         </div>
 
         <Link

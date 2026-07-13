@@ -28,9 +28,13 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
+/** Cada cuánto avanza solo el desfile (sincronizado con .hero-progress). */
+const ROTATE_MS = 3000;
+
 export function HomeHero({ featured }: { featured: HeroAthlete[] }) {
   const [items, setItems] = useState<HeroAthlete[]>(featured);
   const [idx, setIdx] = useState(0);
+  const [paused, setPaused] = useState(false);
   // Orden distinto en cada visita. Mezclamos en el cliente (no en el render)
   // para no romper la hidratación: el primer pintado usa el orden del server
   // y apenas monta, se reordena.
@@ -39,19 +43,35 @@ export function HomeHero({ featured }: { featured: HeroAthlete[] }) {
     setIdx(0);
   }, [featured]);
 
+  const n = items.length;
+
+  // Desfile automático: avanza solo; se pausa con el mouse encima (para que
+  // nadie pierda la card que estaba mirando).
+  useEffect(() => {
+    if (n < 2 || paused) return;
+    const t = setInterval(() => setIdx((i) => (i + 1) % n), ROTATE_MS);
+    return () => clearInterval(t);
+  }, [n, paused]);
+
   if (!items.length) return null;
 
-  const n = items.length;
   const center = items[idx];
   const left = n > 1 ? items[(idx - 1 + n) % n] : null;
   const right = n > 1 ? items[(idx + 1) % n] : null;
+  // Segunda fila de cards (desfile de 5): solo si hay suficientes historias.
+  const left2 = n > 4 ? items[(idx - 2 + n) % n] : null;
+  const right2 = n > 4 ? items[(idx + 2) % n] : null;
   const centerHref = center.href ?? `/atleta/${center.slug}`;
 
   const prev = () => setIdx((i) => (i - 1 + n) % n);
   const next = () => setIdx((i) => (i + 1) % n);
 
   return (
-    <section className="relative overflow-hidden bg-ink text-white">
+    <section
+      className={`relative overflow-hidden bg-ink text-white ${paused ? "hero-paused" : ""}`}
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+    >
       {/* Glow celeste/dorado */}
       <div
         className="pointer-events-none absolute left-1/2 top-[-160px] h-[700px] w-[900px] -translate-x-1/2"
@@ -63,21 +83,36 @@ export function HomeHero({ featured }: { featured: HeroAthlete[] }) {
       />
 
       <div className="relative mx-auto max-w-container px-4 pb-14 pt-14 sm:px-6 sm:pt-16">
-        {/* ── Titular ── */}
-        <div className="mx-auto mb-10 max-w-3xl text-center">
+        {/* ── Titular ──
+            "Plataforma" hasta que los abogados confirmen la figura de
+            crowdfunding: si dan el OK, es cambiar una sola palabra acá. */}
+        <div className="mx-auto mb-10 max-w-4xl text-center">
           <p className="eyebrow inline-flex items-center gap-2.5 text-celeste">
             <span className="podio-pulse h-2 w-2 rounded-full bg-celeste" aria-hidden />
-            Entrá en su historia
+            Creado por atletas para atletas
           </p>
-          <h1 className="mt-5 font-display text-4xl font-700 uppercase leading-[0.95] tracking-tight sm:text-6xl lg:text-[80px]">
-            Cada atleta es
-            <br />
-            una historia <span className="text-gold">única</span>
+          <h1 className="mt-5 font-display text-4xl font-700 uppercase leading-[0.98] tracking-tight sm:text-5xl lg:text-[64px]">
+            La primer plataforma especializada en impulsar el{" "}
+            <span className="text-gold">deporte argentino</span>
           </h1>
-          <p className="mx-auto mt-5 max-w-xl text-lg leading-relaxed text-white/70">
-            LOS LOGROS SE CELEBRAN, EL ESFUERZO SE APOYA. Se parte del camino de
-            un atleta argentino.
+          <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-white/70">
+            Para que cualquier persona o empresa pueda acompañar, de forma
+            transparente, a atletas y proyectos deportivos argentinos.
           </p>
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3.5">
+            <Link
+              href="/#atletas"
+              className="rounded-md bg-gold px-7 py-3.5 font-display text-base font-700 uppercase tracking-wide text-ink transition-transform hover:-translate-y-0.5"
+            >
+              Apoyar un atleta
+            </Link>
+            <Link
+              href="/#como-funciona"
+              className="rounded-md border border-white/30 px-6 py-3.5 font-display text-base font-500 uppercase tracking-wide text-white/85 transition-colors hover:border-white hover:text-white"
+            >
+              Conocer cómo funciona
+            </Link>
+          </div>
         </div>
 
         {/* ── Stack 3D + flechas (desktop) ── */}
@@ -85,7 +120,14 @@ export function HomeHero({ featured }: { featured: HeroAthlete[] }) {
           className="relative mx-auto flex h-[420px] items-center justify-center sm:h-[580px]"
           style={{ perspective: "1600px" }}
         >
-          {/* Cards laterales (solo desktop, clickeables) */}
+          {/* Cards laterales (solo desktop, clickeables). Las lejanas van
+              primero para que las cercanas las tapen parcialmente. */}
+          {left2 && (
+            <SideCard athlete={left2} side="left" far onClick={() => setIdx((idx - 2 + n) % n)} />
+          )}
+          {right2 && (
+            <SideCard athlete={right2} side="right" far onClick={() => setIdx((idx + 2) % n)} />
+          )}
           {left && <SideCard athlete={left} side="left" onClick={prev} />}
           {right && <SideCard athlete={right} side="right" onClick={next} />}
 
@@ -253,41 +295,45 @@ export function HomeHero({ featured }: { featured: HeroAthlete[] }) {
           </div>
         )}
 
-        {/* ── CTA ── */}
-        <div className="mt-8 text-center sm:mt-6">
-          <Link
-            href={centerHref}
-            className="inline-block rounded-md bg-gold px-8 py-4 font-display text-base font-700 uppercase tracking-wide text-ink transition-transform hover:-translate-y-0.5"
-          >
-            Conocé la historia de {center.firstName}
-          </Link>
-        </div>
+        {/* Barra de progreso del desfile automático (se reinicia por key y
+            se pausa junto con la rotación al pasar el mouse). */}
+        {n > 1 && (
+          <div className="mx-auto mt-4 h-[2px] w-[200px] overflow-hidden rounded-full bg-white/[.12]">
+            <div key={idx} className="hero-progress h-full rounded-full bg-gold" />
+          </div>
+        )}
       </div>
     </section>
   );
 }
 
-/* ── Side card: visible solo en desktop, clickeable como prev/next ── */
+/* ── Side card: visible solo en desktop, clickeable como prev/next.
+      `far` = segunda fila del desfile (más lejos, más chica, más tenue). ── */
 function SideCard({
   athlete,
   side,
   onClick,
+  far,
 }: {
   athlete: HeroAthlete;
   side: "left" | "right";
   onClick: () => void;
+  far?: boolean;
 }) {
-  const tx = side === "left" ? "-300px" : "300px";
-  const ry = side === "left" ? "28deg" : "-28deg";
+  const tx = side === "left" ? (far ? "-520px" : "-300px") : far ? "520px" : "300px";
+  const ry = side === "left" ? (far ? "36deg" : "28deg") : far ? "-36deg" : "-28deg";
+  const scale = far ? 0.66 : 0.82;
   return (
     <button
       onClick={onClick}
       aria-hidden
       tabIndex={-1}
-      className="absolute left-1/2 top-1/2 hidden h-[380px] w-[240px] cursor-pointer overflow-hidden rounded-[10px] opacity-50 shadow-[0_30px_70px_rgba(0,0,0,.5)] transition-opacity hover:opacity-65 lg:block"
+      className={`absolute left-1/2 top-1/2 hidden h-[380px] w-[240px] cursor-pointer overflow-hidden rounded-[10px] shadow-[0_30px_70px_rgba(0,0,0,.5)] transition-opacity lg:block ${
+        far ? "z-0 opacity-30 hover:opacity-45" : "z-[1] opacity-50 hover:opacity-65"
+      }`}
       style={{
-        transform: `translate(-50%,-50%) translateX(${tx}) rotateY(${ry}) scale(.82)`,
-        filter: "blur(0.5px)",
+        transform: `translate(-50%,-50%) translateX(${tx}) rotateY(${ry}) scale(${scale})`,
+        filter: far ? "blur(1.2px)" : "blur(0.5px)",
         transition: "opacity .25s ease",
       }}
     >
