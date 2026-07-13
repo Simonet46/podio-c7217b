@@ -11,19 +11,26 @@ export function TeamCard({ team }: { team: Team }) {
   const color = team.color ?? sport?.color ?? "#1B7A4B";
 
   return (
-    <article className="group flex flex-col overflow-hidden rounded-xl border border-line bg-paper shadow-sm transition-shadow hover:shadow-md">
+    <article
+      className="group relative flex flex-col overflow-hidden rounded-xl shadow-[0_26px_60px_rgba(0,0,0,.45)]"
+      style={{ background: "#0d2238", borderTop: `3px solid ${color}` }}
+    >
       <Link
         href={`/equipo/${team.slug}`}
-        className="relative block aspect-[4/3] overflow-hidden"
+        className="relative block overflow-hidden"
+        style={{ aspectRatio: "3/4", background: "#0a1526" }}
         aria-label={`Ver ${team.name}`}
       >
         {team.photo_url ? (
+          // object-contain: se ve el ícono ENTERO, nada recortado. El fondo
+          // oscuro liso + el degradé de abajo lo funden con la card (igual
+          // que las cards de atletas).
           <Image
             src={asset(team.photo_url)}
             alt={team.name}
             fill
             sizes="(max-width: 768px) 100vw, 33vw"
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            className="object-contain transition-transform duration-500 group-hover:scale-[1.03]"
           />
         ) : (
           <Monogram
@@ -32,7 +39,13 @@ export function TeamCard({ team }: { team: Team }) {
             className="h-full w-full transition-transform duration-500 group-hover:scale-105"
           />
         )}
-        {/* Badge: Selección Argentina + deporte */}
+        {/* Difuminado inferior: la imagen se funde con el cuerpo de la card. */}
+        <div
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-2/5"
+          style={{ background: "linear-gradient(180deg, transparent, #0d2238 88%)" }}
+          aria-hidden
+        />
+        {/* Badges: Selección Argentina + deporte */}
         <div className="absolute left-3 top-3 flex gap-1.5">
           <span className="rounded-full bg-gold px-2.5 py-1 font-display text-[0.7rem] font-700 uppercase tracking-wide text-ink">
             🇦🇷 Selección
@@ -46,15 +59,7 @@ export function TeamCard({ team }: { team: Team }) {
         </div>
       </Link>
 
-      {/* Cuerpo con degradé azul oscuro → blanco (pedido de diseño):
-          el título vive en la zona oscura y el CTA en la clara. */}
-      <div
-        className="flex flex-1 flex-col p-4"
-        style={{
-          background:
-            "linear-gradient(180deg, #0d2238 0%, #2b4a6f 55%, #ffffff 100%)",
-        }}
-      >
+      <div className="flex flex-1 flex-col px-4 pb-4">
         <h3 className="font-display text-xl font-600 leading-tight text-white">
           <Link href={`/equipo/${team.slug}`} className="hover:text-celeste">
             {team.name}
@@ -65,13 +70,13 @@ export function TeamCard({ team }: { team: Team }) {
         {team.raised_amount > 0 && (
           <div className="mt-4 text-right font-display leading-tight">
             <span className="text-sm font-700 text-gold">{formatMoney(team.raised_amount)}</span>{" "}
-            <span className="text-sm text-white/75">entre el plantel</span>
+            <span className="text-sm text-white/70">entre el plantel</span>
           </div>
         )}
 
         <Link
           href={`/equipo/${team.slug}`}
-          className="mt-4 block rounded-md border border-ink bg-ink py-2.5 text-center font-display text-sm font-600 uppercase tracking-wide text-white transition-colors hover:bg-ink-2"
+          className="mt-4 block rounded-md bg-gold py-2.5 text-center font-display text-sm font-700 uppercase tracking-wide text-ink transition-transform hover:-translate-y-0.5"
         >
           Conocé la selección
         </Link>
