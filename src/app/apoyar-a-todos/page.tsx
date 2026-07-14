@@ -22,7 +22,7 @@ const STEPS = [
     n: "01",
     color: "#0072CE",
     title: "Ponés tu monto",
-    text: "Elegís cuánto aportar, por mes o una sola vez. Desde lo que puedas hasta lo que quieras: todo suma al fondo común.",
+    text: "Elegís cuánto aportar. Desde lo que puedas hasta lo que quieras: todo suma al fondo común.",
   },
   {
     n: "02",
@@ -84,9 +84,8 @@ export default async function ApoyarATodosPage() {
                 <span className="text-gold">de una</span>
               </h1>
               <p className="mx-auto mt-5 max-w-[560px] text-lg leading-relaxed text-white/72">
-                Un aporte — por mes o una sola vez — que se divide
-                automáticamente en partes iguales entre todos los atletas
-                registrados. Vos elegís el monto.
+                Un aporte que se divide automáticamente en partes iguales
+                entre todos los atletas registrados. Vos elegís el monto.
               </p>
               <Link
                 href="#widget"

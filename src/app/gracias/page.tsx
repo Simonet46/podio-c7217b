@@ -10,16 +10,16 @@ import { SEED_ATHLETES } from "@/lib/data/seed";
 import { SEED_TEAMS } from "@/lib/data/teams";
 import { breakdown, formatMoney } from "@/lib/money";
 import { DIPLOMA_TIERS, diplomaTier } from "@/config/site";
-import type { DonationType } from "@/lib/data/types";
 
 function GraciasContent() {
   const sp = useSearchParams();
   const kind = sp.get("kind") ?? "athlete";
   const slug = sp.get("slug") ?? "";
   const amount = parseFloat(sp.get("amount") ?? "0") || 0;
-  const type: DonationType = sp.get("type") === "monthly" ? "monthly" : "once";
+  // Los aportes recurrentes están desactivados (MP no permite el split del 7%
+  // en suscripciones). Todo aporte es único hasta que se reactive con MP.
   const split = parseInt(sp.get("split") ?? "0", 10) || 0;
-  const perMonth = type === "monthly";
+  const perMonth = false;
   const { net } = breakdown(amount);
 
   // Campaña de equipo (crowdfunding de misión): el nombre viene en la URL

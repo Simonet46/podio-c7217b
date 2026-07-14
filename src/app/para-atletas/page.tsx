@@ -9,7 +9,7 @@ import { SITE } from "@/config/site";
 export const metadata: Metadata = {
   title: `Para atletas — ${SITE.brand}`,
   description:
-    "Postulate para recibir apoyo mensual de la gente. Sin intermediarios: el 93% del aporte es tuyo. Cada caso lo revisamos a mano.",
+    "Postulate para recibir el apoyo de la gente. Sin intermediarios: el 93% del aporte es tuyo. Cada caso lo revisamos a mano.",
 };
 
 export default function ParaAtletasPage() {
@@ -39,7 +39,7 @@ export default function ParaAtletasPage() {
                 <span className="text-gold">solo</span>
               </h1>
               <p className="mx-auto mt-5 max-w-[540px] text-[19px] leading-relaxed text-white/72">
-                Postulate para recibir apoyo mensual de la gente. Sin
+                Postulate para recibir el apoyo de la gente. Sin
                 intermediarios: el 93% del aporte es tuyo. Cada caso lo revisamos
                 a mano, atleta por atleta.
               </p>

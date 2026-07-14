@@ -28,9 +28,8 @@ const FAQS: { q: string; a: React.ReactNode }[] = [
     q: "¿Cómo apoyo a un atleta?",
     a: (
       <>
-        Entrá al perfil del atleta que quieras, elegí un aporte único o mensual y
-        completás el pago con Mercado Pago o PayPal. No hace falta crear una cuenta
-        para aportar.
+        Entrá al perfil del atleta que quieras, elegí tu aporte y completás el pago
+        con Mercado Pago o PayPal. No hace falta crear una cuenta para aportar.
       </>
     ),
   },
@@ -55,11 +54,12 @@ const FAQS: { q: string; a: React.ReactNode }[] = [
     ),
   },
   {
-    q: "¿Puedo apoyar todos los meses?",
+    q: "¿Puedo volver a aportar cuando quiera?",
     a: (
       <>
-        Sí. Podés hacer un aporte único o un aporte mensual. No hay metas ni barras
-        que llenar: lo que importa es acompañar al atleta en su día a día.
+        Sí. Cada aporte es único y podés volver a aportar cuando quieras. No hay
+        metas ni barras que llenar: lo que importa es acompañar al atleta en su día
+        a día.
       </>
     ),
   },

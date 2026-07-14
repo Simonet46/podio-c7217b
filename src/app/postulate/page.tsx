@@ -16,9 +16,9 @@ const OPTIONS = [
     href: "/para-atletas",
     icon: "🏃",
     title: "Soy atleta",
-    desc: "Tenés tu perfil propio, contás tu historia y recibís aportes directos a tu Mercado Pago, todos los meses o cuando quieran apoyarte.",
+    desc: "Tenés tu perfil propio, contás tu historia y recibís aportes directos a tu Mercado Pago cuando quieran apoyarte.",
     cta: "Postularme como atleta",
-    bullets: ["Perfil público con tu historia", "Aportes únicos o mensuales", "El 93% va directo a tu cuenta"],
+    bullets: ["Perfil público con tu historia", "Recibís aportes cuando quieran apoyarte", "El 93% va directo a tu cuenta"],
   },
   {
     href: "/para-equipos",

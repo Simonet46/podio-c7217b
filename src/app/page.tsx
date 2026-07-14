@@ -164,8 +164,8 @@ export default async function HomePage() {
                 <Step
                   n="02"
                   numColor="text-celeste"
-                  title="Aportá tu granito o apoyá todos los meses"
-                  body="Un solo aporte o un aporte mensual. Sin metas ni barras: lo que importa es apoyarlo en el día a día."
+                  title="Aportá tu granito cuando quieras"
+                  body="Un aporte directo, cuando quieras apoyarlo. Sin metas ni barras: lo que importa es estar en el día a día."
                 />
               </Reveal>
               <Reveal delay={220}>
