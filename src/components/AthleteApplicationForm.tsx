@@ -5,12 +5,16 @@ import Link from "next/link";
 import { SPORT_LIST } from "@/config/sports";
 import { WEB3FORMS_ACCESS_KEY, APPLICATIONS_EMAIL, SITE } from "@/config/site";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
+import { legalDoc } from "@/config/legal";
+import { recordAcceptance } from "@/lib/legal";
 import { PhoneField, buildPhone } from "./PhoneField";
 
 type Step = 1 | 2 | 3 | 4 | 5; // 5 = done
 
 const MAX_BYTES = 5 * 1024 * 1024;
-const TERMS_VERSION = "2026-06-28";
+// Versión de los términos aceptados: centralizada en @/config/legal para que la
+// postulación y las páginas legales nunca se desincronicen.
+const TERMS_VERSION = legalDoc("terminos-generales").version;
 
 const STEP_LABELS = ["Datos", "Historia", "Fotos", "Revisión"];
 
@@ -35,6 +39,8 @@ export function AthleteApplicationForm() {
   const [deporte, setDeporte] = useState("");
   const [deporteOtro, setDeporteOtro] = useState(""); // si elige "Otro"
   const [disciplina, setDisciplina] = useState(""); // solo atletismo
+  const [nivel, setNivel] = useState(""); // aficionado | federado | profesional | alto-rendimiento
+  const [club, setClub] = useState("");
 
   // Step 2
   const [frase, setFrase] = useState("");
@@ -44,6 +50,8 @@ export function AthleteApplicationForm() {
   const [instagram, setInstagram] = useState("");
   const [mpAccount, setMpAccount] = useState("");
   const [paypalAccount, setPaypalAccount] = useState("");
+  const [tieneBeca, setTieneBeca] = useState(false); // ENARD u otro apoyo público
+  const [tienePatrocinio, setTienePatrocinio] = useState(false);
 
   // Step 3
   const [portraitFile, setPortraitFile] = useState<File | null>(null);
@@ -52,9 +60,11 @@ export function AthleteApplicationForm() {
   const [actionPreview, setActionPreview] = useState<string | null>(null);
   const [fileMsg, setFileMsg] = useState("");
 
-  // Consentimiento legal
-  const [acepta, setAcepta] = useState(false);
-  const [aceptaTutor, setAceptaTutor] = useState(false);
+  // Consentimiento legal (checkboxes separados — Kahale Fase 3)
+  const [aceptaTerminos, setAceptaTerminos] = useState(false); // Contrato del Atleta + T&C
+  const [aceptaPrivacidad, setAceptaPrivacidad] = useState(false);
+  const [aceptaImagen, setAceptaImagen] = useState(false);
+  const [declaraCompat, setDeclaraCompat] = useState(false); // veracidad + compat. federativa + titularidad cuenta
 
   // Submit
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
@@ -88,8 +98,11 @@ export function AthleteApplicationForm() {
     return () => window.removeEventListener("message", onMsg);
   }, []);
 
-  const esMenor = edad.trim() !== "" && Number(edad) < 18;
-  const consentimientoOk = acepta && (!esMenor || aceptaTutor);
+  const edadNum = Number(edad);
+  const esMenor = edad.trim() !== "" && edadNum < 18;
+  const edadValida = edad.trim() !== "" && edadNum >= 18 && edadNum <= 120;
+  const consentimientoOk =
+    aceptaTerminos && aceptaPrivacidad && aceptaImagen && declaraCompat;
 
   const sportObj = SPORT_LIST.find((s) => s.label === deporte);
   const sportColor = sportObj?.color ?? "#C9A227";
@@ -192,11 +205,17 @@ export function AthleteApplicationForm() {
         socials: instagram || null,
         payment_mp: mpAccount || null,
         payment_paypal: paypalAccount || null,
-        accepted_terms: acepta,
+        sport_level: nivel || null,
+        club: club || null,
+        has_public_grant: tieneBeca,
+        has_sponsorship: tienePatrocinio,
+        federative_compat_declared: declaraCompat,
+        mp_ownership_declared: declaraCompat,
+        accepted_terms: aceptaTerminos,
         accepted_at: new Date().toISOString(),
         terms_version: TERMS_VERSION,
-        image_consent: acepta,
-        is_minor_guardian: esMenor ? aceptaTutor : false,
+        image_consent: aceptaImagen,
+        is_minor_guardian: false,
         status: "pending",
       };
       const { error } = await supabase
@@ -274,6 +293,28 @@ export function AthleteApplicationForm() {
         // Avisar al equipo por email + confirmarle al atleta (Resend).
         await supabase?.functions.invoke("notify-application", {
           body: { application_id: newId },
+        });
+        // Registrar la evidencia de aceptación (IP, user-agent, versión) —
+        // best-effort, no bloquea la postulación. Kahale secc. 10.
+        await recordAcceptance({
+          actorType: "atleta",
+          context: "postulacion",
+          docTypes: [
+            "terminos-generales",
+            "contrato-beneficiario",
+            "privacidad",
+            "propiedad-intelectual",
+          ],
+          email: email || null,
+          relatedId: newId,
+          meta: {
+            image_consent: aceptaImagen,
+            federative_compat_declared: declaraCompat,
+            mp_ownership_declared: declaraCompat,
+            sport_level: nivel || null,
+            has_public_grant: tieneBeca,
+            has_sponsorship: tienePatrocinio,
+          },
         });
       } catch {}
       go(5);
@@ -353,8 +394,14 @@ export function AthleteApplicationForm() {
     setActionFile(null);
     setPortraitPreview(null);
     setActionPreview(null);
-    setAcepta(false);
-    setAceptaTutor(false);
+    setNivel("");
+    setClub("");
+    setTieneBeca(false);
+    setTienePatrocinio(false);
+    setAceptaTerminos(false);
+    setAceptaPrivacidad(false);
+    setAceptaImagen(false);
+    setDeclaraCompat(false);
     setStatus("idle");
     setConnecting(false);
     setMpConnected(false);
@@ -544,10 +591,12 @@ export function AthleteApplicationForm() {
               <label className={labelCls}>Edad</label>
               <input
                 value={edad}
-                onChange={(e) => setEdad(e.target.value)}
+                onChange={(e) => setEdad(e.target.value.replace(/[^\d]/g, ""))}
                 inputMode="numeric"
+                maxLength={3}
                 placeholder="Ej: 22"
                 className={`${inputCls} mt-[7px]`}
+                style={esMenor ? { borderColor: "rgba(223,0,36,.6)" } : undefined}
               />
             </div>
             <div>
@@ -561,6 +610,18 @@ export function AthleteApplicationForm() {
             </div>
           </div>
 
+          {esMenor && (
+            <div
+              className="mb-6 rounded-[10px] p-4 text-[13px] leading-relaxed"
+              style={{ background: "rgba(223,0,36,.08)", border: "1px solid rgba(223,0,36,.4)", color: "#ff9aa9" }}
+            >
+              Por ahora {SITE.brand} solo recibe postulaciones de <strong>mayores de
+              18 años</strong>. Estamos preparando el proceso para menores con la
+              autorización de madre, padre o tutor/a legal. Escribinos a{" "}
+              {APPLICATIONS_EMAIL} y te avisamos cuando esté disponible.
+            </div>
+          )}
+
           <div className="mb-6">
             <label className={labelCls}>
               DNI <span className="text-white/35">· para verificar tu identidad al aprobar cobros</span>
@@ -573,6 +634,51 @@ export function AthleteApplicationForm() {
               placeholder="Sin puntos, ej: 39245386"
               className={`${inputCls} mt-[7px]`}
             />
+          </div>
+
+          <div className="mb-6">
+            <div className={`${labelCls} mb-3`}>
+              Tu nivel deportivo{" "}
+              <span className="text-white/35">· como te definís hoy</span>
+            </div>
+            <div className="flex flex-wrap gap-2.5">
+              {[
+                { key: "aficionado", label: "Aficionado" },
+                { key: "federado", label: "Federado" },
+                { key: "profesional", label: "Profesional" },
+                { key: "alto-rendimiento", label: "Alto rendimiento" },
+              ].map((n) => {
+                const active = n.key === nivel;
+                return (
+                  <button
+                    key={n.key}
+                    type="button"
+                    onClick={() => setNivel(n.key)}
+                    className="cursor-pointer rounded-full font-display text-[13px] font-600 uppercase tracking-wide text-white transition-all"
+                    style={{
+                      padding: "11px 18px",
+                      border: `1px solid ${active ? "#C9A227" : "rgba(255,255,255,.16)"}`,
+                      background: active ? "#C9A227" : "transparent",
+                      color: active ? "#0A1A2F" : "#fff",
+                    }}
+                  >
+                    {n.label}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="mt-4">
+              <label className={labelCls}>
+                Club o entidad{" "}
+                <span className="text-white/35">· opcional, si tenés</span>
+              </label>
+              <input
+                value={club}
+                onChange={(e) => setClub(e.target.value)}
+                placeholder="Ej: Club Atlético…"
+                className={`${inputCls} mt-[7px]`}
+              />
+            </div>
           </div>
 
           <div className="mb-6">
@@ -637,7 +743,8 @@ export function AthleteApplicationForm() {
           {ctaBtn(
             "Continuar",
             () => go(2),
-            !nombre || !email || !telefono.trim() || !deporte || (esOtro && !deporteOtro.trim()),
+            !nombre || !email || !telefono.trim() || !edadValida || !nivel ||
+              !deporte || (esOtro && !deporteOtro.trim()),
           )}
         </section>
       )}
@@ -768,6 +875,51 @@ export function AthleteApplicationForm() {
                 cuenta. Tu postulación no se pierde.
               </p>
             )}
+            <p className="mt-3 text-[12px] leading-relaxed text-white/40">
+              La cuenta de cobro debe ser <strong className="text-white/60">a tu
+              nombre</strong>. Los aportes se acreditan directo en ella; {SITE.brand}{" "}
+              no retiene los fondos.
+            </p>
+          </div>
+
+          {/* ── Situación deportiva (declaraciones) ── */}
+          <div
+            className="mb-8 rounded-[12px] border border-white/[.08] p-[18px]"
+            style={{ background: "#0d2238" }}
+          >
+            <div className="mb-3 font-display text-[15px] font-600 uppercase tracking-wide">
+              Tu situación deportiva
+            </div>
+            <label className="flex cursor-pointer items-start gap-3">
+              <input
+                type="checkbox"
+                checked={tieneBeca}
+                onChange={(e) => setTieneBeca(e.target.checked)}
+                className="mt-0.5 h-[18px] w-[18px] shrink-0 cursor-pointer accent-[#C9A227]"
+              />
+              <span className="text-[13px] leading-relaxed text-white/70">
+                Recibo una beca del <strong className="text-white">ENARD</strong> u otro
+                apoyo público.
+              </span>
+            </label>
+            {tieneBeca && (
+              <p className="ml-[30px] mt-1.5 text-[12px] leading-relaxed text-white/45">
+                Verificá que recibir aportes por {SITE.brand} sea compatible con las
+                condiciones de tu beca (declarar ingresos, rendir cuentas, etc.).
+              </p>
+            )}
+            <label className="mt-3 flex cursor-pointer items-start gap-3 border-t border-white/[.08] pt-3">
+              <input
+                type="checkbox"
+                checked={tienePatrocinio}
+                onChange={(e) => setTienePatrocinio(e.target.checked)}
+                className="mt-0.5 h-[18px] w-[18px] shrink-0 cursor-pointer accent-[#C9A227]"
+              />
+              <span className="text-[13px] leading-relaxed text-white/70">
+                Tengo contratos de <strong className="text-white">patrocinio o
+                representación</strong> vigentes.
+              </span>
+            </label>
           </div>
 
           {ctaBtn("Continuar", () => go(3))}
@@ -927,45 +1079,78 @@ export function AthleteApplicationForm() {
                 </p>
               </div>
 
-              {/* Consentimiento legal */}
+              {/* Consentimiento legal — checkboxes separados */}
               <div
-                className="rounded-[12px] border border-white/[.1] p-[16px]"
+                className="flex flex-col gap-3 rounded-[12px] border border-white/[.1] p-[16px]"
                 style={{ background: "rgba(255,255,255,.03)" }}
               >
                 <label className="flex cursor-pointer items-start gap-3">
                   <input
                     type="checkbox"
-                    checked={acepta}
-                    onChange={(e) => setAcepta(e.target.checked)}
+                    checked={aceptaTerminos}
+                    onChange={(e) => setAceptaTerminos(e.target.checked)}
+                    className="mt-0.5 h-[18px] w-[18px] shrink-0 cursor-pointer accent-[#C9A227]"
+                  />
+                  <span className="text-[13px] leading-relaxed text-white/70">
+                    Leí y acepto los{" "}
+                    <Link href="/terminos" target="_blank" className="text-gold underline">
+                      Términos y Condiciones
+                    </Link>{" "}
+                    y el{" "}
+                    <Link href="/legal/contrato-atleta" target="_blank" className="text-gold underline">
+                      Contrato del Atleta
+                    </Link>
+                    .
+                  </span>
+                </label>
+
+                <label className="flex cursor-pointer items-start gap-3 border-t border-white/[.08] pt-3">
+                  <input
+                    type="checkbox"
+                    checked={aceptaPrivacidad}
+                    onChange={(e) => setAceptaPrivacidad(e.target.checked)}
                     className="mt-0.5 h-[18px] w-[18px] shrink-0 cursor-pointer accent-[#C9A227]"
                   />
                   <span className="text-[13px] leading-relaxed text-white/70">
                     Leí y acepto la{" "}
                     <Link href="/privacidad" target="_blank" className="text-gold underline">
                       Política de Privacidad
-                    </Link>{" "}
-                    y los{" "}
-                    <Link href="/terminos" target="_blank" className="text-gold underline">
-                      Términos y Condiciones
                     </Link>
-                    , y autorizo el uso de mis fotos en mi perfil público de {SITE.brand}.
+                    .
                   </span>
                 </label>
 
-                {esMenor && (
-                  <label className="mt-3 flex cursor-pointer items-start gap-3 border-t border-white/[.08] pt-3">
-                    <input
-                      type="checkbox"
-                      checked={aceptaTutor}
-                      onChange={(e) => setAceptaTutor(e.target.checked)}
-                      className="mt-0.5 h-[18px] w-[18px] shrink-0 cursor-pointer accent-[#C9A227]"
-                    />
-                    <span className="text-[13px] leading-relaxed text-white/70">
-                      Soy menor de 18 y cuento con la autorización de mi madre, padre o
-                      tutor/a legal, que acepta estas condiciones en mi nombre.
-                    </span>
-                  </label>
-                )}
+                <label className="flex cursor-pointer items-start gap-3 border-t border-white/[.08] pt-3">
+                  <input
+                    type="checkbox"
+                    checked={aceptaImagen}
+                    onChange={(e) => setAceptaImagen(e.target.checked)}
+                    className="mt-0.5 h-[18px] w-[18px] shrink-0 cursor-pointer accent-[#C9A227]"
+                  />
+                  <span className="text-[13px] leading-relaxed text-white/70">
+                    Autorizo el uso de mis fotos e imagen en mi perfil público y en la
+                    difusión de mi campaña, según la{" "}
+                    <Link href="/legal/propiedad-intelectual" target="_blank" className="text-gold underline">
+                      Política de Propiedad Intelectual
+                    </Link>
+                    .
+                  </span>
+                </label>
+
+                <label className="flex cursor-pointer items-start gap-3 border-t border-white/[.08] pt-3">
+                  <input
+                    type="checkbox"
+                    checked={declaraCompat}
+                    onChange={(e) => setDeclaraCompat(e.target.checked)}
+                    className="mt-0.5 h-[18px] w-[18px] shrink-0 cursor-pointer accent-[#C9A227]"
+                  />
+                  <span className="text-[13px] leading-relaxed text-white/70">
+                    Declaro que mis datos son veraces, que la cuenta de cobro es de mi
+                    titularidad, y que mi participación y campaña son{" "}
+                    <strong className="text-white">compatibles con mis obligaciones</strong>{" "}
+                    ante federaciones, club y contratos vigentes.
+                  </span>
+                </label>
               </div>
 
               {status === "error" && (

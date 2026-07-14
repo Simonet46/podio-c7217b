@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { getSupabase } from "@/lib/supabase";
 import { formatMoney } from "@/lib/money";
+import { recordAcceptance } from "@/lib/legal";
 import { type TeamCampaign } from "@/lib/data/campaigns";
 import { CampaignBar } from "./TeamCampaignCard";
 
@@ -64,6 +66,15 @@ export function TeamPledgeWidget({ campaign }: { campaign: TeamCampaign }) {
       setBusy(false);
       return;
     }
+    // Evidencia de aceptación de los Términos del Donante (best-effort).
+    void recordAcceptance({
+      actorType: "donante",
+      context: "donacion",
+      docTypes: ["terminos-donante"],
+      email: email.trim() || null,
+      relatedId: campaign.slug,
+      meta: { amount: finalAmount, kind: "team" },
+    });
     try {
       const { data } = await supabase.functions.invoke("mp-create-team-preference", {
         body: { slug: campaign.slug, amount: finalAmount, donorEmail: email.trim() || undefined },
@@ -150,9 +161,16 @@ export function TeamPledgeWidget({ campaign }: { campaign: TeamCampaign }) {
         </button>
 
         <p className="text-center text-[12px] leading-relaxed text-white/40">
-          El aporte se debita ahora y va <strong className="text-white/60">directo al equipo</strong>{" "}
-          (el 93%; el 7% sostiene la plataforma). Aunque no se llegue al objetivo,
-          el equipo recibe todo lo recaudado. Pago seguro vía Mercado Pago.
+          Tu aporte es una <strong className="text-white/60">donación</strong> (no una
+          inversión). Se debita ahora y va directo al equipo (el 93%; el 7% sostiene la
+          plataforma). Aunque no se llegue al objetivo, el equipo recibe todo lo
+          recaudado. Pago seguro vía Mercado Pago.
+          <br />
+          Al aportar aceptás los{" "}
+          <Link href="/legal/donantes" target="_blank" className="text-gold/80 underline hover:text-gold">
+            Términos del Donante
+          </Link>
+          .
         </p>
       </form>
     </div>

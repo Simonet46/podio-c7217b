@@ -1,10 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { PRESET_AMOUNTS, PLATFORM_FEE_RATE } from "@/config/site";
 import { breakdown, formatMoney } from "@/lib/money";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
+import { recordAcceptance } from "@/lib/legal";
 import { Ribbon } from "./Ribbon";
 
 /** A quién va el aporte. */
@@ -49,6 +51,16 @@ export function DonationWidget({ target }: { target: DonationTarget }) {
   async function handleSubmit() {
     if (amount <= 0 || loading) return;
     setLoading(true);
+
+    // Registrar evidencia de aceptación de los Términos del Donante (Kahale
+    // secc. 10). Best-effort: no bloquea el aporte si falla.
+    void recordAcceptance({
+      actorType: "donante",
+      context: "donacion",
+      docTypes: ["terminos-donante"],
+      relatedId: target.slug ?? target.kind,
+      meta: { amount, kind: target.kind, split },
+    });
 
     // Aporte a un atleta individual con Mercado Pago conectado → checkout real
     // (split 93/7). Si el atleta no conectó MP o algo falla, cae al modo demo.
@@ -182,6 +194,15 @@ export function DonationWidget({ target }: { target: DonationTarget }) {
           )}
         </dl>
 
+        {/* Declaración de donación (naturaleza del aporte) */}
+        <p className="mt-3 text-[12px] leading-relaxed text-white/45">
+          Tu aporte es una <strong className="text-white/70">donación</strong>, sin
+          contraprestación económica. No es una inversión ni genera derechos sobre
+          resultados{split ? " deportivos" : ""}. El aporte llega directo a la cuenta
+          del {target.kind === "team" ? "equipo" : "atleta"}; {" "}
+          la plataforma no retiene los fondos.
+        </p>
+
         {/* CTA */}
         <button
           onClick={handleSubmit}
@@ -192,8 +213,14 @@ export function DonationWidget({ target }: { target: DonationTarget }) {
           {loading ? "Redirigiendo…" : cta}
         </button>
 
-        <p className="mt-3 text-center text-xs text-white/35">
-          Pago seguro · procesado vía Mercado Pago
+        <p className="mt-3 text-center text-xs leading-relaxed text-white/35">
+          Pago seguro · procesado vía Mercado Pago.
+          <br />
+          Al aportar aceptás los{" "}
+          <Link href="/legal/donantes" target="_blank" className="text-gold/80 underline hover:text-gold">
+            Términos del Donante
+          </Link>
+          .
         </p>
       </div>
     </div>

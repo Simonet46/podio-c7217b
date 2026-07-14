@@ -5,12 +5,15 @@ import Link from "next/link";
 import { SPORT_LIST } from "@/config/sports";
 import { WEB3FORMS_ACCESS_KEY, APPLICATIONS_EMAIL, SITE } from "@/config/site";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
+import { legalDoc } from "@/config/legal";
+import { recordAcceptance } from "@/lib/legal";
 import { PhoneField, buildPhone } from "./PhoneField";
 
 const inputCls =
   "w-full rounded-[10px] border border-white/[.14] bg-white/[.05] px-[15px] py-[13px] text-[15px] text-white outline-none placeholder:text-white/35 focus:border-white/40";
 const labelCls = "block text-[13px] font-500 text-white/60";
-const TERMS_VERSION = "2026-06-28";
+// Centralizado en @/config/legal (evita desincronizar con las páginas legales).
+const TERMS_VERSION = legalDoc("terminos-generales").version;
 
 export function TeamApplicationForm() {
   const [equipo, setEquipo] = useState("");
@@ -110,6 +113,14 @@ export function TeamApplicationForm() {
       try {
         await supabase.functions.invoke("notify-application", {
           body: { team_application_id: id },
+        });
+        // Evidencia de aceptación (IP, user-agent, versión) — best-effort.
+        await recordAcceptance({
+          actorType: "equipo",
+          context: "postulacion",
+          docTypes: ["terminos-generales", "privacidad"],
+          email: email || null,
+          relatedId: id,
         });
       } catch {
         // el email no debe frenar la postulación
