@@ -121,7 +121,7 @@ export async function getTeamMembers(team: Team): Promise<Athlete[]> {
   return teamMembers(team, all);
 }
 
-/** Totales para el home y para el reparto de "Apoyá a todos". */
+/** Totales agregados del sitio (hoy sin uso directo; útil para stats). */
 export async function getGlobalStats() {
   const athletes = await getAllAthletes();
   const teams = await getTeams();
