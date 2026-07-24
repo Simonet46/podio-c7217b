@@ -6,13 +6,24 @@ import { asset } from "@/config/site";
 import { formatMoney } from "@/lib/money";
 import { Monogram } from "./Monogram";
 
-export function AthleteCard({ athlete }: { athlete: Athlete }) {
+export function AthleteCard({
+  athlete,
+  selected,
+  onToggle,
+}: {
+  athlete: Athlete;
+  /** Selección múltiple para "Tu aporte" (opcional; solo en el home). */
+  selected?: boolean;
+  onToggle?: () => void;
+}) {
   const sport = getSport(athlete.sport);
   const color = sport?.color ?? "#1E6E8C";
 
   return (
     <article
-      className="group relative overflow-hidden rounded-xl shadow-[0_26px_60px_rgba(0,0,0,.45)]"
+      className={`group relative overflow-hidden rounded-xl shadow-[0_26px_60px_rgba(0,0,0,.45)] transition-shadow ${
+        selected ? "ring-2 ring-gold" : ""
+      }`}
       style={{ background: "#0d2238", borderTop: `3px solid ${color}` }}
     >
       <Link
@@ -48,6 +59,38 @@ export function AthleteCard({ athlete }: { athlete: Athlete }) {
         >
           {sport?.label ?? athlete.sport}
         </span>
+        {/* Selección para "Tu aporte": visible siempre, arriba a la derecha */}
+        {onToggle && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onToggle();
+            }}
+            aria-pressed={selected}
+            aria-label={
+              selected
+                ? `Quitar a ${athlete.full_name} de tu aporte`
+                : `Sumar a ${athlete.full_name} a tu aporte`
+            }
+            className={`absolute right-2.5 top-2.5 flex h-8 w-8 items-center justify-center rounded-full border-2 transition-all ${
+              selected
+                ? "border-gold bg-gold text-ink"
+                : "border-white/80 bg-black/45 text-white hover:border-gold hover:text-gold"
+            }`}
+          >
+            {selected ? (
+              <svg viewBox="0 0 24 24" fill="none" className="h-4.5 w-4.5" aria-hidden>
+                <path d="M5 12.5l4.5 4.5L19 7.5" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            ) : (
+              <svg viewBox="0 0 24 24" fill="none" className="h-4.5 w-4.5" aria-hidden>
+                <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" />
+              </svg>
+            )}
+          </button>
+        )}
         {/* name + location */}
         <div className="absolute inset-x-[14px] bottom-3">
           <div className="font-display text-[18px] font-600 uppercase leading-none text-white">
