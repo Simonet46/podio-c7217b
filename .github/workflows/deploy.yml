@@ -37,6 +37,12 @@ jobs:
           # Definidas como "Variables" del repo (Settings → Secrets and variables → Actions → Variables).
           NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      # El backoffice NO se publica en el sitio público: vive en un deploy
+      # separado (Cloudflare Pages, detrás de Cloudflare Access).
+      - name: Excluir backoffice del sitio público
+        run: |
+          rm -rf ./out/backoffice
+          rm -rf ./out/_next/static/chunks/app/backoffice
       # Evita que GitHub Pages procese con Jekyll (si no, ignora /_next).
       - run: touch ./out/.nojekyll
       - uses: actions/configure-pages@v5

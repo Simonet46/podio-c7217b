@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:admin": "next build && node scripts/build-admin.mjs",
     "start": "next start",
     "lint": "next lint"
   },
