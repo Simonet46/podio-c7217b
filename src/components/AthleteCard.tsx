@@ -43,17 +43,17 @@ export function AthleteCard({ athlete }: { athlete: Athlete }) {
         />
         {/* sport badge */}
         <span
-          className="absolute left-3.5 top-3.5 rounded-[3px] px-2.5 py-1 font-display text-[11px] font-600 uppercase tracking-[.12em] text-white"
+          className="absolute left-3 top-3 rounded-[3px] px-2 py-0.5 font-display text-[9px] font-600 uppercase tracking-[.12em] text-white"
           style={{ backgroundColor: color }}
         >
           {sport?.label ?? athlete.sport}
         </span>
         {/* name + location */}
-        <div className="absolute inset-x-[18px] bottom-3.5">
-          <div className="font-display text-[23px] font-600 uppercase leading-none text-white">
+        <div className="absolute inset-x-[14px] bottom-3">
+          <div className="font-display text-[18px] font-600 uppercase leading-none text-white">
             {athlete.full_name}
           </div>
-          <div className="mt-0.5 text-[12px] text-white/65">
+          <div className="mt-0.5 text-[10px] text-white/65">
             {athlete.city}, {athlete.province}
           </div>
         </div>
@@ -62,13 +62,13 @@ export function AthleteCard({ athlete }: { athlete: Athlete }) {
       {/* footer row */}
       <Link
         href={`/atleta/${athlete.slug}`}
-        className="flex items-center justify-between px-[18px] py-4"
+        className="flex items-center justify-between px-[14px] py-3"
       >
-        <div className="text-[13px] text-white/60">
-          <strong className="font-display text-[17px] text-gold">{formatMoney(athlete.raised_amount)}</strong>{" "}
+        <div className="text-[11px] text-white/60">
+          <strong className="font-display text-[14px] text-gold">{formatMoney(athlete.raised_amount)}</strong>{" "}
           aportados
         </div>
-        <span className="font-display text-[13px] font-600 uppercase tracking-[.04em] text-gold">
+        <span className="font-display text-[11px] font-600 uppercase tracking-[.04em] text-gold">
           Conocelo →
         </span>
       </Link>
