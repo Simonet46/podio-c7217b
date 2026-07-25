@@ -1,12 +1,13 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Athlete, Team } from "@/lib/data/types";
 import { SPORT_LIST } from "@/config/sports";
 import { getSport } from "@/config/sports";
 import { asset } from "@/config/site";
 import { breakdown, formatMoney } from "@/lib/money";
+import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
+import { recordAcceptance } from "@/lib/legal";
 import { AthleteCard } from "./AthleteCard";
 import { TeamCard } from "./TeamCard";
 import { Reveal } from "./Reveal";
@@ -247,11 +248,17 @@ function PanelAporte({
 }) {
   const [monto, setMonto] = useState(15000);
   const [custom, setCustom] = useState("");
+  /** Atletas cuyo pago ya se abrió en Mercado Pago (pestaña nueva). */
+  const [pagados, setPagados] = useState<Set<string>>(new Set());
+  const [abriendo, setAbriendo] = useState<string | null>(null);
 
   const n = seleccion.length;
   const parte = Math.floor(monto / n);
   const { fee, net } = breakdown(parte);
   const minimo = 1000 * n;
+  // Apenas se inicia el primer pago, el monto queda congelado: si no,
+  // el reparto dejaría de ser en partes iguales.
+  const bloqueado = pagados.size > 0;
 
   function elegirCustom(v: string) {
     setCustom(v);
@@ -259,10 +266,53 @@ function PanelAporte({
     if (Number.isFinite(num)) setMonto(num);
   }
 
+  async function pagarAtleta(a: Athlete) {
+    if (abriendo || monto < minimo) return;
+    setAbriendo(a.id);
+
+    // Evidencia de aceptación de Términos del Donante (igual que el widget).
+    void recordAcceptance({
+      actorType: "donante",
+      context: "donacion",
+      docTypes: ["terminos-donante"],
+      relatedId: a.slug,
+      meta: { amount: parte, kind: "athlete", multi: n },
+    });
+
+    // La pestaña se abre YA (dentro del gesto del usuario, si no el
+    // bloqueador de pop-ups la mata) y después le ponemos la URL final.
+    const tab = window.open("about:blank", "_blank");
+    let url: string | null = null;
+    if (isSupabaseConfigured) {
+      try {
+        const supabase = await getSupabase();
+        if (supabase) {
+          const { data } = await supabase.functions.invoke("mp-create-preference", {
+            body: { slug: a.slug, amount: parte, type: "once" },
+          });
+          url = data?.init_point ?? data?.sandbox_init_point ?? null;
+        }
+      } catch {
+        url = null; // sin MP conectado o error → demo
+      }
+    }
+    if (!url) {
+      url = `/gracias?kind=athlete&slug=${encodeURIComponent(a.slug)}&amount=${parte}&type=once`;
+    }
+    if (tab) tab.location.href = url;
+    else window.open(url, "_blank"); // por si el navegador bloqueó la primera
+
+    setPagados((prev) => new Set(prev).add(a.id));
+    setAbriendo(null);
+  }
+
   return (
     <div
       className="fixed inset-0 z-50 overflow-y-auto bg-black/70 px-4 py-[7vh] backdrop-blur-sm"
-      onClick={onCerrar}
+      onClick={() => {
+        // Con pagos en curso, solo se cierra con la ✕ (evita cierres accidentales).
+        if (!bloqueado) onCerrar();
+      }}
     >
       <div
         role="dialog"
@@ -311,14 +361,16 @@ function PanelAporte({
                 <div className="text-right font-display text-[14px] font-700 text-gold">
                   {formatMoney(net)}
                 </div>
-                <button
-                  type="button"
-                  onClick={() => onQuitar(a.id)}
-                  aria-label={`Quitar a ${a.full_name}`}
-                  className="ml-1 text-white/40 hover:text-white"
-                >
-                  ✕
-                </button>
+                {!bloqueado && (
+                  <button
+                    type="button"
+                    onClick={() => onQuitar(a.id)}
+                    aria-label={`Quitar a ${a.full_name}`}
+                    className="ml-1 text-white/40 hover:text-white"
+                  >
+                    ✕
+                  </button>
+                )}
               </li>
             );
           })}
@@ -326,21 +378,29 @@ function PanelAporte({
 
         {/* Monto */}
         <div className="mt-6">
-          <p className="font-display text-[12px] font-600 uppercase tracking-wide text-white/70">
-            Monto total
-          </p>
+          <div className="flex items-baseline justify-between">
+            <p className="font-display text-[12px] font-600 uppercase tracking-wide text-white/70">
+              Monto total
+            </p>
+            {bloqueado && (
+              <p className="text-[11px] text-gold/90">
+                🔒 Fijado al iniciar el primer pago
+              </p>
+            )}
+          </div>
           <div className="mt-2 flex flex-wrap gap-2">
             {MONTOS_SUGERIDOS.map((m) => (
               <button
                 key={m}
                 type="button"
+                disabled={bloqueado}
                 onClick={() => {
                   setMonto(m);
                   setCustom("");
                 }}
-                className={`rounded-full border px-4 py-2 font-display text-sm font-600 transition-colors ${
+                className={`rounded-full border px-4 py-2 font-display text-sm font-600 transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
                   monto === m && custom === ""
-                    ? "border-gold bg-gold text-ink"
+                    ? "border-gold bg-gold text-ink disabled:opacity-70"
                     : "border-white/25 text-white/85 hover:border-gold hover:text-gold"
                 }`}
               >
@@ -351,8 +411,9 @@ function PanelAporte({
               inputMode="numeric"
               placeholder="Otro monto"
               value={custom}
+              disabled={bloqueado}
               onChange={(e) => elegirCustom(e.target.value)}
-              className="w-32 rounded-full border border-white/25 bg-transparent px-4 py-2 text-sm text-white placeholder:text-white/40 focus:border-gold focus:outline-none"
+              className="w-32 rounded-full border border-white/25 bg-transparent px-4 py-2 text-sm text-white placeholder:text-white/40 focus:border-gold focus:outline-none disabled:cursor-not-allowed disabled:opacity-40"
             />
           </div>
         </div>
@@ -385,25 +446,52 @@ function PanelAporte({
         <p className="mt-4 text-[12px] leading-relaxed text-white/50">
           El pago se hace por Mercado Pago y va{" "}
           <strong className="text-white/75">directo a la cuenta de cada atleta</strong>{" "}
-          — Granito nunca toca la plata. Vas a confirmar un pago por atleta ({n} en
-          total).
+          — Granito nunca toca la plata. Cada pago se abre en una{" "}
+          <strong className="text-white/75">pestaña nueva</strong>; esta ventana te
+          espera para el siguiente ({n} en total).
         </p>
 
         {/* CTA por atleta */}
         <div className="mt-5 space-y-2">
-          {seleccion.map((a, i) => (
-            <Link
-              key={a.id}
-              href={`/atleta/${a.slug}`}
-              className="flex items-center justify-between rounded-md bg-gold px-4 py-2.5 font-display text-[13px] font-700 uppercase tracking-wide text-ink transition-transform hover:-translate-y-0.5"
-            >
-              <span>
-                {i + 1}/{n} · Aportar a {a.full_name.split(" ")[0]}
-              </span>
-              <span>{formatMoney(parte)} →</span>
-            </Link>
-          ))}
+          {seleccion.map((a, i) => {
+            const hecho = pagados.has(a.id);
+            const cargando = abriendo === a.id;
+            return (
+              <button
+                key={a.id}
+                type="button"
+                onClick={() => pagarAtleta(a)}
+                disabled={cargando || monto < minimo}
+                className={`flex w-full items-center justify-between rounded-md px-4 py-2.5 font-display text-[13px] font-700 uppercase tracking-wide transition-transform disabled:cursor-not-allowed ${
+                  hecho
+                    ? "border border-emerald-400/60 bg-emerald-400/10 text-emerald-300 hover:-translate-y-0.5"
+                    : "bg-gold text-ink hover:-translate-y-0.5 disabled:opacity-40"
+                }`}
+              >
+                <span>
+                  {hecho ? "✓ " : `${i + 1}/${n} · `}
+                  {hecho
+                    ? `Pago a ${a.full_name.split(" ")[0]} abierto`
+                    : `Aportar a ${a.full_name.split(" ")[0]}`}
+                </span>
+                <span>
+                  {cargando
+                    ? "Abriendo…"
+                    : hecho
+                      ? "Reabrir ↗"
+                      : `${formatMoney(parte)} →`}
+                </span>
+              </button>
+            );
+          })}
         </div>
+
+        {pagados.size === n && (
+          <p className="mt-4 rounded-lg border border-emerald-400/40 bg-emerald-400/10 px-4 py-3 text-center text-[13px] text-emerald-200">
+            ¡Gracias por tu granito! 🙌 Confirmá cada pago en las pestañas de
+            Mercado Pago que se abrieron.
+          </p>
+        )}
       </div>
     </div>
   );
