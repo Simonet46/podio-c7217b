@@ -11,6 +11,7 @@ import { TeamCampaignCard, sportColorForTeam } from "@/components/TeamCampaignCa
 import { getSport } from "@/config/sports";
 import { asset, SITE } from "@/config/site";
 import { Reveal } from "@/components/Reveal";
+import { Ambassadors } from "@/components/Ambassadors";
 
 export default async function HomePage() {
   const athletes = await getAthletes();
@@ -139,6 +140,11 @@ export default async function HomePage() {
             </div>
           </section>
         )}
+
+        {/* ───────── Embajadores (banda discreta) ───────── */}
+        <Reveal>
+          <Ambassadors />
+        </Reveal>
 
         {/* ───────── Cómo funciona ───────── */}
         <section id="como-funciona" className="bg-ink text-white">
