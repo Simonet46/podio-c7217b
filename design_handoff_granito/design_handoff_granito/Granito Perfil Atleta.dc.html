@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&amp;family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<script src="./image-slot.js"></script>
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:#0A1A2F}
+  ::selection{background:#C9A227;color:#0A1A2F}
+  #perfil-root::-webkit-scrollbar{width:10px}
+  #perfil-root::-webkit-scrollbar-thumb{background:#C9A227;border-radius:999px}
+  image-slot{display:block}
+  @keyframes podioPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.7)}}
+  @keyframes podioFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+  @keyframes podioFloat2{0%,100%{transform:translateY(0)}50%{transform:translateY(9px)}}
+</style>
+</helmet>
+
+<div id="perfil-root" style="background:#0A1A2F;color:#fff;font-family:Inter,system-ui,sans-serif;overflow-x:hidden;min-height:100vh">
+
+  <nav style="position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;padding:14px 48px;background:rgba(10,26,47,.78);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,.07)">
+    <div style="display:flex;align-items:center;gap:40px">
+      <div style="display:flex;align-items:flex-end;gap:2px;cursor:pointer;text-shadow:0 4px 0 rgba(0,0,0,.35)">
+        <span style="font-family:Oswald;font-weight:700;font-size:30px;letter-spacing:.04em;color:#fff;line-height:.8">GRANIT</span>
+        <span style="font-family:Oswald;font-weight:700;font-size:30px;letter-spacing:.04em;color:#C9A227;line-height:.8">O</span>
+      </div>
+      <div style="display:flex;gap:30px;font-family:Oswald;font-weight:500;font-size:14px;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.72)">
+        <span style="cursor:pointer" style-hover="color:#fff">Atletas</span>
+        <span style="cursor:pointer" style-hover="color:#fff">Equipos</span>
+        <span style="cursor:pointer" style-hover="color:#fff">Cómo funciona</span>
+        <span style="cursor:pointer" style-hover="color:#fff">Hinchas</span>
+        <span style="cursor:pointer" style-hover="color:#fff">Empresas</span>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:14px">
+      <span style="font-family:Oswald;font-weight:500;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.6);cursor:pointer" style-hover="color:#fff">← Volver</span>
+      <button style="font-family:Oswald;font-weight:600;font-size:13px;letter-spacing:.04em;text-transform:uppercase;background:#C9A227;border:none;color:#0A1A2F;padding:11px 20px;border-radius:4px;cursor:pointer" style-hover="background:#dcb433">Apoyá</button>
+    </div>
+  </nav>
+
+  <!-- ============ HERO ============ -->
+  <section data-screen-label="Perfil Hero" style="position:relative;max-width:1440px;margin:0 auto;padding:32px 48px 0">
+    <div data-reveal="" style="position:relative">
+      <div data-tilt="3" style="position:relative;height:420px;border-radius:16px;overflow:hidden;box-shadow:0 40px 90px rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.08)">
+        <image-slot id="perfil-cover" shape="rect" placeholder="Soltá foto en acción (apaisada)" style="width:100%;height:100%"></image-slot>
+        <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,26,47,.1) 0%,transparent 30%,rgba(10,26,47,.55) 70%,rgba(10,26,47,.95) 100%);pointer-events:none"></div>
+        <div style="position:absolute;left:0;top:30px;display:flex;flex-direction:column;gap:0"><span style="width:7px;height:40px;background:#0072CE"></span><span style="width:7px;height:40px;background:#F4C300"></span><span style="width:7px;height:40px;background:#009F3D"></span><span style="width:7px;height:40px;background:#DF0024"></span></div>
+        <!-- sponsor banner -->
+        <div style="position:absolute;top:22px;right:22px;display:flex;align-items:center;gap:12px;background:rgba(8,19,31,.78);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:10px 16px">
+          <span style="font-family:Oswald;font-weight:600;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.6)">Con el apoyo de</span>
+          <image-slot id="perfil-sponsor" shape="rect" placeholder="Logo" style="width:96px;height:30px"></image-slot>
+        </div>
+        <!-- próxima competencia -->
+        <div style="position:absolute;right:36px;bottom:34px;display:inline-flex;align-items:center;gap:10px;background:#C9A227;color:#0A1A2F;border-radius:999px;padding:9px 16px;box-shadow:0 14px 36px rgba(201,162,39,.4);animation:podioFloat 5.5s ease-in-out infinite">
+          <span style="width:7px;height:7px;border-radius:50%;background:#0A1A2F"></span>
+          <span style="font-family:Oswald;font-weight:600;font-size:12px;letter-spacing:.06em;text-transform:uppercase">Próxima: Copa del Mundo · Sep 2026</span>
+        </div>
+      </div>
+    </div>
+
+    <div data-reveal="" data-reveal-delay="100" style="display:flex;align-items:flex-end;gap:26px;margin-top:-58px;padding:0 36px;position:relative;z-index:2">
+      <div data-tilt="6" style="width:150px;height:150px;border-radius:16px;overflow:hidden;flex:none;border:3px solid #0A1A2F;box-shadow:0 22px 50px rgba(0,0,0,.5)">
+        <image-slot id="perfil-portrait" shape="rect" placeholder="Retrato" style="width:100%;height:100%"></image-slot>
+      </div>
+      <div style="flex:1;padding-bottom:8px">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+          <span style="font-family:Oswald;font-weight:600;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#fff;padding:5px 12px;border-radius:3px;background:#0072CE">Canotaje</span>
+          <span style="font-size:14px;color:rgba(255,255,255,.62)">Tigre, Buenos Aires · 24 años</span>
+        </div>
+        <h1 style="font-family:Oswald;font-weight:700;font-size:62px;line-height:.9;letter-spacing:-.01em;text-transform:uppercase;margin:0">Lucía Ferrari</h1>
+      </div>
+      <div style="display:flex;gap:30px;padding-bottom:14px">
+        <div style="text-align:right"><div style="font-family:Oswald;font-weight:700;font-size:34px;line-height:1" data-count="312">0</div><div style="font-size:12px;color:rgba(255,255,255,.55);font-weight:500">la apoyan</div></div>
+        <div style="text-align:right"><div style="font-family:Oswald;font-weight:700;font-size:34px;line-height:1" data-count="248000" data-prefix="$">$0</div><div style="font-size:12px;color:rgba(255,255,255,.55);font-weight:500">por mes</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ BODY: contenido + widget ============ -->
+  <section style="max-width:1440px;margin:0 auto;padding:50px 48px 90px;display:grid;grid-template-columns:1fr 380px;gap:48px;align-items:start">
+
+    <!-- LEFT -->
+    <div style="min-width:0">
+      <!-- historia -->
+      <div data-reveal="" style="margin-bottom:50px">
+        <div style="font-family:Oswald;font-weight:600;font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:#C9A227;margin-bottom:14px">La historia</div>
+        <h2 style="font-family:Oswald;font-weight:700;font-size:36px;letter-spacing:-.01em;text-transform:uppercase;line-height:1;margin:0 0 20px">Hoy entrena sola.<br>Mañana, una potencia.</h2>
+        <p style="font-size:17px;line-height:1.7;color:rgba(255,255,255,.74);margin:0 0 16px;max-width:620px">Lucía rema desde los 11 años en el Delta. Se levanta a las 4:30, entrena antes de ir a trabajar y vuelve al agua a la tarde. Compite contra programas nacionales que tienen estructura, sponsors y becas. Ella lo hace sola, con un bote prestado y palas que ya pasaron su vida útil.</p>
+        <p style="font-size:17px;line-height:1.7;color:rgba(255,255,255,.74);margin:0;max-width:620px">El año pasado quedó cuarta en el panamericano, a 0,8 segundos del podio. Con apoyo sostenido —no una campaña de una vez, sino gente apoyándola todos los meses— puede dedicarse a entrenar en serio y dar el salto.</p>
+      </div>
+
+      <!-- foto en acción -->
+      <div data-reveal="" style="margin-bottom:50px">
+        <div data-tilt="4" style="position:relative;height:380px;border-radius:14px;overflow:hidden;box-shadow:0 30px 70px rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.07)">
+          <image-slot id="perfil-action" shape="rect" placeholder="Soltá una foto en acción" style="width:100%;height:100%"></image-slot>
+          <div style="position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(10,26,47,.8));pointer-events:none"></div>
+          <div style="position:absolute;left:24px;bottom:20px;font-size:14px;color:rgba(255,255,255,.85);font-style:italic">"Cada madrugada en el agua es una elección. Saber que hay gente apoyándome la hace más liviana."</div>
+        </div>
+      </div>
+
+      <!-- tu aporte financia -->
+      <div data-reveal="" style="margin-bottom:50px">
+        <div style="font-family:Oswald;font-weight:600;font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:#C9A227;margin-bottom:14px">A dónde va tu plata</div>
+        <h2 style="font-family:Oswald;font-weight:700;font-size:32px;letter-spacing:-.01em;text-transform:uppercase;line-height:1;margin:0 0 24px">Tu aporte financia</h2>
+        <div style="display:flex;flex-direction:column;gap:14px;max-width:620px">
+          <sc-for list="{{ funds }}" as="f" hint-placeholder-count="4">
+            <div style="background:#0d2238;border:1px solid rgba(255,255,255,.07);border-left:3px solid {{ f.color }};border-radius:10px;padding:18px 20px">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+                <span style="font-family:Oswald;font-weight:600;font-size:18px;text-transform:uppercase">{{ f.label }}</span>
+                <span style="font-family:Oswald;font-weight:600;font-size:15px;color:{{ f.color }}">{{ f.pct }}%</span>
+              </div>
+              <div style="height:6px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden"><div style="height:100%;border-radius:999px;width:{{ f.pct }}%;background:{{ f.color }}"></div></div>
+              <div style="font-size:13px;color:rgba(255,255,255,.6);margin-top:10px">{{ f.desc }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <!-- muro de hinchas -->
+      <div data-reveal="" data-screen-label="Muro hinchas">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:22px">
+          <div>
+            <div style="font-family:Oswald;font-weight:600;font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:#C9A227;margin-bottom:10px">Los que la apoyan</div>
+            <h2 style="font-family:Oswald;font-weight:700;font-size:32px;letter-spacing:-.01em;text-transform:uppercase;line-height:1;margin:0">Muro de hinchas</h2>
+          </div>
+          <span style="font-size:14px;color:rgba(255,255,255,.5)">312 personas · ver todos →</span>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px;max-width:680px">
+          <sc-for list="{{ wall }}" as="w" hint-placeholder-count="6">
+            <div style="display:flex;gap:14px;background:#0d2238;border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:16px 18px">
+              <div style="width:42px;height:42px;border-radius:50%;flex:none;background:{{ w.color }};display:flex;align-items:center;justify-content:center;font-family:Oswald;font-weight:700;font-size:17px;color:#fff">{{ w.initial }}</div>
+              <div style="min-width:0">
+                <div style="display:flex;align-items:baseline;gap:8px"><span style="font-family:Oswald;font-weight:600;font-size:15px;text-transform:uppercase">{{ w.name }}</span><span style="font-size:11px;color:rgba(255,255,255,.45)">{{ w.months }}</span></div>
+                <div style="font-size:13px;color:rgba(255,255,255,.72);line-height:1.5;margin-top:3px">{{ w.msg }}</div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: widget de aporte sticky -->
+    <div style="position:sticky;top:92px">
+      <div data-reveal="" style="background:linear-gradient(160deg,#102a44,#0b1f34);border:1px solid rgba(201,162,39,.28);border-radius:16px;padding:26px;box-shadow:0 30px 70px rgba(0,0,0,.5)">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:4px">
+          <span style="font-family:Oswald;font-weight:700;font-size:30px;line-height:1">312</span>
+          <span style="font-family:Oswald;font-weight:600;font-size:18px;color:#C9A227">$248.000<span style="font-size:13px;color:rgba(255,255,255,.5)">/mes</span></span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:rgba(255,255,255,.55);margin-bottom:20px"><span>personas la apoyan</span><span>recaudado por mes</span></div>
+
+        <div style="font-family:Oswald;font-weight:600;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.7);margin-bottom:12px">Elegí tu apoyo mensual</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">
+          <sc-for list="{{ tiers }}" as="t" hint-placeholder-count="3">
+            <button onClick="{{ t.onClick }}" style="{{ t.style }}">
+              <span style="display:block;font-family:Oswald;font-weight:700;font-size:18px;line-height:1.1">{{ t.amountShort }}</span>
+              <span style="display:block;font-size:10px;letter-spacing:.06em;text-transform:uppercase;margin-top:3px;opacity:.8">{{ t.label }}</span>
+            </button>
+          </sc-for>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:12px 14px;margin-bottom:18px">
+          <span style="font-family:Oswald;font-weight:700;font-size:20px;color:rgba(255,255,255,.5)">$</span>
+          <input value="{{ amount }}" onInput="{{ onAmountInput }}" inputmode="numeric" style="flex:1;min-width:0;background:transparent;border:none;outline:none;color:#fff;font-family:Oswald;font-weight:700;font-size:22px;width:100%">
+          <span style="font-size:12px;color:rgba(255,255,255,.5);white-space:nowrap">por mes</span>
+        </div>
+
+        <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:14px 16px;margin-bottom:18px">
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px"><span style="color:rgba(255,255,255,.7)">Para Lucía (93%)</span><span style="font-family:Oswald;font-weight:600;color:#C9A227">{{ athleteGets }}</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:rgba(255,255,255,.55)">Plataforma (7%)<br>Para seguir integrando atletas</span><span style="font-family:Oswald;font-weight:600;color:rgba(255,255,255,.6)">{{ platformFee }}</span></div>
+        </div>
+
+        <button style="width:100%;font-family:Oswald;font-weight:600;font-size:16px;letter-spacing:.04em;text-transform:uppercase;background:#C9A227;border:none;color:#0A1A2F;padding:16px;border-radius:8px;cursor:pointer;transition:all .2s;box-shadow:0 14px 34px rgba(201,162,39,.32)" style-hover="background:#dcb433;transform:translateY(-2px)">Apoyar a Lucía · {{ amountFmt }}/mes</button>
+        <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:14px;font-size:12px;color:rgba(255,255,255,.5)">
+          <span>Cancelás cuando quieras</span><span>·</span><span>Sin comisiones ocultas</span>
+        </div>
+      </div>
+
+      <div data-reveal="" style="display:flex;align-items:center;gap:12px;margin-top:16px;background:#0d2238;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:16px 18px">
+        <span style="font-size:22px">🤝</span>
+        <div style="font-size:13px;color:rgba(255,255,255,.7);line-height:1.5">El caso de Lucía fue <strong style="color:#fff">revisado a mano</strong> por los fundadores de GRANITO, atletas como ella.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FOOTER ============ -->
+  <footer style="background:#08131f;padding:60px 48px 40px;border-top:1px solid rgba(255,255,255,.07)">
+    <div style="max-width:1440px;margin:0 auto">
+      <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:40px;margin-bottom:46px">
+        <div style="max-width:300px">
+          <div style="font-family:Oswald;font-weight:700;font-size:30px;letter-spacing:.1em;line-height:.9;margin-bottom:8px">GRANITO</div>
+          <div style="display:flex;gap:3px;margin-bottom:18px"><span style="width:20px;height:3px;background:#0072CE"></span><span style="width:20px;height:3px;background:#F4C300"></span><span style="width:20px;height:3px;background:#1A1A1A"></span><span style="width:20px;height:3px;background:#009F3D"></span><span style="width:20px;height:3px;background:#DF0024"></span></div>
+          <p style="font-size:14px;color:rgba(255,255,255,.55);line-height:1.6;margin:0">Apoyo directo de la gente a los atletas argentinos. El 93% va al atleta.</p>
+        </div>
+        <div style="display:flex;gap:60px;flex-wrap:wrap">
+          <div><div style="font-family:Oswald;font-weight:600;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:#fff;margin-bottom:16px">Plataforma</div><div style="display:flex;flex-direction:column;gap:11px;font-size:14px;color:rgba(255,255,255,.6)"><span style="cursor:pointer">Atletas</span><span style="cursor:pointer">Equipos</span><span style="cursor:pointer">Apoyá a todos</span><span style="cursor:pointer">Hinchas</span></div></div>
+          <div><div style="font-family:Oswald;font-weight:600;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:#fff;margin-bottom:16px">Sumate</div><div style="display:flex;flex-direction:column;gap:11px;font-size:14px;color:rgba(255,255,255,.6)"><span style="cursor:pointer">Soy atleta</span><span style="cursor:pointer">Empresas</span><span style="cursor:pointer">Quiénes somos</span></div></div>
+        </div>
+      </div>
+      <div style="padding-top:24px;border-top:1px solid rgba(255,255,255,.08);display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px">
+        <p style="font-size:12px;color:rgba(255,255,255,.4);max-width:560px;margin:0;line-height:1.6">GRANITO es una plataforma independiente y no está afiliada al COI, al COA ni a ningún organismo olímpico. No utilizamos símbolos ni marcas olímpicas.</p>
+        <p style="font-size:12px;color:rgba(255,255,255,.4);margin:0">© 2026 GRANITO</p>
+      </div>
+    </div>
+  </footer>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:1000}}">
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { amount: 1000 };
+    this._obs = null;
+    this._tilt = [];
+    this._counterPoll = null;
+  }
+
+  fmt(n) { return '$' + Math.round(n || 0).toLocaleString('es-AR'); }
+
+  fundsRaw() {
+    return [
+      { label: 'Entrenamiento', pct: 40, color: '#0072CE', desc: 'Horas de agua, gimnasio y entrenador. Lo que le permite dedicarse en serio.' },
+      { label: 'Viajes a competencias', pct: 30, color: '#009F3D', desc: 'Pasajes, estadía e inscripciones para competir afuera y sumar ranking.' },
+      { label: 'Equipamiento', pct: 20, color: '#DF0024', desc: 'Palas, mantenimiento del bote y ropa técnica. Renovar lo que ya está gastado.' },
+      { label: 'Nutrición y recuperación', pct: 10, color: '#F4C300', desc: 'Plan alimentario y kinesiología para sostener la carga de entrenamiento.' }
+    ];
+  }
+
+  wallRaw() {
+    return [
+      { name: 'Carlos M.', initial: 'C', color: '#0072CE', months: 'hace 8 meses', msg: 'Vamos Lu, te seguimos desde el club. Cada remada cuenta.' },
+      { name: 'Sofía R.', initial: 'S', color: '#DF0024', months: 'hace 5 meses', msg: 'Orgullo del Delta. Apoyo este proyecto al 100%.' },
+      { name: 'Martín G.', initial: 'M', color: '#009F3D', months: 'hace 1 año', msg: 'Cuarta en el panamericano con un bote prestado. Imaginate con apoyo.' },
+      { name: 'Julieta F.', initial: 'J', color: '#7A4DD0', months: 'hace 3 meses', msg: 'Mi hija empezó a remar por verte a vos. Gracias por el ejemplo.' },
+      { name: 'Federico L.', initial: 'F', color: '#3E8FD0', months: 'hace 6 meses', msg: 'El deporte argentino se apoya entre todos. Acá estamos.' },
+      { name: 'Renata C.', initial: 'R', color: '#F4C300', months: 'hace 2 meses', msg: 'Aporto poco pero todos los meses. Dale que se puede, Lu.' }
+    ];
+  }
+
+  tiersRaw() {
+    return [
+      { amount: 500, label: 'Aguante' },
+      { amount: 1000, label: 'Hincha' },
+      { amount: 2500, label: 'Sponsor' }
+    ];
+  }
+
+  componentDidMount() {
+    this._counterPoll = setInterval(() => { try { this.countVisible(); } catch (e) {} }, 350);
+    this.refresh();
+  }
+
+  componentWillUnmount() {
+    clearInterval(this._counterPoll);
+    if (this._obs) this._obs.disconnect();
+    this._tilt.forEach(fn => fn());
+  }
+
+  refresh() {
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      try { this.setupReveals(); } catch (e) {}
+      try { this.countVisible(); } catch (e) {}
+      try { this.setupTilt(); } catch (e) {}
+    }));
+  }
+
+  root() { return document.getElementById('perfil-root'); }
+
+  setupReveals() {
+    const root = this.root(); if (!root) return;
+    if (this._obs) this._obs.disconnect();
+    const els = Array.from(root.querySelectorAll('[data-reveal]'));
+    els.forEach(el => {
+      if (el._revealed) return;
+      const d = el.getAttribute('data-reveal-delay') || 0;
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(28px)';
+      el.style.transition = 'opacity .7s cubic-bezier(.2,.8,.2,1) ' + d + 'ms, transform .7s cubic-bezier(.2,.8,.2,1) ' + d + 'ms';
+    });
+    this._obs = new IntersectionObserver((ents) => {
+      ents.forEach(e => {
+        if (e.isIntersecting) {
+          e.target._revealed = true;
+          e.target.style.opacity = '1';
+          e.target.style.transform = 'none';
+          this._obs.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -8% 0px' });
+    els.forEach(el => { if (!el._revealed) this._obs.observe(el); });
+  }
+
+  setupTilt() {
+    const root = this.root(); if (!root) return;
+    this._tilt.forEach(fn => fn());
+    this._tilt = [];
+    root.querySelectorAll('[data-tilt]').forEach(el => {
+      const max = parseFloat(el.getAttribute('data-tilt')) || 6;
+      el.style.transformStyle = 'preserve-3d';
+      el.style.willChange = 'transform';
+      const onMove = (ev) => {
+        const r = el.getBoundingClientRect();
+        const px = (ev.clientX - r.left) / r.width - 0.5;
+        const py = (ev.clientY - r.top) / r.height - 0.5;
+        el.style.transition = 'transform .08s linear';
+        el.style.transform = 'perspective(1000px) rotateY(' + (px * max) + 'deg) rotateX(' + (-py * max) + 'deg) translateY(-4px)';
+      };
+      const onLeave = () => {
+        el.style.transition = 'transform .5s cubic-bezier(.2,.8,.2,1)';
+        el.style.transform = 'perspective(1000px) rotateY(0deg) rotateX(0deg) translateY(0)';
+      };
+      el.addEventListener('mousemove', onMove);
+      el.addEventListener('mouseleave', onLeave);
+      this._tilt.push(() => { el.removeEventListener('mousemove', onMove); el.removeEventListener('mouseleave', onLeave); });
+    });
+  }
+
+  countVisible() {
+    const root = this.root(); if (!root) return;
+    const vh = window.innerHeight || document.documentElement.clientHeight;
+    root.querySelectorAll('[data-count]').forEach(el => {
+      if (el._counted || el.offsetParent === null) return;
+      const r = el.getBoundingClientRect();
+      if (r.top < vh * 0.96 && r.bottom > 0) { el._counted = true; this.countUp(el); }
+    });
+  }
+
+  countUp(el) {
+    const target = parseFloat(el.getAttribute('data-count'));
+    const pre = el.getAttribute('data-prefix') || '';
+    const dur = 1400;
+    const start = Date.now();
+    const id = setInterval(() => {
+      const t = Math.min(1, (Date.now() - start) / dur);
+      const e = 1 - Math.pow(1 - t, 3);
+      el.textContent = pre + Math.round(target * e).toLocaleString('es-AR');
+      if (t >= 1) clearInterval(id);
+    }, 28);
+  }
+
+  renderVals() {
+    const amount = this.state.amount;
+    const tiers = this.tiersRaw().map(t => {
+      const active = t.amount === amount;
+      return {
+        amount: t.amount,
+        amountShort: '$' + (t.amount >= 1000 ? (t.amount / 1000) + 'k' : t.amount),
+        label: t.label,
+        onClick: () => this.setState({ amount: t.amount }),
+        style: 'cursor:pointer;border-radius:10px;padding:12px 6px;text-align:center;transition:all .2s;font-family:Inter;color:#fff;border:1px solid ' +
+          (active ? '#C9A227' : 'rgba(255,255,255,.14)') + ';background:' + (active ? 'rgba(201,162,39,.16)' : 'rgba(255,255,255,.03)')
+      };
+    });
+
+    return {
+      funds: this.fundsRaw(),
+      wall: this.wallRaw(),
+      tiers,
+      amount: amount,
+      amountFmt: this.fmt(amount),
+      athleteGets: this.fmt(amount * 0.93),
+      platformFee: this.fmt(amount * 0.07),
+      onAmountInput: (e) => {
+        const n = parseInt((e.target.value || '').replace(/[^0-9]/g, ''), 10);
+        this.setState({ amount: isNaN(n) ? 0 : n });
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -6,8 +6,8 @@ import { WEB3FORMS_ACCESS_KEY, APPLICATIONS_EMAIL, SITE } from "@/config/site";
 type Status = "idle" | "loading" | "ok" | "error";
 
 const OPCIONES = [
-  "Ser Empresa Impulsora de GRANITO",
-  "Apoyar a todos los atletas",
+  "Empresa Impulsora — $600.000/mes",
+  "Empresa Sponsor — $150.000/mes",
   "Convenio o activación a medida",
   "Todavía no sé / quiero explorar",
 ];

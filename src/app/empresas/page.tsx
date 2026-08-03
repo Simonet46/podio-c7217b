@@ -36,32 +36,45 @@ const BENEFITS = [
   },
 ];
 
-const RECIBE = [
+const NIVELES = [
   {
-    icon: "📊",
-    title: "Informes de impacto",
-    text: "Reportes periódicos: a quiénes impulsaste, qué lograron y qué viene.",
+    nombre: "Empresa Impulsora",
+    precio: "$600.000",
+    equivale: "Equivale al aporte de 60 hinchas",
+    cupos: "Solo 3 lugares",
+    anual: "Convenio anual: $6.000.000 — 2 meses bonificados y precio congelado",
+    destacado: true,
+    beneficios: [
+      "Logo grande en la home y en todo el sitio",
+      "Certificado físico y digital de Empresa Impulsora",
+      "Informe de impacto trimestral, personalizado con tu nombre",
+      "2 posteos dedicados por año en nuestras redes",
+      "Contacto directo con los fundadores e invitación a competencias",
+      "Las primeras 3 llevan la insignia «Impulsora fundadora» a perpetuidad",
+    ],
   },
   {
-    icon: "🧾",
-    title: "Transparencia de aportes",
-    text: "El detalle de cómo se distribuyó cada peso que aportó tu empresa.",
+    nombre: "Empresa Sponsor",
+    precio: "$150.000",
+    equivale: "Equivale al aporte de 15 hinchas",
+    cupos: "12 lugares",
+    anual: "Convenio anual: $1.500.000 — 2 meses bonificados y precio congelado",
+    destacado: false,
+    beneficios: [
+      "Logo en la franja de empresas de todo el sitio",
+      "Certificado digital de Empresa Sponsor",
+      "Informe de impacto semestral",
+      "Mención grupal trimestral en redes",
+      "Las primeras 5 llevan la insignia «Sponsor fundador»",
+    ],
   },
-  {
-    icon: "📖",
-    title: "Historias reales",
-    text: "El detrás de escena de los atletas que tu empresa acompaña.",
-  },
-  {
-    icon: "🏅",
-    title: "Certificado de Empresa Impulsora",
-    text: "El reconocimiento oficial de GRANITO a las empresas que empujan.",
-  },
-  {
-    icon: "📈",
-    title: "Métricas claras",
-    text: "Números concretos de tu impacto: atletas, disciplinas, competencias.",
-  },
+];
+
+const CONDICIONES = [
+  "Permanencia mínima de 6 meses: el compromiso que hace creíble llamarse impulsora.",
+  "El precio se revisa cada trimestre. El convenio anual prepago lo congela.",
+  "Si una empresa deja de aportar, su logo baja del sitio a fin de mes. Sin excepciones: todos los logos que ves están aportando hoy.",
+  "Factura por servicio de promoción y patrocinio.",
 ];
 
 const STEPS = [
@@ -130,10 +143,10 @@ export default async function EmpresasPage() {
                     Quiero impulsar
                   </a>
                   <a
-                    href="#como-funciona"
+                    href="#niveles"
                     className="rounded-md border border-white/25 px-7 py-4 font-display text-base font-500 uppercase tracking-[.04em] text-white transition-all hover:border-white hover:-translate-y-0.5"
                   >
-                    Cómo funciona
+                    Niveles y montos
                   </a>
                 </div>
               </Reveal>
@@ -206,31 +219,117 @@ export default async function EmpresasPage() {
           </div>
         </section>
 
-        {/* ── QUÉ RECIBE TU EMPRESA ── */}
-        <section className="mx-auto max-w-[1180px] px-6 pb-10 pt-16">
-          <Reveal className="mb-12 text-center">
-            <div className="eyebrow mb-2.5 text-gold">Qué recibe tu empresa</div>
+        {/* ── NIVELES Y MONTOS ── */}
+        <section id="niveles" className="mx-auto max-w-[1180px] px-6 pb-10 pt-16">
+          <Reveal className="mb-4 text-center">
+            <div className="eyebrow mb-2.5 text-gold">Niveles y montos</div>
             <h2 className="font-display text-[48px] font-700 uppercase leading-[.95] tracking-tight">
-              No branding. Impacto.
+              Dos formas de empujar
             </h2>
+            <p className="mx-auto mt-4 max-w-[560px] text-[16px] leading-relaxed text-white/65">
+              Los aportes de las empresas sostienen la estructura de GRANITO.
+              Gracias a eso, el 93% del aporte de cada hincha llega directo al
+              atleta.
+            </p>
           </Reveal>
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {RECIBE.map((r, i) => (
-              <Reveal key={r.title} delay={i * 70}>
+          <div className="mt-10 grid gap-6 lg:grid-cols-2">
+            {NIVELES.map((n, i) => (
+              <Reveal key={n.nombre} delay={i * 90}>
                 <div
-                  className="h-full rounded-xl p-7"
-                  style={{ background: "#0d2238", border: "1px solid rgba(255,255,255,.07)" }}
+                  className="relative h-full rounded-[16px] p-8"
+                  style={
+                    n.destacado
+                      ? {
+                          background: "linear-gradient(160deg,#12283f,#0d2238)",
+                          border: "1px solid rgba(201,162,39,.45)",
+                          boxShadow: "0 30px 70px rgba(0,0,0,.45)",
+                        }
+                      : {
+                          background: "#0d2238",
+                          border: "1px solid rgba(255,255,255,.1)",
+                        }
+                  }
                 >
-                  <div className="mb-3 text-[28px]">{r.icon}</div>
-                  <h3 className="mb-2 font-display text-[19px] font-600 uppercase leading-[1.1]">
-                    {r.title}
+                  <div
+                    className="absolute right-6 top-6 rounded-[4px] px-2.5 py-1 font-display text-[11px] font-600 uppercase tracking-[.08em]"
+                    style={
+                      n.destacado
+                        ? { background: "rgba(201,162,39,.18)", color: "#E4C76A" }
+                        : { background: "rgba(255,255,255,.08)", color: "rgba(255,255,255,.6)" }
+                    }
+                  >
+                    {n.cupos}
+                  </div>
+                  <h3 className="font-display text-[26px] font-700 uppercase leading-[1.02]">
+                    {n.nombre}
                   </h3>
-                  <p className="text-[14px] leading-relaxed text-white/60">{r.text}</p>
+                  <div className="mt-5 flex items-baseline gap-2">
+                    <span
+                      className={`font-display text-[46px] font-700 leading-none ${n.destacado ? "text-gold" : "text-white"}`}
+                    >
+                      {n.precio}
+                    </span>
+                    <span className="text-[15px] text-white/55">/ mes</span>
+                  </div>
+                  <div className="mt-1.5 text-[14px] text-celeste">{n.equivale}</div>
+                  <ul className="mt-6 flex flex-col gap-3">
+                    {n.beneficios.map((b) => (
+                      <li key={b} className="flex items-start gap-3 text-[14px] leading-snug text-white/75">
+                        <span
+                          className="mt-0.5 flex h-[18px] w-[18px] flex-none items-center justify-center rounded-full text-[10px]"
+                          style={{
+                            background: n.destacado ? "rgba(201,162,39,.18)" : "rgba(255,255,255,.08)",
+                            color: n.destacado ? "#E4C76A" : "rgba(255,255,255,.7)",
+                          }}
+                        >
+                          ✓
+                        </span>
+                        {b}
+                      </li>
+                    ))}
+                  </ul>
+                  <div
+                    className="mt-6 rounded-lg px-4 py-3 text-[13px] leading-snug text-white/60"
+                    style={{ background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.08)" }}
+                  >
+                    {n.anual}
+                  </div>
+                  <a
+                    href="#contacto"
+                    className={`mt-6 block rounded-md py-3.5 text-center font-display text-[15px] font-700 uppercase tracking-[.04em] transition-transform hover:-translate-y-0.5 ${
+                      n.destacado
+                        ? "bg-gold text-ink"
+                        : "border border-white/25 text-white hover:border-white"
+                    }`}
+                  >
+                    Quiero ser {n.nombre.toLowerCase()}
+                  </a>
                 </div>
               </Reveal>
             ))}
-            {/* Cierre de la grilla: la filosofía */}
-            <Reveal delay={350}>
+          </div>
+
+          {/* Condiciones + filosofía */}
+          <div className="mt-6 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
+            <Reveal delay={120}>
+              <div
+                className="h-full rounded-xl p-7"
+                style={{ background: "#0d2238", border: "1px solid rgba(255,255,255,.07)" }}
+              >
+                <h3 className="mb-4 font-display text-[18px] font-600 uppercase tracking-wide text-white/85">
+                  Reglas claras, para los dos lados
+                </h3>
+                <ul className="flex flex-col gap-2.5">
+                  {CONDICIONES.map((c) => (
+                    <li key={c} className="flex items-start gap-3 text-[14px] leading-relaxed text-white/60">
+                      <span className="mt-[7px] h-1.5 w-1.5 flex-none rounded-full bg-celeste" aria-hidden />
+                      {c}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </Reveal>
+            <Reveal delay={200}>
               <div
                 className="flex h-full items-center rounded-xl p-7"
                 style={{
@@ -239,8 +338,9 @@ export default async function EmpresasPage() {
                 }}
               >
                 <p className="font-display text-[19px] font-600 uppercase leading-[1.25] text-gold">
-                  Lo que no vas a encontrar: logos en camisetas, banners ni
-                  publicidad. Eso no es GRANITO.
+                  Lo que ningún nivel compra: logos en camisetas ni en perfiles
+                  de atletas, y ninguna empresa elige a quién va la plata. Eso
+                  protege a los atletas.
                 </p>
               </div>
             </Reveal>

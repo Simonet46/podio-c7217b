@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>GRANITO — Propuesta para empresas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --ink: #0A1A2F;
+    --ink2: #0d2238;
+    --ink3: #12283f;
+    --gold: #C9A227;
+    --gold-soft: #E4C76A;
+    --celeste: #6CB4E4;
+    --white: #ffffff;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--ink);
+    color: var(--white);
+    font-family: "Inter", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.6;
+  }
+  .display { font-family: "Oswald", sans-serif; text-transform: uppercase; }
+  .page { max-width: 920px; margin: 0 auto; padding: 0 28px; }
+
+  /* Franja de 5 colores */
+  .ribbon { display: flex; height: 6px; }
+  .ribbon span { flex: 1; }
+  .ribbon .c1 { background: #0072CE; } .ribbon .c2 { background: #F4C300; }
+  .ribbon .c3 { background: #1A1A1A; } .ribbon .c4 { background: #009F3D; }
+  .ribbon .c5 { background: #DF0024; }
+
+  .eyebrow {
+    font-family: "Oswald", sans-serif; text-transform: uppercase;
+    letter-spacing: .18em; font-size: 12px; font-weight: 600; color: var(--gold);
+  }
+
+  /* ── Portada ── */
+  header { padding: 64px 0 52px; text-align: center; }
+  .brand { font-size: 34px; font-weight: 700; letter-spacing: .04em; }
+  .brand .o { color: var(--gold); }
+  header h1 {
+    margin-top: 34px; font-size: clamp(40px, 7vw, 64px); font-weight: 700;
+    line-height: .95; letter-spacing: -.01em;
+  }
+  header h1 .hl { color: var(--gold); }
+  header .sub {
+    margin: 22px auto 0; max-width: 560px; font-size: 17px; color: rgba(255,255,255,.7);
+  }
+
+  /* ── Números ── */
+  .stats { display: flex; justify-content: center; gap: 18px; flex-wrap: wrap; margin-top: 40px; }
+  .stat {
+    background: var(--ink2); border: 1px solid rgba(255,255,255,.08);
+    border-radius: 14px; padding: 20px 30px; min-width: 170px;
+  }
+  .stat .n { font-family: "Oswald", sans-serif; font-size: 38px; font-weight: 700; color: var(--gold); line-height: 1; }
+  .stat .l { margin-top: 6px; font-size: 13px; color: rgba(255,255,255,.6); }
+
+  section { padding: 44px 0; }
+  .sec-head { text-align: center; margin-bottom: 34px; }
+  .sec-head h2 { font-size: clamp(30px, 5vw, 42px); font-weight: 700; line-height: .98; margin-top: 8px; }
+  .sec-head p { margin: 14px auto 0; max-width: 620px; font-size: 15.5px; color: rgba(255,255,255,.65); }
+
+  /* ── Historia ── */
+  .story {
+    background: linear-gradient(160deg, var(--ink3), var(--ink2));
+    border: 1px solid rgba(201,162,39,.3); border-radius: 18px; padding: 36px 40px;
+  }
+  .story p { font-size: 16.5px; color: rgba(255,255,255,.78); }
+  .story p + p { margin-top: 14px; }
+  .story strong { color: var(--gold-soft); font-weight: 600; }
+
+  /* ── Atletas ── */
+  .athletes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  @media (max-width: 640px) { .athletes { grid-template-columns: repeat(2, 1fr); } }
+  .ath {
+    position: relative; border-radius: 14px; overflow: hidden;
+    background: var(--ink2); border: 1px solid rgba(255,255,255,.07);
+    aspect-ratio: 3 / 3.6;
+  }
+  .ath img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .ath .veil {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, transparent 45%, rgba(10,26,47,.95));
+  }
+  .ath .info { position: absolute; left: 14px; right: 14px; bottom: 12px; }
+  .ath .name { font-family: "Oswald", sans-serif; text-transform: uppercase; font-size: 17px; font-weight: 600; line-height: 1.05; }
+  .ath .sport {
+    display: inline-block; margin-bottom: 7px; padding: 3px 8px; border-radius: 3px;
+    font-family: "Oswald", sans-serif; text-transform: uppercase;
+    font-size: 10px; font-weight: 600; letter-spacing: .1em;
+    background: rgba(108,180,228,.22); color: var(--celeste);
+  }
+  .ath-note { margin-top: 16px; text-align: center; font-size: 13px; color: rgba(255,255,255,.5); }
+
+  /* ── Niveles ── */
+  .tiers { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 720px) { .tiers { grid-template-columns: 1fr; } }
+  .tier {
+    position: relative; border-radius: 18px; padding: 32px;
+    background: var(--ink2); border: 1px solid rgba(255,255,255,.1);
+  }
+  .tier.top {
+    background: linear-gradient(160deg, var(--ink3), var(--ink2));
+    border: 1px solid rgba(201,162,39,.5);
+    box-shadow: 0 26px 60px rgba(0,0,0,.45);
+  }
+  .tier .cupos {
+    position: absolute; top: 22px; right: 22px; padding: 4px 10px; border-radius: 4px;
+    font-family: "Oswald", sans-serif; text-transform: uppercase;
+    font-size: 11px; font-weight: 600; letter-spacing: .08em;
+    background: rgba(255,255,255,.08); color: rgba(255,255,255,.6);
+  }
+  .tier.top .cupos { background: rgba(201,162,39,.18); color: var(--gold-soft); }
+  .tier h3 { font-size: 24px; font-weight: 700; line-height: 1; }
+  .tier .price { margin-top: 20px; font-family: "Oswald", sans-serif; font-size: 44px; font-weight: 700; line-height: 1; }
+  .tier.top .price { color: var(--gold); }
+  .tier .per { font-size: 14px; color: rgba(255,255,255,.55); font-family: "Inter", sans-serif; font-weight: 400; }
+  .tier .equiv { margin-top: 6px; font-size: 13.5px; color: var(--celeste); }
+  .tier ul { list-style: none; margin-top: 22px; display: flex; flex-direction: column; gap: 10px; }
+  .tier li { display: flex; gap: 10px; font-size: 13.5px; color: rgba(255,255,255,.78); line-height: 1.45; }
+  .tier li::before {
+    content: "✓"; flex: none; width: 18px; height: 18px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 10px; margin-top: 1px;
+    background: rgba(255,255,255,.08); color: rgba(255,255,255,.7);
+  }
+  .tier.top li::before { background: rgba(201,162,39,.2); color: var(--gold-soft); }
+  .tier .annual {
+    margin-top: 22px; padding: 12px 14px; border-radius: 10px; font-size: 12.5px;
+    color: rgba(255,255,255,.6);
+    background: rgba(255,255,255,.045); border: 1px solid rgba(255,255,255,.08);
+  }
+
+  /* ── Reglas ── */
+  .rules { display: grid; grid-template-columns: 1.35fr 1fr; gap: 20px; }
+  @media (max-width: 720px) { .rules { grid-template-columns: 1fr; } }
+  .rules .box {
+    border-radius: 16px; padding: 28px;
+    background: var(--ink2); border: 1px solid rgba(255,255,255,.07);
+  }
+  .rules h3 { font-size: 17px; font-weight: 600; letter-spacing: .04em; color: rgba(255,255,255,.85); margin-bottom: 14px; }
+  .rules ul { list-style: none; display: flex; flex-direction: column; gap: 9px; }
+  .rules li { display: flex; gap: 10px; font-size: 13.5px; color: rgba(255,255,255,.62); line-height: 1.5; }
+  .rules li::before { content: ""; flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--celeste); margin-top: 7px; }
+  .philosophy {
+    border-radius: 16px; padding: 28px; display: flex; align-items: center;
+    background: linear-gradient(160deg, rgba(201,162,39,.15), rgba(201,162,39,.05));
+    border: 1px solid rgba(201,162,39,.35);
+  }
+  .philosophy p {
+    font-family: "Oswald", sans-serif; text-transform: uppercase;
+    font-size: 17px; font-weight: 600; line-height: 1.3; color: var(--gold-soft);
+  }
+
+  /* ── CTA ── */
+  .cta {
+    text-align: center; border-radius: 18px; padding: 44px 32px;
+    background: linear-gradient(135deg, #102a44, #0b1f34);
+    border: 1px solid rgba(201,162,39,.32);
+  }
+  .cta h2 { font-size: clamp(28px, 5vw, 38px); font-weight: 700; line-height: 1; }
+  .cta p { margin: 14px auto 0; max-width: 480px; font-size: 15px; color: rgba(255,255,255,.68); }
+  .cta .btn {
+    display: inline-block; margin-top: 26px; padding: 16px 38px; border-radius: 8px;
+    background: var(--gold); color: var(--ink); text-decoration: none;
+    font-family: "Oswald", sans-serif; text-transform: uppercase;
+    font-size: 16px; font-weight: 700; letter-spacing: .04em;
+    box-shadow: 0 14px 34px rgba(201,162,39,.3);
+  }
+  .cta .alt { margin-top: 16px; font-size: 13px; color: rgba(255,255,255,.5); }
+  .cta .alt a { color: var(--celeste); text-decoration: none; }
+
+  footer { padding: 34px 0 46px; text-align: center; }
+  footer .legal { font-size: 11.5px; color: rgba(255,255,255,.35); max-width: 640px; margin: 18px auto 0; }
+
+  @media print {
+    body { background: var(--ink) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    section { padding: 26px 0; break-inside: avoid; }
+    header { padding: 36px 0 28px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="ribbon"><span class="c1"></span><span class="c2"></span><span class="c3"></span><span class="c4"></span><span class="c5"></span></div>
+
+<div class="page">
+
+  <header>
+    <div class="brand display">GRANIT<span class="o">O</span></div>
+    <div class="eyebrow" style="margin-top:10px">Propuesta para empresas</div>
+    <h1 class="display">Impulsá el<br /><span class="hl">deporte argentino</span></h1>
+    <p class="sub">
+      La primera plataforma especializada en impulsar a atletas argentinos,
+      con transparencia total. Creada por atletas, para atletas.
+    </p>
+    <div class="stats">
+      <div class="stat"><div class="n display">93%</div><div class="l">de cada aporte de un hincha<br />va directo al atleta</div></div>
+      <div class="stat"><div class="n display">100%</div><div class="l">de perfiles verificados,<br />revisados a mano</div></div>
+      <div class="stat"><div class="n display">48 hs</div><div class="l">tu logo online desde<br />el primer aporte</div></div>
+    </div>
+  </header>
+
+  <section>
+    <div class="story">
+      <p>
+        En Argentina, la mayoría de los atletas de alto rendimiento se financia
+        solo: viajes, inscripciones, equipamiento y preparación salen de su
+        bolsillo o del esfuerzo de su familia.
+      </p>
+      <p>
+        GRANITO existe para cambiar eso: una plataforma donde cualquier persona
+        apoya económicamente a atletas argentinos verificados, y el
+        <strong>93% de cada aporte llega directo al atleta</strong>.
+      </p>
+      <p>
+        ¿Y el resto de la estructura — la verificación, la plataforma, la
+        difusión? <strong>Eso lo sostienen las empresas.</strong> Por eso no te
+        vendemos publicidad: te invitamos a ser parte de la institución que
+        hace posible que todo esto funcione.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <div class="eyebrow">Personas reales, carreras reales</div>
+      <h2 class="display">Ellos ya están adentro</h2>
+      <p>Algunos de los atletas verificados que hoy impulsa la comunidad de GRANITO.</p>
+    </div>
+    <div class="athletes">
+      <div class="ath">
+        <img src="https://ruugpxfgpbtajrxbabvg.supabase.co/storage/v1/object/public/athlete-media/applications/fd429adb-a7d7-407b-abd2-a01430de7dfe.jpeg" alt="Agostina Alonso" />
+        <div class="veil"></div>
+        <div class="info"><span class="sport">Hockey</span><div class="name">Agostina Alonso</div></div>
+      </div>
+      <div class="ath">
+        <img src="https://ruugpxfgpbtajrxbabvg.supabase.co/storage/v1/object/public/athlete-media/applications/7b74dfbe-fae6-47b6-bff8-d32353a4aed0.jpg" alt="Diego Simonet" />
+        <div class="veil"></div>
+        <div class="info"><span class="sport">Handball</span><div class="name">Diego Simonet</div></div>
+      </div>
+      <div class="ath">
+        <img src="https://ruugpxfgpbtajrxbabvg.supabase.co/storage/v1/object/public/athlete-media/applications/7e634390-0beb-4832-b3af-7f1bdc935c91.jpeg" alt="Sofía Cairó" />
+        <div class="veil"></div>
+        <div class="info"><span class="sport">Hockey</span><div class="name">Sofía Cairó</div></div>
+      </div>
+      <div class="ath">
+        <img src="https://ruugpxfgpbtajrxbabvg.supabase.co/storage/v1/object/public/athlete-media/applications/2d10f478-b122-4e3e-9819-b94e25fbf006.jpeg" alt="Pablo Simonet" />
+        <div class="veil"></div>
+        <div class="info"><span class="sport">Handball</span><div class="name">Pablo Simonet</div></div>
+      </div>
+      <div class="ath">
+        <img src="https://ruugpxfgpbtajrxbabvg.supabase.co/storage/v1/object/public/athlete-media/applications/9b3ebd6d-cfbc-4b4d-8f01-c273c1a137d9.jpeg" alt="María Pilar Campoy" />
+        <div class="veil"></div>
+        <div class="info"><span class="sport">Hockey</span><div class="name">M. Pilar Campoy</div></div>
+      </div>
+      <div class="ath">
+        <img src="https://ruugpxfgpbtajrxbabvg.supabase.co/storage/v1/object/public/athlete-media/applications/78f15182-cdc7-4a09-b6cf-a1bcfb9d832d.webp" alt="Agustín Molina" />
+        <div class="veil"></div>
+        <div class="info"><span class="sport">Atletismo</span><div class="name">Agustín Molina</div></div>
+      </div>
+    </div>
+    <p class="ath-note">Y la comunidad sigue creciendo: cada perfil es una carrera deportiva real, revisada a mano.</p>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <div class="eyebrow">Niveles y montos</div>
+      <h2 class="display">Dos formas de empujar</h2>
+      <p>
+        Tu empresa sostiene la estructura de GRANITO y aparece, con nombre y
+        logo, como parte de las empresas que impulsan el deporte argentino.
+      </p>
+    </div>
+    <div class="tiers">
+      <div class="tier top">
+        <div class="cupos">Solo 3 lugares</div>
+        <h3 class="display">Empresa Impulsora</h3>
+        <div class="price">$600.000 <span class="per">/ mes</span></div>
+        <div class="equiv">Equivale al aporte de 60 hinchas</div>
+        <ul>
+          <li>Logo grande en la home y en todo el sitio</li>
+          <li>Certificado físico y digital de Empresa Impulsora</li>
+          <li>Informe de impacto trimestral, personalizado con tu nombre</li>
+          <li>2 posteos dedicados por año en nuestras redes</li>
+          <li>Contacto directo con los fundadores e invitación a competencias</li>
+          <li>Las primeras 3 llevan la insignia «Impulsora fundadora» a perpetuidad</li>
+        </ul>
+        <div class="annual">Convenio anual: $6.000.000 — 2 meses bonificados y precio congelado todo el año.</div>
+      </div>
+      <div class="tier">
+        <div class="cupos">12 lugares</div>
+        <h3 class="display">Empresa Sponsor</h3>
+        <div class="price">$150.000 <span class="per">/ mes</span></div>
+        <div class="equiv">Equivale al aporte de 15 hinchas</div>
+        <ul>
+          <li>Logo en la franja de empresas de todo el sitio</li>
+          <li>Certificado digital de Empresa Sponsor</li>
+          <li>Informe de impacto semestral</li>
+          <li>Mención grupal trimestral en redes</li>
+          <li>Las primeras 5 llevan la insignia «Sponsor fundador»</li>
+        </ul>
+        <div class="annual">Convenio anual: $1.500.000 — 2 meses bonificados y precio congelado todo el año.</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="rules">
+      <div class="box">
+        <h3 class="display">Reglas claras, para los dos lados</h3>
+        <ul>
+          <li>Permanencia mínima de 6 meses: el compromiso que hace creíble llamarse impulsora.</li>
+          <li>El precio se revisa cada trimestre. El convenio anual prepago lo congela.</li>
+          <li>Si una empresa deja de aportar, su logo baja del sitio a fin de mes. Todos los logos que ves están aportando hoy.</li>
+          <li>Factura por servicio de promoción y patrocinio.</li>
+          <li>Tu logo online dentro de las 48 hs de acreditado el primer aporte.</li>
+        </ul>
+      </div>
+      <div class="philosophy">
+        <p>
+          Lo que ningún nivel compra: logos en camisetas ni en perfiles de
+          atletas, y ninguna empresa elige a quién va la plata. Eso protege a
+          los atletas — y hace creíble todo lo demás.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="cta">
+      <div class="eyebrow">Hablemos</div>
+      <h2 class="display">Quedan pocos lugares<br />del grupo fundador</h2>
+      <p>
+        Escribinos y en menos de 48 hs te contacta directamente el equipo
+        fundador para sumarte como Empresa Impulsora o Sponsor.
+      </p>
+      <a class="btn" href="https://somosgranito.com/empresas#contacto">Quiero impulsar</a>
+      <div class="alt">
+        o escribinos a <a href="mailto:appidisko@gmail.com">appidisko@gmail.com</a>
+        &nbsp;·&nbsp; <a href="https://somosgranito.com">somosgranito.com</a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="ribbon" style="max-width:220px;margin:0 auto;border-radius:3px;overflow:hidden"><span class="c1"></span><span class="c2"></span><span class="c3"></span><span class="c4"></span><span class="c5"></span></div>
+    <p class="legal">
+      GRANITO es una plataforma privada e independiente. No representa ni está
+      afiliada a ninguna organización deportiva oficial, y no utiliza símbolos
+      ni marcas de terceros. Montos expresados en pesos argentinos, julio 2026,
+      sujetos a revisión trimestral.
+    </p>
+  </footer>
+
+</div>
+
+</body>
+</html>

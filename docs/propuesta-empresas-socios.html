@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>GRANITO — Plan comercial empresas (uso interno)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --ink: #0A1A2F;
+    --ink2: #0d2238;
+    --ink3: #12283f;
+    --gold: #C9A227;
+    --gold-soft: #E4C76A;
+    --celeste: #6CB4E4;
+    --red: #DF0024;
+    --white: #ffffff;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--ink);
+    color: var(--white);
+    font-family: "Inter", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.6;
+  }
+  .display { font-family: "Oswald", sans-serif; text-transform: uppercase; }
+  .page { max-width: 920px; margin: 0 auto; padding: 0 28px; }
+
+  .ribbon { display: flex; height: 6px; }
+  .ribbon span { flex: 1; }
+  .ribbon .c1 { background: #0072CE; } .ribbon .c2 { background: #F4C300; }
+  .ribbon .c3 { background: #1A1A1A; } .ribbon .c4 { background: #009F3D; }
+  .ribbon .c5 { background: #DF0024; }
+
+  .eyebrow {
+    font-family: "Oswald", sans-serif; text-transform: uppercase;
+    letter-spacing: .18em; font-size: 12px; font-weight: 600; color: var(--gold);
+  }
+
+  /* ── Portada ── */
+  header { padding: 54px 0 40px; }
+  .top-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; }
+  .brand { font-size: 26px; font-weight: 700; letter-spacing: .04em; }
+  .brand .o { color: var(--gold); }
+  .badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 14px; border-radius: 20px;
+    background: rgba(223,0,36,.14); border: 1px solid rgba(223,0,36,.4);
+    font-family: "Oswald", sans-serif; text-transform: uppercase;
+    font-size: 11.5px; font-weight: 600; letter-spacing: .1em; color: #ff8a97;
+  }
+  .badge::before { content: "●"; font-size: 8px; color: var(--red); }
+  header h1 {
+    margin-top: 30px; font-size: clamp(34px, 6vw, 52px); font-weight: 700;
+    line-height: .98; letter-spacing: -.01em;
+  }
+  header h1 .hl { color: var(--gold); }
+  header .sub {
+    margin-top: 16px; max-width: 620px; font-size: 15.5px; color: rgba(255,255,255,.65);
+  }
+  header .meta {
+    margin-top: 22px; display: flex; gap: 22px; flex-wrap: wrap;
+    font-size: 12.5px; color: rgba(255,255,255,.45);
+  }
+  header .meta strong { color: rgba(255,255,255,.75); font-weight: 600; }
+
+  section { padding: 38px 0; border-top: 1px solid rgba(255,255,255,.07); }
+  section:first-of-type { border-top: none; }
+  .sec-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 26px; height: 26px; border-radius: 50%; margin-right: 10px;
+    background: rgba(201,162,39,.16); color: var(--gold-soft);
+    font-family: "Oswald", sans-serif; font-size: 13px; font-weight: 700;
+  }
+  .sec-head { display: flex; align-items: center; margin-bottom: 22px; }
+  .sec-head h2 { font-size: clamp(24px, 4vw, 30px); font-weight: 700; }
+
+  /* ── Historia ── */
+  .story {
+    background: linear-gradient(160deg, var(--ink3), var(--ink2));
+    border: 1px solid rgba(201,162,39,.28); border-radius: 16px; padding: 28px 32px;
+  }
+  .story p { font-size: 15.5px; color: rgba(255,255,255,.78); }
+  .story p + p { margin-top: 12px; }
+  .story strong { color: var(--gold-soft); font-weight: 600; }
+
+  /* ── Tabla comparativa ── */
+  .table-wrap { overflow-x: auto; border-radius: 14px; border: 1px solid rgba(255,255,255,.09); }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; min-width: 560px; }
+  th, td { padding: 13px 16px; text-align: left; border-bottom: 1px solid rgba(255,255,255,.06); }
+  thead th { background: rgba(255,255,255,.03); font-family: "Oswald", sans-serif; text-transform: uppercase; font-size: 12px; letter-spacing: .04em; color: rgba(255,255,255,.5); font-weight: 600; }
+  thead th.imp { color: var(--gold-soft); }
+  thead th.spo { color: var(--celeste); }
+  tbody th { font-weight: 500; color: rgba(255,255,255,.55); white-space: nowrap; }
+  td.imp { color: var(--gold-soft); font-weight: 600; }
+  td.spo { color: var(--celeste); font-weight: 600; }
+  tr:last-child td, tr:last-child th { border-bottom: none; }
+
+  .price-row { display: flex; gap: 16px; margin-top: 18px; }
+  .price-row .p { flex: 1; border-radius: 12px; padding: 18px 20px; }
+  .price-row .p.imp { background: rgba(201,162,39,.1); border: 1px solid rgba(201,162,39,.3); }
+  .price-row .p.spo { background: rgba(108,180,228,.08); border: 1px solid rgba(108,180,228,.28); }
+  .price-row .l { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: rgba(255,255,255,.5); font-family: "Oswald", sans-serif; }
+  .price-row .v { margin-top: 4px; font-family: "Oswald", sans-serif; font-size: 26px; font-weight: 700; }
+  .price-row .p.imp .v { color: var(--gold); }
+  .price-row .p.spo .v { color: var(--celeste); }
+  .price-row .a { margin-top: 4px; font-size: 12px; color: rgba(255,255,255,.5); }
+
+  /* ── Por qué estos montos / razones ── */
+  .why-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  @media (max-width: 640px) { .why-grid { grid-template-columns: 1fr; } }
+  .why {
+    border-radius: 12px; padding: 18px 20px;
+    background: var(--ink2); border: 1px solid rgba(255,255,255,.08);
+    font-size: 13.5px; color: rgba(255,255,255,.68); line-height: 1.55;
+  }
+  .why strong { color: var(--white); }
+
+  /* ── Condiciones ── */
+  .rules-list { display: flex; flex-direction: column; gap: 10px; }
+  .rule {
+    display: flex; gap: 14px; align-items: flex-start;
+    border-radius: 10px; padding: 14px 16px;
+    background: var(--ink2); border: 1px solid rgba(255,255,255,.07);
+  }
+  .rule .tag {
+    flex: none; margin-top: 1px;
+    font-family: "Oswald", sans-serif; text-transform: uppercase; font-size: 10.5px; font-weight: 600;
+    letter-spacing: .05em; color: var(--gold-soft);
+    background: rgba(201,162,39,.14); border-radius: 4px; padding: 3px 8px;
+    white-space: nowrap;
+  }
+  .rule p { font-size: 13.5px; color: rgba(255,255,255,.68); }
+  .rule strong { color: rgba(255,255,255,.9); }
+
+  /* ── Proceso de venta ── */
+  .steps { display: flex; flex-direction: column; gap: 14px; }
+  .step { display: flex; gap: 18px; }
+  .step .n {
+    flex: none; width: 34px; height: 34px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12);
+    font-family: "Oswald", sans-serif; font-weight: 700; font-size: 14px; color: var(--gold-soft);
+  }
+  .step .body h3 { font-size: 15.5px; font-weight: 600; margin-bottom: 4px; }
+  .step .body p { font-size: 13.5px; color: rgba(255,255,255,.62); }
+  .script {
+    margin-top: 10px; padding: 14px 16px; border-radius: 10px;
+    background: var(--ink2); border-left: 3px solid var(--celeste);
+    font-size: 13.5px; color: rgba(255,255,255,.72); font-style: italic; line-height: 1.55;
+  }
+
+  /* ── Objeciones ── */
+  .obj { display: flex; flex-direction: column; gap: 12px; }
+  .obj-item { border-radius: 12px; padding: 16px 18px; background: var(--ink2); border: 1px solid rgba(255,255,255,.08); }
+  .obj-q { font-size: 14px; font-weight: 600; color: var(--white); }
+  .obj-q::before { content: "\201C"; color: var(--gold-soft); }
+  .obj-a { margin-top: 6px; font-size: 13.5px; color: rgba(255,255,255,.65); padding-left: 4px; }
+  .obj-a strong { color: var(--celeste); }
+
+  /* ── Pendientes ── */
+  .todo { display: flex; flex-direction: column; gap: 8px; }
+  .todo-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 16px; border-radius: 10px;
+    background: var(--ink2); border: 1px solid rgba(255,255,255,.07);
+    font-size: 13.5px; color: rgba(255,255,255,.75);
+  }
+  .todo-item .box {
+    flex: none; width: 18px; height: 18px; border-radius: 4px;
+    border: 1.5px solid rgba(255,255,255,.3);
+  }
+
+  footer { padding: 30px 0 46px; text-align: center; }
+  footer .legal { font-size: 11px; color: rgba(255,255,255,.35); max-width: 640px; margin: 0 auto; }
+
+  @media print {
+    body { background: var(--ink) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    section { padding: 22px 0; break-inside: avoid; }
+    header { padding: 30px 0 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="ribbon"><span class="c1"></span><span class="c2"></span><span class="c3"></span><span class="c4"></span><span class="c5"></span></div>
+
+<div class="page">
+
+  <header>
+    <div class="top-row">
+      <div class="brand display">GRANIT<span class="o">O</span></div>
+      <div class="badge">Confidencial — solo socios</div>
+    </div>
+    <h1 class="display">Plan comercial<br /><span class="hl">empresas impulsoras y sponsor</span></h1>
+    <p class="sub">
+      Documento de trabajo interno: define los dos niveles, los montos, las
+      condiciones, el guion de venta y los pendientes. No es para enviar a
+      empresas — para eso está el one-pager aparte.
+    </p>
+    <div class="meta">
+      <span><strong>Estado:</strong> propuesta para validar</span>
+      <span><strong>Última revisión:</strong> julio 2026</span>
+      <span><strong>Cupos abiertos:</strong> 3 Impulsora · 12 Sponsor</span>
+    </div>
+  </header>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">1</span><h2 class="display">La historia que vendemos</h2></div>
+    <div class="story">
+      <p>Los aportes de los hinchas van 93% directo al atleta. Eso es posible porque alguien sostiene la estructura: verificación de perfiles, plataforma, difusión. <strong>Ese alguien son las empresas.</strong></p>
+      <p>A una empresa no le vendemos publicidad. Le vendemos ser parte de la institución que hace posible que el deporte argentino se financie de forma transparente. El logo (grande o chico) no es un banner: es un reconocimiento público por nivel de compromiso.</p>
+      <p>Esto resuelve la tensión con nuestro propio discurso: la página de empresas dice "no vendemos publicidad, impacto no exposición". El encuadre tiene que sostenerse en todo momento, sobre todo cara a cara.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">2</span><h2 class="display">Los dos niveles</h2></div>
+    <div class="price-row">
+      <div class="p imp">
+        <div class="l">Empresa Impulsora</div>
+        <div class="v">$600.000<span style="font-size:14px;font-weight:400;color:rgba(255,255,255,.5)"> /mes</span></div>
+        <div class="a">Anual: $6.000.000 · 3 cupos</div>
+      </div>
+      <div class="p spo">
+        <div class="l">Empresa Sponsor</div>
+        <div class="v">$150.000<span style="font-size:14px;font-weight:400;color:rgba(255,255,255,.5)"> /mes</span></div>
+        <div class="a">Anual: $1.500.000 · 12 cupos</div>
+      </div>
+    </div>
+    <div class="table-wrap" style="margin-top:22px">
+      <table>
+        <thead>
+          <tr><th></th><th class="imp">Empresa Impulsora</th><th class="spo">Empresa Sponsor</th></tr>
+        </thead>
+        <tbody>
+          <tr><th>Equivale a</th><td class="imp">60 hinchas</td><td class="spo">15 hinchas</td></tr>
+          <tr><th>Cupos</th><td class="imp">3 (los de la home)</td><td class="spo">12</td></tr>
+          <tr><th>Logo</th><td>Grande, home + todo el sitio</td><td>Chico, franja de todo el sitio</td></tr>
+          <tr><th>Certificado</th><td>Físico + digital</td><td>Digital</td></tr>
+          <tr><th>Informe de impacto</th><td>Trimestral, con su nombre</td><td>Semestral, general</td></tr>
+          <tr><th>Redes</th><td>2 posteos dedicados/año</td><td>1 mención grupal/trimestre</td></tr>
+          <tr><th>Relación</th><td>Contacto directo con fundadores</td><td>Newsletter de empresas</td></tr>
+          <tr><th>Insignia fundador</th><td>Primeras 3: "Impulsora fundadora"</td><td>Primeras 5: "Sponsor fundador"</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="story" style="margin-top:16px">
+      <p><strong>Lo que ningún nivel recibe (parte del pitch):</strong> logos en perfiles de atletas ni en camisetas, y ninguna empresa elige a qué atleta va la plata. Eso protege a los atletas y es lo que hace creíble todo lo demás. No cedemos esto ni por la impulsora más grande.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">3</span><h2 class="display">Por qué estos montos</h2></div>
+    <div class="why-grid">
+      <div class="why">El tope de aporte mensual de un hincha es <strong>$10.000</strong>. Sponsor = 15 hinchas, Impulsora = 60 hinchas: una historia que se entiende en una frase, sin calculadora.</div>
+      <div class="why">Sponsor a <strong>$150.000/mes</strong> es una decisión que una PyME toma sin comité: cuesta menos que una pauta paga y da orgullo interno + certificado.</div>
+      <div class="why">Impulsora a <strong>$600.000/mes</strong> (≈$7,2M/año) es presupuesto de marketing chico para una empresa mediana. El cupo de 3 le da exclusividad real.</div>
+      <div class="why">Ratio <strong>4x</strong> entre niveles: alcanza para que impulsora se sienta otra liga, sin ser tan caro que nadie suba de nivel.</div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">4</span><h2 class="display">Condiciones</h2></div>
+    <div class="rules-list">
+      <div class="rule"><span class="tag">Permanencia</span><p><strong>Mínimo 6 meses.</strong> Logos que entran y salen dañan la imagen de todos. Se comunica como "el compromiso mínimo para llamarse impulsora".</p></div>
+      <div class="rule"><span class="tag">Ajuste</span><p>El precio mensual se revisa cada trimestre por inflación. El convenio anual prepago <strong>congela el precio</strong> — ese es su verdadero incentivo, más que los 2 meses de regalo.</p></div>
+      <div class="rule"><span class="tag">Facturación</span><p>Factura por servicio de promoción/patrocinio. Para la empresa es gasto de publicidad — sugerirle validarlo con su contador como deducible.</p></div>
+      <div class="rule"><span class="tag">Transparencia</span><p>Publicar en <strong>/transparencia</strong>: los aportes de empresas sostienen la operación y el crecimiento de GRANITO. Gracias a eso, el 93% del aporte de cada hincha sigue llegando directo al atleta.</p></div>
+      <div class="rule"><span class="tag">Salida</span><p>Si una empresa deja de aportar, el logo <strong>baja al final del mes pagado</strong>. Sin excepciones — el muro de logos es la prueba de que todos los que están, están aportando hoy.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">5</span><h2 class="display">Cómo lo proponemos</h2></div>
+    <div class="steps">
+      <div class="step">
+        <div class="n">1</div>
+        <div class="body">
+          <h3>Lista corta</h3>
+          <p>20 empresas con vínculo real: proveedores, empresas de conocidos del equipo fundador, marcas con historia deportiva local. Kingdom Group Yacht Supply es el modelo: relación directa → sponsor.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="n">2</div>
+        <div class="body">
+          <h3>Primer contacto</h3>
+          <p>WhatsApp o mail, del fundador, no institucional:</p>
+          <div class="script">
+            "Hola [nombre]. Estamos armando GRANITO, la plataforma donde la gente apoya económicamente a atletas argentinos de forma directa y transparente (93% va al atleta). Las empresas que sostienen la estructura aparecen como Empresas Impulsoras o Sponsors en el sitio. Quedan [N] lugares de [nivel]. ¿Te muestro en 15 minutos cómo funciona?"
+          </div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="n">3</div>
+        <div class="body">
+          <h3>Reunión de 15–20 min</h3>
+          <p>Mostrar el sitio en vivo: perfiles de atletas, la página de transparencia, el muro de logos con los lugares vacíos ("Tu marca acá"). Cerrar con el one-pager y los dos precios.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="n">4</div>
+        <div class="body">
+          <h3>Convenio + primera factura</h3>
+          <p>Convenio de 1 página + primera factura. Logo online dentro de las 48 hs de acreditado el primer aporte — esa promesa también es parte del producto.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">6</span><h2 class="display">Objeciones típicas</h2></div>
+    <div class="obj">
+      <div class="obj-item">
+        <div class="obj-q">¿Qué gano yo?”</div>
+        <div class="obj-a"><strong>Respuesta:</strong> Certificado, informes con números concretos, orgullo interno del equipo, y estar en el grupo fundador de una institución que va a existir décadas. Si busca conversión publicitaria directa, no es para ella — mejor no forzar el cierre.</div>
+      </div>
+      <div class="obj-item">
+        <div class="obj-q">¿Por qué no le doy la plata a un club directamente?”</div>
+        <div class="obj-a"><strong>Respuesta:</strong> Puede, y está bien. GRANITO le da lo que un club no: transparencia auditable, informes, y alcance a decenas de atletas de todo el país a la vez.</div>
+      </div>
+      <div class="obj-item">
+        <div class="obj-q">Está cara la impulsora”</div>
+        <div class="obj-a"><strong>Respuesta:</strong> No se regatea el precio. Se ofrece entrar como sponsor y subir de nivel cuando quiera. Bajarle el precio a uno destruye el valor para los que ya pagaron impulsora.</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">7</span><h2 class="display">Pendientes para ejecutar</h2></div>
+    <div class="todo">
+      <div class="todo-item"><span class="box"></span>Validar los dos montos contra el tipo de cambio / costos reales del mes</div>
+      <div class="todo-item"><span class="box" style="background:rgba(34,197,94,.18);border-color:rgba(34,197,94,.5)"></span>Actualizar <code>/empresas</code> con los dos niveles — <strong>hecho</strong></div>
+      <div class="todo-item"><span class="box" style="background:rgba(34,197,94,.18);border-color:rgba(34,197,94,.5)"></span>One-pager para enviar a empresas — <strong>hecho</strong></div>
+      <div class="todo-item"><span class="box"></span>Modelo de convenio de 1 página</div>
+      <div class="todo-item"><span class="box"></span>Publicar en <code>/transparencia</code> el destino de los aportes empresariales</div>
+      <div class="todo-item"><span class="box"></span>Armar la lista corta de 20 empresas y asignar quién contacta a quién</div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="ribbon" style="max-width:220px;margin:0 auto;border-radius:3px;overflow:hidden"><span class="c1"></span><span class="c2"></span><span class="c3"></span><span class="c4"></span><span class="c5"></span></div>
+    <p class="legal" style="margin-top:16px">
+      Documento interno de GRANITO — no distribuir fuera del equipo fundador.
+      Montos en pesos argentinos, sujetos a revisión trimestral por inflación.
+    </p>
+  </footer>
+
+</div>
+
+</body>
+</html>

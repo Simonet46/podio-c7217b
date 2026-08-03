@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&amp;family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<script src="./image-slot.js"></script>
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:#0A1A2F}
+  ::selection{background:#C9A227;color:#0A1A2F}
+  #todos-root::-webkit-scrollbar{width:10px}
+  #todos-root::-webkit-scrollbar-thumb{background:#C9A227;border-radius:999px}
+  image-slot{display:block}
+  input::placeholder{color:rgba(255,255,255,.35)}
+  @keyframes podioPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.7)}}
+  @keyframes podioFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+  @keyframes marqueeX{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+</style>
+</helmet>
+
+<div id="todos-root" style="background:#0A1A2F;color:#fff;font-family:Inter,system-ui,sans-serif;overflow-x:hidden;min-height:100vh">
+
+  <nav style="position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;padding:14px 48px;background:rgba(10,26,47,.78);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,.07)">
+    <div style="display:flex;align-items:center;gap:40px">
+      <div style="display:flex;align-items:flex-end;gap:2px;cursor:pointer;text-shadow:0 4px 0 rgba(0,0,0,.35)">
+        <span style="font-family:Oswald;font-weight:700;font-size:30px;letter-spacing:.04em;color:#fff;line-height:.8">GRANIT</span>
+        <span style="font-family:Oswald;font-weight:700;font-size:30px;letter-spacing:.04em;color:#C9A227;line-height:.8">O</span>
+      </div>
+      <div style="display:flex;gap:30px;font-family:Oswald;font-weight:500;font-size:14px;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.72)">
+        <span style="cursor:pointer" style-hover="color:#fff">Atletas</span>
+        <span style="cursor:pointer" style-hover="color:#fff">Equipos</span>
+        <span style="cursor:pointer" style-hover="color:#fff">Cómo funciona</span>
+        <span style="cursor:pointer" style-hover="color:#fff">Hinchas</span>
+      </div>
+    </div>
+    <button onClick="{{ scrollToWidget }}" style="font-family:Oswald;font-weight:600;font-size:13px;letter-spacing:.04em;text-transform:uppercase;background:#C9A227;border:none;color:#0A1A2F;padding:11px 20px;border-radius:4px;cursor:pointer" style-hover="background:#dcb433">Sumarme</button>
+  </nav>
+
+  <!-- HERO -->
+  <section data-screen-label="Apoyá a todos Hero" style="position:relative;max-width:1100px;margin:0 auto;padding:74px 48px 24px;text-align:center;overflow:hidden">
+    <div style="position:absolute;top:-120px;left:50%;transform:translateX(-50%);width:820px;height:560px;background:radial-gradient(ellipse at center,rgba(201,162,39,.18),transparent 66%);pointer-events:none"></div>
+    <div data-reveal="" style="position:relative">
+      <div style="height:18px;border-radius:4px;background:linear-gradient(90deg,#0072CE 0 20%,#F4C300 20% 40%,#1A1A1A 40% 60%,#009F3D 60% 80%,#DF0024 80% 100%);width:170px;margin:0 auto 26px"></div>
+      <h1 style="font-family:Oswald;font-weight:700;font-size:72px;line-height:.92;letter-spacing:-.01em;text-transform:uppercase;margin:0 0 20px">Apoyá a todo el<br>deporte argentino<br><span style="color:#C9A227">de una</span></h1>
+      <p style="font-size:19px;line-height:1.6;color:rgba(255,255,255,.72);max-width:560px;margin:0 auto">Un aporte — por mes o una sola vez — que se divide automáticamente en partes iguales entre todos los atletas registrados al momento del aporte. Vos elegís el monto.</p>
+    </div>
+  </section>
+
+  <!-- MARQUEE de atletas -->
+  <section style="padding:34px 0 10px;overflow:hidden">
+    <div data-reveal="" style="display:flex;gap:14px;width:max-content;animation:marqueeX 32s linear infinite">
+      <sc-for list="{{ marquee }}" as="m" hint-placeholder-count="14">
+        <div style="width:130px;flex:none">
+          <div style="position:relative;height:150px;border-radius:10px;overflow:hidden;border-top:3px solid {{ m.color }}">
+            <image-slot id="{{ m.id }}" shape="rect" placeholder="" style="width:100%;height:100%"></image-slot>
+            <div style="position:absolute;inset:0;background:linear-gradient(180deg,transparent 45%,rgba(10,26,47,.92));pointer-events:none"></div>
+            <div style="position:absolute;left:8px;bottom:7px;right:8px"><div style="font-family:Oswald;font-weight:600;font-size:13px;text-transform:uppercase;line-height:1">{{ m.name }}</div><div style="font-size:10px;color:rgba(255,255,255,.6)">{{ m.sport }}</div></div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <!-- CÓMO SE REPARTE -->
+  <section style="max-width:1180px;margin:0 auto;padding:60px 48px 30px">
+    <div data-reveal="" style="text-align:center;margin-bottom:50px">
+      <div style="font-family:Oswald;font-weight:600;font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:#C9A227;margin-bottom:10px">Transparente</div>
+      <h2 style="font-family:Oswald;font-weight:700;font-size:46px;letter-spacing:-.01em;text-transform:uppercase;margin:0;line-height:.95">Cómo se reparte tu aporte</h2>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px">
+      <sc-for list="{{ steps }}" as="s" hint-placeholder-count="3">
+        <div data-reveal="" style="background:#0d2238;border:1px solid rgba(255,255,255,.07);border-top:3px solid {{ s.color }};border-radius:12px;padding:30px">
+          <div style="font-family:Oswald;font-weight:700;font-size:38px;color:{{ s.color }};line-height:1;margin-bottom:14px">{{ s.n }}</div>
+          <div style="font-family:Oswald;font-weight:600;font-size:21px;text-transform:uppercase;margin-bottom:10px;line-height:1.05">{{ s.title }}</div>
+          <p style="font-size:15px;color:rgba(255,255,255,.65);line-height:1.6;margin:0">{{ s.text }}</p>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <!-- WIDGET DE APORTE -->
+  <section id="todos-widget" style="max-width:1080px;margin:0 auto;padding:50px 48px 40px">
+    <div data-reveal="" style="background:linear-gradient(135deg,#102a44,#0b1f34);border:1px solid rgba(201,162,39,.3);border-radius:18px;padding:44px;display:grid;grid-template-columns:1fr 1fr;gap:44px;align-items:center">
+      <div>
+        <div style="font-family:Oswald;font-weight:600;font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:#C9A227;margin-bottom:12px">El fondo colectivo</div>
+        <h2 style="font-family:Oswald;font-weight:700;font-size:38px;letter-spacing:-.01em;text-transform:uppercase;line-height:.95;margin:0 0 18px">Elegí cuánto<br>poner</h2>
+        <p style="font-size:16px;color:rgba(255,255,255,.7);line-height:1.6;margin:0 0 24px">Tu aporte se suma al de toda la comunidad y se divide en partes iguales entre todos los atletas registrados. El 93% va a ellos.</p>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;align-items:center;gap:12px;font-size:14px;color:rgba(255,255,255,.75)"><span style="width:32px;height:32px;border-radius:8px;background:rgba(201,162,39,.16);display:flex;align-items:center;justify-content:center;flex:none">✓</span>Repartido automático, en partes iguales</div>
+          <div style="display:flex;align-items:center;gap:12px;font-size:14px;color:rgba(255,255,255,.75)"><span style="width:32px;height:32px;border-radius:8px;background:rgba(201,162,39,.16);display:flex;align-items:center;justify-content:center;flex:none">✓</span>Te llega un resumen de a quiénes llegó</div>
+          <div style="display:flex;align-items:center;gap:12px;font-size:14px;color:rgba(255,255,255,.75)"><span style="width:32px;height:32px;border-radius:8px;background:rgba(201,162,39,.16);display:flex;align-items:center;justify-content:center;flex:none">✓</span>{{ recurrenceNote }}</div>
+        </div>
+      </div>
+      <div style="background:#0d2238;border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:28px">
+        <div style="font-family:Oswald;font-weight:600;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.7);margin-bottom:12px">Tipo de aporte</div>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:16px">
+          <sc-for list="{{ freqTabs }}" as="f" hint-placeholder-count="2">
+            <button onClick="{{ f.onClick }}" style="{{ f.style }}">{{ f.label }}</button>
+          </sc-for>
+        </div>
+        <div style="font-family:Oswald;font-weight:600;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.7);margin-bottom:12px">{{ amountLabel }}</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">
+          <sc-for list="{{ tiers }}" as="t" hint-placeholder-count="3">
+            <button onClick="{{ t.onClick }}" style="{{ t.style }}"><span style="display:block;font-family:Oswald;font-weight:700;font-size:19px;line-height:1.1">{{ t.short }}</span></button>
+          </sc-for>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:13px 15px;margin-bottom:18px">
+          <span style="font-family:Oswald;font-weight:700;font-size:20px;color:rgba(255,255,255,.5)">$</span>
+          <input value="{{ amount }}" onInput="{{ onAmount }}" inputmode="numeric" style="flex:1;min-width:0;background:transparent;border:none;outline:none;color:#fff;font-family:Oswald;font-weight:700;font-size:22px;width:100%">
+          <span style="font-size:12px;color:rgba(255,255,255,.5);white-space:nowrap">{{ perWord }}</span>
+        </div>
+        <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:14px 16px;margin-bottom:18px">
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px"><span style="color:rgba(255,255,255,.7)">A los atletas (93%)</span><span style="font-family:Oswald;font-weight:600;color:#C9A227">{{ athletesGet }}</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:rgba(255,255,255,.55)">Plataforma (7%)</span><span style="font-family:Oswald;font-weight:600;color:rgba(255,255,255,.6)">{{ platformFee }}</span></div>
+        </div>
+        <div style="text-align:center;font-size:13px;color:rgba(255,255,255,.6);margin-bottom:16px">Tu aporte ayuda a <strong style="color:#fff;font-family:Oswald;font-size:16px">~{{ reachCount }}</strong> atletas este mes</div>
+        <button style="width:100%;font-family:Oswald;font-weight:600;font-size:16px;letter-spacing:.04em;text-transform:uppercase;background:#C9A227;border:none;color:#0A1A2F;padding:16px;border-radius:10px;cursor:pointer;transition:all .2s;box-shadow:0 14px 34px rgba(201,162,39,.32)" style-hover="background:#dcb433;transform:translateY(-2px)">Sumarme al fondo · {{ ctaAmount }}</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- IMPACTO COLECTIVO -->
+  <section style="max-width:1080px;margin:0 auto;padding:30px 48px 40px">
+    <div data-reveal="" style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px">
+      <div style="text-align:center"><div style="font-family:Oswald;font-weight:700;font-size:44px;line-height:1;color:#C9A227" data-count="3280" data-prefix="">0</div><div style="font-size:14px;color:rgba(255,255,255,.6);margin-top:4px">personas en el fondo</div></div>
+      <div style="text-align:center"><div style="font-family:Oswald;font-weight:700;font-size:44px;line-height:1" data-count="640">0</div><div style="font-size:14px;color:rgba(255,255,255,.6);margin-top:4px">atletas que reciben</div></div>
+      <div style="text-align:center"><div style="font-family:Oswald;font-weight:700;font-size:44px;line-height:1" data-count="2100000" data-prefix="$">$0</div><div style="font-size:14px;color:rgba(255,255,255,.6);margin-top:4px">repartido este mes</div></div>
+    </div>
+  </section>
+
+  <!-- BANDA CON EL APOYO DE -->
+  <section style="max-width:1080px;margin:0 auto;padding:40px 48px 90px">
+    <div data-reveal="" style="text-align:center">
+      <div style="font-family:Oswald;font-weight:500;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.45);margin-bottom:22px">Con el apoyo de</div>
+      <div style="display:flex;align-items:center;justify-content:center;gap:36px;flex-wrap:wrap">
+        <sc-for list="{{ sponsors }}" as="s" hint-placeholder-count="5">
+          <image-slot id="{{ s.id }}" shape="rect" placeholder="Logo" style="width:120px;height:42px;opacity:.85"></image-slot>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer style="background:#08131f;padding:50px 48px 40px;border-top:1px solid rgba(255,255,255,.07)">
+    <div style="max-width:1440px;margin:0 auto;display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px;align-items:center">
+      <div style="display:flex;align-items:center;gap:14px">
+        <div style="font-family:Oswald;font-weight:700;font-size:24px;letter-spacing:.08em">GRANITO</div>
+        <div style="display:flex;gap:3px"><span style="width:16px;height:3px;background:#0072CE"></span><span style="width:16px;height:3px;background:#F4C300"></span><span style="width:16px;height:3px;background:#1A1A1A"></span><span style="width:16px;height:3px;background:#009F3D"></span><span style="width:16px;height:3px;background:#DF0024"></span></div>
+      </div>
+      <p style="font-size:12px;color:rgba(255,255,255,.4);max-width:560px;margin:0;line-height:1.6">GRANITO es una plataforma independiente y no está afiliada al COI, al COA ni a ningún organismo olímpico. No utilizamos símbolos ni marcas olímpicas.</p>
+    </div>
+  </footer>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1100,&quot;height&quot;:1000}}">
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { amount: 2000, frequency: 'monthly' };
+    this._obs = null;
+    this._counterPoll = null;
+  }
+
+  fmt(n) { return '$' + Math.round(n || 0).toLocaleString('es-AR'); }
+
+  stepsRaw() {
+    return [
+      { n: '01', color: '#0072CE', title: 'Ponés tu monto', text: 'Elegís cuánto aportar, por mes o una sola vez. Desde un café hasta lo que quieras: todo suma al fondo común.' },
+      { n: '02', color: '#F4C300', title: 'Lo juntamos', text: 'Tu aporte se suma al de toda la comunidad y arma el fondo que se reparte entre los atletas.' },
+      { n: '03', color: '#009F3D', title: 'Se reparte automático', text: 'Distribuimos el 93% en partes iguales entre todos los atletas registrados el día del aporte. El 7% es para que la plataforma siga creciendo y más atletas se puedan sumar.' }
+    ];
+  }
+
+  marqueeRaw() {
+    const base = [
+      { name: 'Lucía F.', sport: 'Canotaje', color: '#0072CE' },
+      { name: 'Mateo R.', sport: 'Escalada', color: '#DF0024' },
+      { name: 'Valentina S.', sport: 'Natación', color: '#3E8FD0' },
+      { name: 'Tomás A.', sport: 'Vela', color: '#009F3D' },
+      { name: 'Brisa M.', sport: 'Judo', color: '#7A4DD0' },
+      { name: 'Joaquín V.', sport: 'Atletismo', color: '#F4C300' },
+      { name: 'Delfina R.', sport: 'Hockey', color: '#009F3D' }
+    ];
+    const out = [];
+    for (let i = 0; i < 2; i++) base.forEach((b, j) => out.push({ id: 'todos-m-' + i + '-' + j, name: b.name, sport: b.sport, color: b.color }));
+    return out;
+  }
+
+  componentDidMount() {
+    this._counterPoll = setInterval(() => { try { this.countVisible(); } catch (e) {} }, 350);
+    this.refresh();
+  }
+  componentDidUpdate() { this.refresh(); }
+  componentWillUnmount() { clearInterval(this._counterPoll); if (this._obs) this._obs.disconnect(); }
+
+  refresh() {
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      try { this.setupReveals(); } catch (e) {}
+      try { this.countVisible(); } catch (e) {}
+    }));
+  }
+  root() { return document.getElementById('todos-root'); }
+
+  setupReveals() {
+    const root = this.root(); if (!root) return;
+    if (this._obs) this._obs.disconnect();
+    const els = Array.from(root.querySelectorAll('[data-reveal]'));
+    els.forEach(el => {
+      if (el._revealed) return;
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(26px)';
+      el.style.transition = 'opacity .65s cubic-bezier(.2,.8,.2,1), transform .65s cubic-bezier(.2,.8,.2,1)';
+    });
+    this._obs = new IntersectionObserver((ents) => {
+      ents.forEach(e => {
+        if (e.isIntersecting) {
+          e.target._revealed = true;
+          e.target.style.opacity = '1';
+          e.target.style.transform = 'none';
+          this._obs.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.06, rootMargin: '0px 0px -5% 0px' });
+    els.forEach(el => { if (!el._revealed) this._obs.observe(el); });
+  }
+
+  countVisible() {
+    const root = this.root(); if (!root) return;
+    const vh = window.innerHeight || document.documentElement.clientHeight;
+    root.querySelectorAll('[data-count]').forEach(el => {
+      if (el._counted || el.offsetParent === null) return;
+      const r = el.getBoundingClientRect();
+      if (r.top < vh * 0.96 && r.bottom > 0) { el._counted = true; this.countUp(el); }
+    });
+  }
+  countUp(el) {
+    const target = parseFloat(el.getAttribute('data-count'));
+    const pre = el.getAttribute('data-prefix') || '';
+    const dur = 1400;
+    const start = Date.now();
+    const id = setInterval(() => {
+      const t = Math.min(1, (Date.now() - start) / dur);
+      const e = 1 - Math.pow(1 - t, 3);
+      el.textContent = pre + Math.round(target * e).toLocaleString('es-AR');
+      if (t >= 1) clearInterval(id);
+    }, 28);
+  }
+
+  renderVals() {
+    const amount = this.state.amount;
+    const monthly = this.state.frequency === 'monthly';
+    const freqTabs = [
+      { key: 'monthly', label: 'Por mes' },
+      { key: 'once', label: 'Una sola vez' }
+    ].map(f => {
+      const active = (f.key === 'monthly') === monthly;
+      return {
+        label: f.label,
+        onClick: () => this.setState({ frequency: f.key }),
+        style: 'cursor:pointer;border-radius:10px;padding:13px 4px;text-align:center;transition:all .2s;font-family:Oswald;font-weight:600;font-size:14px;letter-spacing:.03em;text-transform:uppercase;color:#fff;border:1px solid ' +
+          (active ? '#C9A227' : 'rgba(255,255,255,.14)') + ';background:' + (active ? 'rgba(201,162,39,.16)' : 'rgba(255,255,255,.03)')
+      };
+    });
+    const tiers = [1000, 2000, 5000].map(v => {
+      const active = v === amount;
+      return {
+        short: '$' + (v >= 1000 ? (v / 1000) + 'k' : v),
+        onClick: () => this.setState({ amount: v }),
+        style: 'cursor:pointer;border-radius:10px;padding:13px 4px;text-align:center;transition:all .2s;font-family:Inter;color:#fff;border:1px solid ' +
+          (active ? '#C9A227' : 'rgba(255,255,255,.14)') + ';background:' + (active ? 'rgba(201,162,39,.16)' : 'rgba(255,255,255,.03)')
+      };
+    });
+
+    return {
+      steps: this.stepsRaw(),
+      marquee: this.marqueeRaw(),
+      tiers,
+      amount,
+      amountFmt: this.fmt(amount),
+      freqTabs,
+      amountLabel: monthly ? 'Tu aporte mensual' : 'Tu aporte único',
+      perWord: monthly ? 'por mes' : 'por única vez',
+      ctaAmount: this.fmt(amount) + (monthly ? '/mes' : ''),
+      recurrenceNote: monthly ? 'Cancelás cuando quieras' : 'Un solo pago, sin renovación',
+      athletesGet: this.fmt(amount * 0.93),
+      platformFee: this.fmt(amount * 0.07),
+      reachCount: Math.max(1, Math.round(amount / 250)),
+      sponsors: [1, 2, 3, 4, 5].map(i => ({ id: 'todos-sp-' + i })),
+      onAmount: (e) => { const n = parseInt((e.target.value || '').replace(/[^0-9]/g, ''), 10); this.setState({ amount: isNaN(n) ? 0 : n }); },
+      scrollToWidget: () => { try { const el = document.getElementById('todos-widget'); if (el) window.scrollTo({ top: el.offsetTop - 70, behavior: 'smooth' }); } catch (e) {} }
+    };
+  }
+}
+</script>
+</body>
+</html>

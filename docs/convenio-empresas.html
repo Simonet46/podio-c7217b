@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>GRANITO — Convenio de Empresa Impulsora / Sponsor (borrador)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --ink: #0A1A2F;
+    --paper: #FFFFFF;
+    --line: #E2E8EF;
+    --steel: #5B6B7C;
+    --gold: #C9A227;
+    --gold-soft: #F3E7C4;
+    --celeste: #3E8FD0;
+    --red: #B3001B;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #EEF1F5;
+    color: var(--ink);
+    font-family: "Inter", sans-serif;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .display { font-family: "Oswald", sans-serif; text-transform: uppercase; }
+
+  /* ── Aviso de borrador (no se imprime) ── */
+  .draft-banner {
+    background: var(--red); color: #fff; text-align: center;
+    padding: 12px 20px; font-size: 13.5px; font-weight: 600;
+  }
+  .draft-banner strong { text-decoration: underline; }
+
+  .sheet {
+    max-width: 780px; margin: 26px auto 60px; background: var(--paper);
+    border: 1px solid var(--line); border-radius: 4px;
+    padding: 52px 58px 46px;
+    box-shadow: 0 12px 40px rgba(10,26,47,.1);
+  }
+
+  /* ── Encabezado ── */
+  .doc-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; border-bottom: 2px solid var(--ink); padding-bottom: 18px; }
+  .brand { font-size: 22px; font-weight: 700; letter-spacing: .03em; }
+  .brand .o { color: var(--gold); }
+  .doc-head .meta { text-align: right; font-size: 11.5px; color: var(--steel); }
+  .doc-title { margin-top: 22px; }
+  .doc-title h1 { font-size: 25px; font-weight: 700; letter-spacing: -.01em; line-height: 1.15; }
+  .doc-title p { margin-top: 6px; font-size: 13px; color: var(--steel); }
+
+  .fill { display: inline-block; min-width: 110px; border-bottom: 1px solid var(--ink); padding: 0 2px; font-weight: 500; }
+  .fill.wide { min-width: 220px; }
+  .fill.placeholder { color: #b91c1c; font-style: italic; font-weight: 400; border-bottom-style: dotted; }
+
+  section.doc-sec { margin-top: 22px; }
+  .doc-sec h2 {
+    font-family: "Oswald", sans-serif; text-transform: uppercase;
+    font-size: 13.5px; font-weight: 600; letter-spacing: .04em; color: var(--ink);
+    display: flex; align-items: baseline; gap: 8px;
+  }
+  .doc-sec h2 .n { color: var(--gold); font-weight: 700; }
+  .doc-sec p, .doc-sec li { font-size: 13px; color: #26364a; line-height: 1.62; }
+  .doc-sec p { margin-top: 8px; }
+  .doc-sec ul { margin-top: 6px; padding-left: 20px; }
+  .doc-sec li { margin-top: 3px; }
+
+  /* ── Checkbox nivel ── */
+  .tier-choice { display: flex; gap: 14px; margin-top: 10px; }
+  .tier-box { flex: 1; border: 1.5px solid var(--line); border-radius: 8px; padding: 14px 16px; }
+  .tier-box .head { display: flex; align-items: center; gap: 8px; }
+  .tier-box .cb { width: 16px; height: 16px; border: 1.5px solid var(--ink); border-radius: 3px; flex: none; }
+  .tier-box .name { font-family: "Oswald", sans-serif; text-transform: uppercase; font-size: 13px; font-weight: 600; }
+  .tier-box .price { margin-top: 6px; font-family: "Oswald", sans-serif; font-size: 20px; font-weight: 700; }
+  .tier-box .sub { font-size: 11.5px; color: var(--steel); margin-top: 1px; }
+
+  .modality { display: flex; gap: 22px; margin-top: 10px; font-size: 13px; }
+  .modality label { display: flex; align-items: center; gap: 7px; }
+  .modality .cb { width: 14px; height: 14px; border: 1.5px solid var(--ink); border-radius: 3px; display: inline-block; }
+
+  table.terms { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12.5px; }
+  table.terms td { padding: 7px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+  table.terms td:first-child { width: 190px; color: var(--steel); font-weight: 500; }
+
+  .callout {
+    margin-top: 10px; padding: 12px 14px; border-radius: 6px;
+    background: #FBF6E6; border: 1px solid #EAD9A0; font-size: 12.5px; color: #6b5518;
+  }
+
+  /* ── Firmas ── */
+  .signatures { display: flex; gap: 40px; margin-top: 36px; }
+  .sig { flex: 1; }
+  .sig .line { border-top: 1px solid var(--ink); margin-top: 46px; padding-top: 6px; }
+  .sig .role { font-size: 11.5px; color: var(--steel); }
+  .sig .who { font-size: 12.5px; font-weight: 600; margin-top: 2px; }
+
+  .doc-footer { margin-top: 30px; border-top: 1px solid var(--line); padding-top: 14px; display: flex; justify-content: space-between; font-size: 10.5px; color: #9aa7b5; }
+
+  @media print {
+    body { background: #fff; }
+    .draft-banner { display: none; }
+    .sheet { box-shadow: none; border: none; margin: 0; padding: 0; max-width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="draft-banner">
+  ⚠ BORRADOR — pendiente de revisión legal (Kahale) y de completar datos societarios. <strong>No usar para firmar todavía.</strong>
+</div>
+
+<div class="sheet">
+
+  <div class="doc-head">
+    <div class="brand display">GRANIT<span class="o">O</span></div>
+    <div class="meta">
+      Convenio de Empresa Impulsora / Sponsor<br />
+      Versión borrador — julio 2026
+    </div>
+  </div>
+
+  <div class="doc-title">
+    <h1>Convenio de Empresa Impulsora / Sponsor</h1>
+    <p>Entre GRANITO y la empresa que se suma a sostener el deporte argentino</p>
+  </div>
+
+  <section class="doc-sec">
+    <h2><span class="n">1.</span> Partes</h2>
+    <p>
+      Por un lado, <span class="fill placeholder wide">[PENDIENTE: razón social]</span>,
+      CUIT <span class="fill placeholder">[PENDIENTE: CUIT]</span>, con domicilio en
+      <span class="fill placeholder wide">[PENDIENTE: domicilio legal]</span>, operadora
+      de la plataforma GRANITO (en adelante, “GRANITO”).
+    </p>
+    <p>
+      Por el otro, <span class="fill wide">_________________________</span>
+      (en adelante, “la Empresa”), CUIT <span class="fill">______________</span>,
+      con domicilio en <span class="fill wide">_________________________</span>,
+      representada en este acto por <span class="fill wide">_________________________</span>,
+      DNI <span class="fill">______________</span>, en su carácter de
+      <span class="fill">______________</span>.
+    </p>
+  </section>
+
+  <section class="doc-sec">
+    <h2><span class="n">2.</span> Objeto</h2>
+    <p>
+      La Empresa se suma como sostenedora de GRANITO en el nivel indicado en la
+      Cláusula 3, aportando mensualmente la suma allí establecida. A cambio,
+      GRANITO reconoce públicamente a la Empresa como corresponde a su nivel,
+      conforme se detalla en la Cláusula 4. Este convenio <strong>no constituye
+      publicidad ni patrocinio deportivo de un atleta en particular</strong>: la
+      Empresa no elige a quién se destinan los fondos, y GRANITO no ofrece
+      exposición en perfiles de atletas ni en indumentaria.
+    </p>
+  </section>
+
+  <section class="doc-sec">
+    <h2><span class="n">3.</span> Nivel y aporte</h2>
+    <div class="tier-choice">
+      <div class="tier-box">
+        <div class="head"><span class="cb"></span><span class="name">Empresa Impulsora</span></div>
+        <div class="price">$600.000<span style="font-size:12px;font-weight:400"> / mes</span></div>
+        <div class="sub">Sujeto a 3 cupos disponibles</div>
+      </div>
+      <div class="tier-box">
+        <div class="head"><span class="cb"></span><span class="name">Empresa Sponsor</span></div>
+        <div class="price">$150.000<span style="font-size:12px;font-weight:400"> / mes</span></div>
+        <div class="sub">Sujeto a 12 cupos disponibles</div>
+      </div>
+    </div>
+    <div class="modality">
+      <label><span class="cb"></span> Modalidad mensual</label>
+      <label><span class="cb"></span> Modalidad anual prepaga (2 meses bonificados, precio congelado)</label>
+    </div>
+    <p style="margin-top:10px">
+      Fecha de inicio: <span class="fill">____/____/______</span>.
+      El aporte se abona por adelantado, dentro de los primeros
+      <span class="fill">5</span> días de cada período, mediante
+      <span class="fill wide">_________________________</span>.
+    </p>
+  </section>
+
+  <section class="doc-sec">
+    <h2><span class="n">4.</span> Qué recibe la Empresa</h2>
+    <p>Según el nivel elegido en la Cláusula 3, conforme lo publicado en somosgranito.com/empresas al momento de la firma:</p>
+    <ul>
+      <li>Presencia del logo de la Empresa en el sitio de GRANITO (tamaño mayor para Impulsora, menor para Sponsor), dentro de las 48 hs de acreditado el primer aporte.</li>
+      <li>Certificado de reconocimiento (físico y digital para Impulsora; digital para Sponsor).</li>
+      <li>Informe de impacto periódico (trimestral para Impulsora; semestral para Sponsor).</li>
+      <li>Mención en redes sociales de GRANITO, según el nivel.</li>
+    </ul>
+    <div class="callout">
+      GRANITO no garantiza resultados de exposición, alcance ni retorno
+      comercial. El reconocimiento es institucional, no publicitario.
+    </div>
+  </section>
+
+  <section class="doc-sec">
+    <h2><span class="n">5.</span> Duración, renovación y baja</h2>
+    <table class="terms">
+      <tr><td>Permanencia mínima</td><td>6 meses desde la fecha de inicio.</td></tr>
+      <tr><td>Renovación</td><td>Automática por períodos iguales, salvo aviso de baja con 30 días de anticipación.</td></tr>
+      <tr><td>Falta de pago</td><td>El logo y los beneficios de la Empresa se retiran del sitio al finalizar el último período efectivamente abonado, sin necesidad de interpelación previa.</td></tr>
+      <tr><td>Baja anticipada</td><td>La Empresa puede solicitar la baja en cualquier momento; los períodos ya abonados no son reembolsables.</td></tr>
+    </table>
+  </section>
+
+  <section class="doc-sec">
+    <h2><span class="n">6.</span> Ajuste del aporte</h2>
+    <p>
+      El valor del aporte mensual podrá ser revisado por GRANITO con
+      periodicidad trimestral. Todo ajuste será informado a la Empresa con al
+      menos 15 días de anticipación a su entrada en vigencia. La modalidad
+      anual prepaga mantiene el valor pactado durante los 12 meses contratados.
+    </p>
+  </section>
+
+  <section class="doc-sec">
+    <h2><span class="n">7.</span> Facturación</h2>
+    <p>
+      GRANITO emitirá factura por un servicio de reconocimiento institucional
+      y difusión a nombre de la Empresa, con la periodicidad pactada en la
+      Cláusula 3. La Empresa es responsable de validar el tratamiento
+      impositivo del gasto ante su propio asesor contable.
+    </p>
+  </section>
+
+  <section class="doc-sec">
+    <h2><span class="n">8.</span> Uso de marca</h2>
+    <p>
+      La Empresa cede a GRANITO una licencia gratuita, no exclusiva y limitada
+      para reproducir su logo y nombre exclusivamente en los espacios y con
+      los alcances descriptos en la Cláusula 4, mientras el convenio esté
+      vigente. GRANITO no usará la marca de la Empresa con otro fin sin
+      autorización previa por escrito. Al finalizar el convenio, GRANITO
+      retirará el logo del sitio dentro de los 10 días siguientes.
+    </p>
+  </section>
+
+  <section class="doc-sec">
+    <h2><span class="n">9.</span> Declaraciones de la Empresa</h2>
+    <ul>
+      <li>Que los datos consignados en este convenio son correctos y que quien firma cuenta con facultades suficientes para representarla.</li>
+      <li>Que comprende que su aporte no le otorga derecho a elegir, dirigir ni condicionar a qué atleta o proyecto se destinan los fondos recaudados en la plataforma.</li>
+      <li>Que su marca y actividad no contradicen los valores de juego limpio y transparencia de GRANITO.</li>
+    </ul>
+  </section>
+
+  <section class="doc-sec">
+    <h2><span class="n">10.</span> Jurisdicción</h2>
+    <p>
+      Para cualquier controversia derivada de este convenio, las partes se
+      someten a los tribunales ordinarios de
+      <span class="fill placeholder wide">[PENDIENTE: jurisdicción]</span>,
+      con renuncia a cualquier otro fuero.
+    </p>
+  </section>
+
+  <div class="signatures">
+    <div class="sig">
+      <div class="line"></div>
+      <div class="role">Por GRANITO</div>
+      <div class="who">
+        <span class="fill placeholder wide">[PENDIENTE: razón social]</span><br />
+        Aclaración: _________________________
+      </div>
+    </div>
+    <div class="sig">
+      <div class="line"></div>
+      <div class="role">Por la Empresa</div>
+      <div class="who">
+        Aclaración: _________________________<br />
+        Cargo: _________________________
+      </div>
+    </div>
+  </div>
+
+  <div class="doc-footer">
+    <span>Lugar y fecha: _________________________, ____/____/______</span>
+    <span>Convenio Empresa Impulsora/Sponsor — borrador julio 2026</span>
+  </div>
+
+</div>
+
+</body>
+</html>

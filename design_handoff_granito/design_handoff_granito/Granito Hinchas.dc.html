@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="./image-slot.js"></script>
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:#0A1A2F}
+  ::selection{background:#C9A227;color:#0A1A2F}
+  #hin-root::-webkit-scrollbar{width:10px}
+  #hin-root::-webkit-scrollbar-thumb{background:#C9A227;border-radius:999px}
+  image-slot{display:block}
+  @keyframes podioPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.7)}}
+  @keyframes podioFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+  @keyframes shineMove{0%{background-position:-120% 0}60%,100%{background-position:220% 0}}
+</style>
+</helmet>
+
+<div id="hin-root" style="background:#0A1A2F;color:#fff;font-family:Inter,system-ui,sans-serif;overflow-x:hidden;min-height:100vh">
+
+  <nav style="position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;padding:14px 48px;background:rgba(10,26,47,.78);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,.07)">
+    <div style="display:flex;align-items:center;gap:40px">
+      <div style="display:flex;align-items:flex-end;gap:2px;cursor:pointer;text-shadow:0 4px 0 rgba(0,0,0,.35)">
+        <span style="font-family:Oswald;font-weight:700;font-size:30px;letter-spacing:.04em;color:#fff;line-height:.8">GRANIT</span>
+        <span style="font-family:Oswald;font-weight:700;font-size:30px;letter-spacing:.04em;color:#C9A227;line-height:.8">O</span>
+      </div>
+      <div style="display:flex;gap:30px;font-family:Oswald;font-weight:500;font-size:14px;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.72)">
+        <span style="cursor:pointer" style-hover="color:#fff">Atletas</span>
+        <span style="cursor:pointer" style-hover="color:#fff">Equipos</span>
+        <span style="cursor:pointer" style-hover="color:#fff">Cómo funciona</span>
+        <span style="cursor:pointer;color:#fff">Hinchas</span>
+        <span style="cursor:pointer" style-hover="color:#fff">Empresas</span>
+      </div>
+    </div>
+    <button style="font-family:Oswald;font-weight:600;font-size:13px;letter-spacing:.04em;text-transform:uppercase;background:#C9A227;border:none;color:#0A1A2F;padding:11px 20px;border-radius:4px;cursor:pointer" style-hover="background:#dcb433">Apoyá</button>
+  </nav>
+
+  <!-- HERO -->
+  <section data-screen-label="Hinchas Hero" style="position:relative;max-width:1100px;margin:0 auto;padding:64px 48px 20px;text-align:center;overflow:hidden">
+    <div style="position:absolute;top:-120px;left:50%;transform:translateX(-50%);width:760px;height:520px;background:radial-gradient(ellipse at center,rgba(201,162,39,.18),transparent 68%);pointer-events:none"></div>
+    <div data-reveal style="position:relative">
+      <div style="display:inline-flex;align-items:center;gap:10px;font-family:Oswald;font-weight:600;font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:#C9A227;margin-bottom:18px"><span style="width:8px;height:8px;border-radius:50%;background:#C9A227;animation:podioPulse 1.8s infinite"></span>Ranking del mes · Junio 2026</div>
+      <h1 style="font-family:Oswald;font-weight:700;font-size:66px;line-height:.92;letter-spacing:-.01em;text-transform:uppercase;margin:0 0 16px">Los que más<br><span style="color:#C9A227">empujan</span></h1>
+      <p style="font-size:18px;line-height:1.6;color:rgba(255,255,255,.72);max-width:520px;margin:0 auto">Cada apoyo suma puntos: cuanto a más atletas apoyás y más aportás, más alto llegás. Sin premios en plata: el premio es el orgullo.</p>
+    </div>
+  </section>
+
+  <!-- PODIO 3D -->
+  <section style="max-width:1000px;margin:0 auto;padding:40px 48px 20px">
+    <div data-reveal style="display:flex;align-items:flex-end;justify-content:center;gap:26px;perspective:1100px">
+      <!-- plata -->
+      <div style="text-align:center;width:230px">
+        <image-slot id="hin-2" shape="circle" placeholder="Foto" style="width:92px;height:92px;margin:0 auto 14px;border:3px solid #B8C2CC;border-radius:50%"></image-slot>
+        <div style="font-family:Oswald;font-weight:600;font-size:22px;text-transform:uppercase;line-height:1">Sofía R.</div>
+        <div style="font-size:13px;color:rgba(255,255,255,.55);margin-bottom:4px">41 atletas apoyados</div>
+        <div style="font-family:Oswald;font-weight:600;font-size:15px;color:#B8C2CC;margin-bottom:14px">2.480 pts</div>
+        <div style="position:relative;height:170px;border-radius:10px 10px 0 0;background:linear-gradient(180deg,#C8D2DC,#A9B6C2);transform:rotateX(9deg);transform-origin:bottom;box-shadow:0 18px 44px rgba(0,0,0,.3);display:flex;align-items:flex-start;justify-content:center;padding-top:18px;overflow:hidden"><span style="font-family:Oswald;font-weight:700;font-size:44px;color:rgba(255,255,255,.9)">2</span></div>
+      </div>
+      <!-- oro -->
+      <div style="text-align:center;width:250px">
+        <div style="font-family:Oswald;font-weight:600;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#C9A227;margin-bottom:8px">Hincha del mes</div>
+        <div style="position:relative;width:118px;margin:0 auto 14px">
+          <image-slot id="hin-1" shape="circle" placeholder="Foto" style="width:118px;height:118px;border:3px solid #C9A227;border-radius:50%;box-shadow:0 0 0 6px rgba(201,162,39,.18)"></image-slot>
+          <div style="position:absolute;top:-14px;left:50%;transform:translateX(-50%);font-size:26px">👑</div>
+        </div>
+        <div style="font-family:Oswald;font-weight:600;font-size:26px;text-transform:uppercase;line-height:1">Carlos M.</div>
+        <div style="font-size:13px;color:rgba(255,255,255,.55);margin-bottom:4px">48 atletas apoyados</div>
+        <div style="font-family:Oswald;font-weight:600;font-size:16px;color:#C9A227;margin-bottom:14px">3.120 pts</div>
+        <div style="position:relative;height:240px;border-radius:10px 10px 0 0;background:linear-gradient(180deg,#E8CC5A,#C9A227);transform:rotateX(9deg);transform-origin:bottom;box-shadow:0 26px 56px rgba(201,162,39,.4);display:flex;align-items:flex-start;justify-content:center;padding-top:20px;overflow:hidden"><span style="font-family:Oswald;font-weight:700;font-size:56px;color:rgba(255,255,255,.95)">1</span><div style="position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.5) 50%,transparent 70%);background-size:220% 100%;animation:shineMove 4.5s ease-in-out infinite"></div></div>
+      </div>
+      <!-- bronce -->
+      <div style="text-align:center;width:230px">
+        <image-slot id="hin-3" shape="circle" placeholder="Foto" style="width:92px;height:92px;margin:0 auto 14px;border:3px solid #C8956A;border-radius:50%"></image-slot>
+        <div style="font-family:Oswald;font-weight:600;font-size:22px;text-transform:uppercase;line-height:1">Diego P.</div>
+        <div style="font-size:13px;color:rgba(255,255,255,.55);margin-bottom:4px">37 atletas apoyados</div>
+        <div style="font-family:Oswald;font-weight:600;font-size:15px;color:#C8956A;margin-bottom:14px">2.090 pts</div>
+        <div style="position:relative;height:135px;border-radius:10px 10px 0 0;background:linear-gradient(180deg,#D6A179,#C0825A);transform:rotateX(9deg);transform-origin:bottom;box-shadow:0 18px 44px rgba(0,0,0,.3);display:flex;align-items:flex-start;justify-content:center;padding-top:16px;overflow:hidden"><span style="font-family:Oswald;font-weight:700;font-size:40px;color:rgba(255,255,255,.9)">3</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TABLA -->
+  <section data-screen-label="Hinchas Tabla" style="max-width:1000px;margin:0 auto;padding:50px 48px 30px">
+    <div data-reveal style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;margin-bottom:20px">
+      <h2 style="font-family:Oswald;font-weight:700;font-size:32px;letter-spacing:-.01em;text-transform:uppercase;margin:0;line-height:.95">Tabla completa</h2>
+      <div style="display:flex;gap:8px">
+        <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="3">
+          <button onClick="{{ t.onClick }}" style="{{ t.style }}">{{ t.label }}</button>
+        </sc-for>
+      </div>
+    </div>
+
+    <div data-reveal style="background:#0d2238;border:1px solid rgba(255,255,255,.07);border-radius:14px;overflow:hidden">
+      <div style="display:grid;grid-template-columns:60px 1fr 130px 120px 100px;gap:12px;padding:14px 22px;border-bottom:1px solid rgba(255,255,255,.08);font-family:Oswald;font-weight:600;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.5)">
+        <span>#</span><span>Hincha</span><span style="text-align:right">Atletas</span><span style="text-align:right">Racha</span><span style="text-align:right">Puntos</span>
+      </div>
+      <sc-for list="{{ rows }}" as="r" hint-placeholder-count="10">
+        <div style="{{ r.rowStyle }}">
+          <span style="{{ r.rankStyle }}">{{ r.rank }}</span>
+          <div style="display:flex;align-items:center;gap:13px;min-width:0">
+            <div style="width:38px;height:38px;border-radius:50%;flex:none;background:{{ r.color }};display:flex;align-items:center;justify-content:center;font-family:Oswald;font-weight:700;font-size:15px;color:#fff">{{ r.initial }}</div>
+            <div style="min-width:0"><div style="font-family:Oswald;font-weight:600;font-size:17px;text-transform:uppercase;line-height:1">{{ r.name }}</div><div style="font-size:12px;color:rgba(255,255,255,.45)">{{ r.city }}</div></div>
+          </div>
+          <span style="text-align:right;font-family:Oswald;font-weight:600;font-size:17px;color:#fff;align-self:center">{{ r.athletes }}</span>
+          <span style="text-align:right;font-size:13px;color:rgba(255,255,255,.6);align-self:center">{{ r.streak }}</span>
+          <span style="text-align:right;font-family:Oswald;font-weight:700;font-size:18px;color:#C9A227;align-self:center">{{ r.points }}</span>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <!-- TU POSICIÓN -->
+  <section style="max-width:1000px;margin:0 auto;padding:10px 48px 30px">
+    <div data-reveal style="display:grid;grid-template-columns:60px 1fr 130px 120px 100px;gap:12px;padding:18px 22px;background:linear-gradient(135deg,#102a44,#0b1f34);border:1px solid rgba(201,162,39,.4);border-radius:14px;align-items:center">
+      <span style="font-family:Oswald;font-weight:700;font-size:20px;color:#C9A227;text-align:center">128</span>
+      <div style="display:flex;align-items:center;gap:13px;min-width:0">
+        <div style="width:40px;height:40px;border-radius:50%;flex:none;background:#C9A227;display:flex;align-items:center;justify-content:center;font-family:Oswald;font-weight:700;font-size:16px;color:#0A1A2F">V</div>
+        <div><div style="font-family:Oswald;font-weight:600;font-size:18px;text-transform:uppercase;line-height:1">Vos · Valeria T.</div><div style="font-size:12px;color:#C9A227">Tu posición este mes</div></div>
+      </div>
+      <span style="text-align:right;font-family:Oswald;font-weight:600;font-size:17px;align-self:center">6</span>
+      <span style="text-align:right;font-size:13px;color:rgba(255,255,255,.6);align-self:center">3 meses</span>
+      <span style="text-align:right;font-family:Oswald;font-weight:700;font-size:18px;color:#C9A227;align-self:center">410</span>
+    </div>
+  </section>
+
+  <!-- CÓMO SUMAR PUNTOS -->
+  <section style="max-width:1000px;margin:0 auto;padding:50px 48px 90px">
+    <div data-reveal style="text-align:center;margin-bottom:36px">
+      <div style="font-family:Oswald;font-weight:600;font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:#C9A227;margin-bottom:10px">Subí en la tabla</div>
+      <h2 style="font-family:Oswald;font-weight:700;font-size:36px;letter-spacing:-.01em;text-transform:uppercase;margin:0;line-height:.95">Cómo sumás puntos</h2>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:18px">
+      <sc-for list="{{ howto }}" as="h" hint-placeholder-count="3">
+        <div data-reveal style="background:#0d2238;border:1px solid rgba(255,255,255,.07);border-top:3px solid {{ h.color }};border-radius:12px;padding:26px">
+          <div style="font-size:28px;margin-bottom:14px">{{ h.icon }}</div>
+          <div style="font-family:Oswald;font-weight:600;font-size:20px;text-transform:uppercase;margin-bottom:8px;line-height:1.05">{{ h.title }}</div>
+          <p style="font-size:14px;color:rgba(255,255,255,.65);line-height:1.6;margin:0">{{ h.text }}</p>
+        </div>
+      </sc-for>
+    </div>
+    <div data-reveal style="text-align:center;margin-top:40px">
+      <button style="font-family:Oswald;font-weight:600;font-size:16px;letter-spacing:.04em;text-transform:uppercase;background:#C9A227;border:none;color:#0A1A2F;padding:16px 34px;border-radius:6px;cursor:pointer;transition:all .2s" style-hover="background:#dcb433;transform:translateY(-2px)">Apoyá a un atleta y sumá</button>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer style="background:#08131f;padding:50px 48px 40px;border-top:1px solid rgba(255,255,255,.07)">
+    <div style="max-width:1440px;margin:0 auto;display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px;align-items:center">
+      <div style="display:flex;align-items:center;gap:14px">
+        <div style="font-family:Oswald;font-weight:700;font-size:24px;letter-spacing:.08em">GRANITO</div>
+        <div style="display:flex;gap:3px"><span style="width:16px;height:3px;background:#0072CE"></span><span style="width:16px;height:3px;background:#F4C300"></span><span style="width:16px;height:3px;background:#1A1A1A"></span><span style="width:16px;height:3px;background:#009F3D"></span><span style="width:16px;height:3px;background:#DF0024"></span></div>
+      </div>
+      <p style="font-size:12px;color:rgba(255,255,255,.4);max-width:560px;margin:0;line-height:1.6">GRANITO es una plataforma independiente y no está afiliada al COI, al COA ni a ningún organismo olímpico. No utilizamos símbolos ni marcas olímpicas.</p>
+    </div>
+  </footer>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1100,&quot;height&quot;:1000}}">
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { tab: 'Mes' };
+    this._obs = null;
+  }
+
+  rowsRaw() {
+    return [
+      { name: 'Carlos M.', city: 'Buenos Aires', initial: 'C', color: '#0072CE', athletes: 48, streak: '12 meses', points: 3120 },
+      { name: 'Sofía R.', city: 'Rosario', initial: 'S', color: '#DF0024', athletes: 41, streak: '8 meses', points: 2480 },
+      { name: 'Diego P.', city: 'Córdoba', initial: 'D', color: '#009F3D', athletes: 37, streak: '6 meses', points: 2090 },
+      { name: 'Julieta F.', city: 'Mendoza', initial: 'J', color: '#7A4DD0', athletes: 33, streak: '5 meses', points: 1870 },
+      { name: 'Federico L.', city: 'La Plata', initial: 'F', color: '#3E8FD0', athletes: 29, streak: '9 meses', points: 1640 },
+      { name: 'Agustina V.', city: 'Mar del Plata', initial: 'A', color: '#F4C300', athletes: 26, streak: '4 meses', points: 1495 },
+      { name: 'Lucas D.', city: 'Salta', initial: 'L', color: '#0072CE', athletes: 24, streak: '7 meses', points: 1380 },
+      { name: 'Renata C.', city: 'Neuquén', initial: 'R', color: '#DF0024', athletes: 21, streak: '3 meses', points: 1210 },
+      { name: 'Gonzalo S.', city: 'Tucumán', initial: 'G', color: '#009F3D', athletes: 19, streak: '5 meses', points: 1085 },
+      { name: 'Camila B.', city: 'Bariloche', initial: 'C', color: '#7A4DD0', athletes: 17, streak: '2 meses', points: 960 }
+    ];
+  }
+
+  howtoRaw() {
+    return [
+      { icon: '💛', color: '#C9A227', title: 'Apoyá más, sumás más', text: 'Cuánto apoyás cuenta: a más atletas y mayor tu aporte mensual, más puntos sumás.' },
+      { icon: '🔥', color: '#DF0024', title: 'Mantené la racha', text: 'Apoyar todos los meses sin cortar multiplica tus puntos. La constancia paga.' },
+      { icon: '📣', color: '#009F3D', title: 'Sumá hinchas', text: 'Invitá a otros a apoyar. Cuando se suman con tu link, ganás puntos extra.' }
+    ];
+  }
+
+  componentDidMount() { this.refresh(); }
+  componentDidUpdate() { this.refresh(); }
+  componentWillUnmount() { if (this._obs) this._obs.disconnect(); }
+
+  refresh() {
+    requestAnimationFrame(() => requestAnimationFrame(() => { try { this.setupReveals(); } catch (e) {} }));
+  }
+  root() { return document.getElementById('hin-root'); }
+
+  setupReveals() {
+    const root = this.root(); if (!root) return;
+    if (this._obs) this._obs.disconnect();
+    const els = Array.from(root.querySelectorAll('[data-reveal]'));
+    els.forEach(el => {
+      if (el._revealed) return;
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(26px)';
+      el.style.transition = 'opacity .65s cubic-bezier(.2,.8,.2,1), transform .65s cubic-bezier(.2,.8,.2,1)';
+    });
+    this._obs = new IntersectionObserver((ents) => {
+      ents.forEach(e => {
+        if (e.isIntersecting) {
+          e.target._revealed = true;
+          e.target.style.opacity = '1';
+          e.target.style.transform = 'none';
+          this._obs.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.06, rootMargin: '0px 0px -5% 0px' });
+    els.forEach(el => { if (!el._revealed) this._obs.observe(el); });
+  }
+
+  renderVals() {
+    const tab = this.state.tab;
+    const tabs = ['Mes', 'Histórico', 'Por deporte'].map(t => {
+      const active = t === tab;
+      return {
+        label: t,
+        onClick: () => this.setState({ tab: t }),
+        style: 'font-family:Oswald;font-weight:600;font-size:12px;letter-spacing:.04em;text-transform:uppercase;padding:9px 16px;border-radius:999px;border:none;cursor:pointer;transition:all .2s;' +
+          (active ? 'background:#C9A227;color:#0A1A2F' : 'background:rgba(255,255,255,.06);color:rgba(255,255,255,.6)')
+      };
+    });
+
+    const rows = this.rowsRaw().map((r, i) => {
+      const rank = i + 1;
+      const top3 = rank <= 3;
+      const medal = ['#C9A227', '#B8C2CC', '#C8956A'][i] || null;
+      return {
+        rank, name: r.name, city: r.city, initial: r.initial, color: r.color,
+        athletes: r.athletes, streak: r.streak, points: r.points.toLocaleString('es-AR'),
+        rowStyle: 'display:grid;grid-template-columns:60px 1fr 130px 120px 100px;gap:12px;padding:14px 22px;align-items:center;transition:background .2s;' +
+          (rank < 10 ? 'border-bottom:1px solid rgba(255,255,255,.05);' : '') +
+          (top3 ? 'background:rgba(201,162,39,.05);' : ''),
+        rankStyle: 'font-family:Oswald;font-weight:700;font-size:18px;text-align:center;align-self:center;color:' + (medal || 'rgba(255,255,255,.45)')
+      };
+    });
+
+    return { tabs, rows, howto: this.howtoRaw() };
+  }
+}
+</script>
+</body>
+</html>

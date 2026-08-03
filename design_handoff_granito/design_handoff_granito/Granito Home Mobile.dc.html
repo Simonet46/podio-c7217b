@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&amp;family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<script src="./image-slot.js"></script>
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:#05101c}
+  ::selection{background:#C9A227;color:#0A1A2F}
+  #home-m::-webkit-scrollbar{display:none}
+  image-slot{display:block}
+  @keyframes podioPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.7)}}
+  @keyframes podioFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+  @keyframes podioFloat2{0%,100%{transform:translateY(0)}50%{transform:translateY(7px)}}
+</style>
+</helmet>
+
+<div id="home-m" style="width:390px;margin:0 auto;background:#0A1A2F;color:#fff;font-family:Inter,system-ui,sans-serif;position:relative;overflow-x:hidden;min-height:844px;box-shadow:0 0 80px rgba(0,0,0,.6)">
+
+  <!-- status bar -->
+  <div style="position:sticky;top:0;z-index:40;display:flex;align-items:center;justify-content:space-between;padding:12px 22px 8px;background:rgba(10,26,47,.92);backdrop-filter:blur(12px);font-size:14px;font-weight:600">
+    <span>9:41</span>
+    <div style="display:flex;align-items:center;gap:6px">
+      <span style="font-size:11px">▮▮▮</span>
+      <span style="font-size:12px">Wi-Fi</span>
+      <span style="display:inline-block;width:22px;height:11px;border:1.5px solid #fff;border-radius:3px;position:relative"><span style="position:absolute;inset:1.5px;width:70%;background:#fff;border-radius:1px"></span></span>
+    </div>
+  </div>
+
+  <!-- top bar -->
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 20px 14px">
+    <div style="display:flex;align-items:flex-end;gap:1px">
+      <span style="font-family:Oswald;font-weight:700;font-size:26px;letter-spacing:.03em;color:#fff;line-height:.8">GRANIT</span>
+      <span style="font-family:Oswald;font-weight:700;font-size:26px;letter-spacing:.03em;color:#C9A227;line-height:.8">O</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <span style="font-size:20px;color:rgba(255,255,255,.8)">⌕</span>
+      <div style="display:flex;flex-direction:column;gap:4px;cursor:pointer"><span style="width:20px;height:2px;background:#fff"></span><span style="width:20px;height:2px;background:#fff"></span><span style="width:13px;height:2px;background:#C9A227"></span></div>
+    </div>
+  </div>
+
+  <!-- hero -->
+  <section style="position:relative;padding:14px 20px 30px;overflow:hidden">
+    <div style="position:absolute;top:-80px;left:50%;transform:translateX(-50%);width:460px;height:420px;background:radial-gradient(ellipse at center,rgba(108,180,228,.2),rgba(201,162,39,.08) 42%,transparent 70%);pointer-events:none"></div>
+    <div data-reveal="" style="position:relative;text-align:center;margin-bottom:26px">
+      <div style="display:inline-flex;align-items:center;gap:8px;font-family:Oswald;font-weight:600;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#6CB4E4;margin-bottom:14px"><span style="width:7px;height:7px;border-radius:50%;background:#6CB4E4;animation:podioPulse 1.8s infinite"></span>Entrá en su historia</div>
+      <h1 style="font-family:Oswald;font-weight:700;font-size:44px;line-height:.92;letter-spacing:-.01em;text-transform:uppercase;margin:0 0 14px">Cada atleta es<br>una historia <span style="color:#C9A227">épica</span></h1>
+      <p style="font-size:15px;line-height:1.55;color:rgba(255,255,255,.72);margin:0 auto;max-width:300px">No es lástima, es aguante. Apoyá directo al deporte argentino.</p>
+    </div>
+
+    <div data-reveal="" data-reveal-delay="100" style="position:relative;display:flex;justify-content:center;perspective:1200px;margin-bottom:26px">
+      <div data-tilt="8" style="position:relative;width:260px;height:360px;border-radius:16px;overflow:hidden;box-shadow:0 40px 80px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.08)">
+        <image-slot id="hero-athlete" shape="rect" placeholder="Soltá foto épica" style="width:100%;height:100%"></image-slot>
+        <div style="position:absolute;inset:0;background:linear-gradient(180deg,transparent 46%,rgba(10,26,47,.92));pointer-events:none"></div>
+        <div style="position:absolute;left:18px;bottom:18px;right:18px">
+          <div style="display:inline-block;font-family:Oswald;font-weight:600;font-size:10px;letter-spacing:.1em;text-transform:uppercase;background:#0072CE;color:#fff;padding:4px 9px;border-radius:3px;margin-bottom:8px">Canotaje</div>
+          <div style="font-family:Oswald;font-weight:600;font-size:24px;text-transform:uppercase;line-height:1">Lucía Ferrari</div>
+          <div style="font-size:12px;color:rgba(255,255,255,.7);margin-top:2px">Tigre · Próxima: Copa del Mundo</div>
+        </div>
+      </div>
+      
+      <div style="position:absolute;top:78px;right:2px;background:#fff;color:#0A1A2F;border-radius:9px;padding:10px 13px;box-shadow:0 14px 34px rgba(0,0,0,.4);animation:podioFloat2 6s ease-in-out infinite;text-align:center"><div style="font-family:Oswald;font-weight:700;font-size:20px;line-height:1">312</div><div style="font-size:10px;color:#5B6B7C;font-weight:600">apoyando</div></div>
+    </div>
+
+    <div data-reveal="" data-reveal-delay="150" style="display:flex;flex-direction:column;gap:10px">
+      <button style="font-family:Oswald;font-weight:600;font-size:15px;letter-spacing:.04em;text-transform:uppercase;background:#C9A227;border:none;color:#0A1A2F;padding:15px;border-radius:8px;cursor:pointer">Apoyá a Lucía</button>
+      <button style="font-family:Oswald;font-weight:500;font-size:15px;letter-spacing:.04em;text-transform:uppercase;background:transparent;border:1px solid rgba(255,255,255,.22);color:#fff;padding:15px;border-radius:8px;cursor:pointer">Ver más atletas</button>
+    </div>
+  </section>
+
+  <!-- stats -->
+  <section data-reveal="" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:0 20px 28px">
+    <div style="border-top:2px solid #C9A227;padding-top:12px"><div style="font-family:Oswald;font-weight:700;font-size:26px;line-height:1" data-count="4820000" data-prefix="$">$0</div><div style="font-size:10px;color:rgba(255,255,255,.55);margin-top:3px;line-height:1.3">a los atletas</div></div>
+    <div style="border-top:2px solid #6CB4E4;padding-top:12px"><div style="font-family:Oswald;font-weight:700;font-size:26px;line-height:1" data-count="1247">0</div><div style="font-size:10px;color:rgba(255,255,255,.55);margin-top:3px;line-height:1.3">atletas</div></div>
+    <div style="border-top:2px solid #009F3D;padding-top:12px"><div style="font-family:Oswald;font-weight:700;font-size:26px;line-height:1" data-count="8342">0</div><div style="font-size:10px;color:rgba(255,255,255,.55);margin-top:3px;line-height:1.3">hinchas</div></div>
+  </section>
+
+  <!-- athletes -->
+  <section style="padding:6px 20px 30px">
+    <div data-reveal="" style="margin-bottom:16px">
+      <div style="font-family:Oswald;font-weight:600;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#C9A227;margin-bottom:8px">Elegí a quién apoyar</div>
+      <h2 style="font-family:Oswald;font-weight:700;font-size:30px;letter-spacing:-.01em;text-transform:uppercase;margin:0;line-height:.95">Sumate al aguante</h2>
+    </div>
+    <div data-reveal="" style="display:flex;gap:8px;overflow-x:auto;margin:0 -20px 18px;padding:0 20px;scrollbar-width:none">
+      <sc-for list="{{ sports }}" as="s" hint-placeholder-count="7"><button onClick="{{ s.onClick }}" style="{{ s.chipStyle }}">{{ s.n }}</button></sc-for>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <sc-for list="{{ list }}" as="a" hint-placeholder-count="4">
+        <div data-reveal="">
+          <div style="position:relative;border-radius:14px;overflow:hidden;box-shadow:0 18px 44px rgba(0,0,0,.45);background:#0d2238;border-top:3px solid {{ a.color }}">
+            <div style="position:relative;height:260px">
+              <image-slot id="{{ a.slotId }}" shape="rect" placeholder="Soltá foto" style="width:100%;height:100%"></image-slot>
+              <div style="position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(13,34,56,.96));pointer-events:none"></div>
+              <div style="position:absolute;left:12px;top:12px;font-family:Oswald;font-weight:600;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:4px 9px;border-radius:3px;background:{{ a.color }}">{{ a.sport }}</div>
+              <div style="position:absolute;left:16px;bottom:12px;right:16px"><div style="font-family:Oswald;font-weight:600;font-size:22px;text-transform:uppercase;line-height:1">{{ a.name }}</div><div style="font-size:12px;color:rgba(255,255,255,.65);margin-top:2px">{{ a.location }}</div></div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 16px">
+              <div style="font-size:12px;color:rgba(255,255,255,.6)"><strong style="color:#fff;font-family:Oswald;font-size:16px">{{ a.supporters }}</strong> apoyando</div>
+              <button style="font-family:Oswald;font-weight:600;font-size:12px;letter-spacing:.03em;text-transform:uppercase;background:#C9A227;border:none;color:#0A1A2F;padding:9px 16px;border-radius:6px;cursor:pointer">Apoyar</button>
+            </div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <!-- últimos aportes -->
+  <section style="padding:6px 20px 30px">
+    <div data-reveal="" style="display:flex;align-items:center;gap:9px;margin-bottom:14px">
+      <span style="width:8px;height:8px;border-radius:50%;background:#C9A227"></span>
+      <span style="font-family:Oswald;font-weight:600;font-size:12px;letter-spacing:.16em;text-transform:uppercase">Últimos aportes</span>
+    </div>
+    <div data-reveal="" style="display:flex;flex-direction:column;gap:10px">
+      <sc-for list="{{ feed }}" as="f" hint-placeholder-count="4">
+        <div style="display:flex;align-items:center;gap:12px;background:#0d2238;border:1px solid rgba(255,255,255,.07);border-left:3px solid {{ f.color }};border-radius:10px;padding:13px 15px">
+          <div style="width:36px;height:36px;border-radius:50%;flex:none;background:{{ f.color }};display:flex;align-items:center;justify-content:center;font-family:Oswald;font-weight:700;font-size:15px;color:#fff">{{ f.initial }}</div>
+          <div style="flex:1;min-width:0"><div style="font-size:13px;color:#fff;font-weight:500;line-height:1.3"><strong>{{ f.fan }}</strong> apoyó a <strong>{{ f.ath }}</strong></div><div style="font-size:11px;color:rgba(255,255,255,.5)">{{ f.sport }}</div></div>
+          <div style="font-family:Oswald;font-weight:600;font-size:15px;color:#C9A227">{{ f.amount }}</div>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <!-- podio hinchas -->
+  <section style="background:#F5F8FB;color:#0A1A2F;padding:34px 20px 40px;margin-top:6px">
+    <div data-reveal="" style="text-align:center;margin-bottom:30px">
+      <div style="font-family:Oswald;font-weight:600;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#3E8FD0;margin-bottom:8px">Los que más empujan</div>
+      <h2 style="font-family:Oswald;font-weight:700;font-size:30px;letter-spacing:-.01em;text-transform:uppercase;margin:0;line-height:.95">Top hinchas del mes</h2>
+    </div>
+    <div data-reveal="" style="display:flex;align-items:flex-end;justify-content:center;gap:10px;perspective:800px">
+      <div style="text-align:center;width:100px">
+        <image-slot id="hincha-2" shape="circle" placeholder="Foto" style="width:56px;height:56px;margin:0 auto 8px;border:3px solid #B8C2CC;border-radius:50%"></image-slot>
+        <div style="font-family:Oswald;font-weight:600;font-size:14px;text-transform:uppercase">Sofía R.</div>
+        <div style="font-size:11px;color:#5B6B7C;margin-bottom:8px">41 atletas</div>
+        <div style="height:90px;border-radius:7px 7px 0 0;background:linear-gradient(180deg,#C8D2DC,#A9B6C2);transform:rotateX(8deg);transform-origin:bottom;box-shadow:0 12px 26px rgba(0,0,0,.18);display:flex;align-items:flex-start;justify-content:center;padding-top:10px"><span style="font-family:Oswald;font-weight:700;font-size:26px;color:rgba(255,255,255,.85)">2</span></div>
+      </div>
+      <div style="text-align:center;width:112px">
+        <div style="font-family:Oswald;font-weight:600;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#C9A227;margin-bottom:6px">Hincha del mes</div>
+        <image-slot id="hincha-1" shape="circle" placeholder="Foto" style="width:68px;height:68px;margin:0 auto 8px;border:3px solid #C9A227;border-radius:50%;box-shadow:0 0 0 5px rgba(201,162,39,.18)"></image-slot>
+        <div style="font-family:Oswald;font-weight:600;font-size:16px;text-transform:uppercase">Carlos M.</div>
+        <div style="font-size:11px;color:#5B6B7C;margin-bottom:8px">48 atletas</div>
+        <div style="height:130px;border-radius:7px 7px 0 0;background:linear-gradient(180deg,#E0C04A,#C9A227);transform:rotateX(8deg);transform-origin:bottom;box-shadow:0 16px 32px rgba(201,162,39,.35);display:flex;align-items:flex-start;justify-content:center;padding-top:12px"><span style="font-family:Oswald;font-weight:700;font-size:32px;color:rgba(255,255,255,.92)">1</span></div>
+      </div>
+      <div style="text-align:center;width:100px">
+        <image-slot id="hincha-3" shape="circle" placeholder="Foto" style="width:56px;height:56px;margin:0 auto 8px;border:3px solid #C8956A;border-radius:50%"></image-slot>
+        <div style="font-family:Oswald;font-weight:600;font-size:14px;text-transform:uppercase">Diego P.</div>
+        <div style="font-size:11px;color:#5B6B7C;margin-bottom:8px">37 atletas</div>
+        <div style="height:72px;border-radius:7px 7px 0 0;background:linear-gradient(180deg,#D6A179,#C0825A);transform:rotateX(8deg);transform-origin:bottom;box-shadow:0 12px 26px rgba(0,0,0,.18);display:flex;align-items:flex-start;justify-content:center;padding-top:9px"><span style="font-family:Oswald;font-weight:700;font-size:22px;color:rgba(255,255,255,.85)">3</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- cómo funciona -->
+  <section style="padding:36px 20px 30px">
+    <div data-reveal="" style="text-align:center;margin-bottom:24px">
+      <div style="font-family:Oswald;font-weight:600;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#C9A227;margin-bottom:8px">Sin vueltas</div>
+      <h2 style="font-family:Oswald;font-weight:700;font-size:30px;letter-spacing:-.01em;text-transform:uppercase;margin:0;line-height:.95">Cómo funciona</h2>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div data-reveal="" style="background:#0d2238;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:20px;display:flex;gap:16px;align-items:flex-start"><div style="font-family:Oswald;font-weight:700;font-size:30px;color:#C9A227;line-height:1">01</div><div><div style="font-family:Oswald;font-weight:600;font-size:18px;text-transform:uppercase;margin-bottom:4px">Elegí un atleta</div><p style="font-size:13px;color:rgba(255,255,255,.65);line-height:1.5;margin:0">Buscá por deporte y mirá su historia. Cada caso lo revisamos a mano.</p></div></div>
+      <div data-reveal="" style="background:#0d2238;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:20px;display:flex;gap:16px;align-items:flex-start"><div style="font-family:Oswald;font-weight:700;font-size:30px;color:#6CB4E4;line-height:1">02</div><div><div style="font-family:Oswald;font-weight:600;font-size:18px;text-transform:uppercase;margin-bottom:4px">Apoyá cada mes</div><p style="font-size:13px;color:rgba(255,255,255,.65);line-height:1.5;margin:0">Un aporte mensual, como en Patreon. Sin metas: apoyarlo en el día a día.</p></div></div>
+      <div data-reveal="" style="background:#0d2238;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:20px;display:flex;gap:16px;align-items:flex-start"><div style="font-family:Oswald;font-weight:700;font-size:30px;color:#009F3D;line-height:1">03</div><div><div style="font-family:Oswald;font-weight:600;font-size:18px;text-transform:uppercase;margin-bottom:4px">El 93% va al atleta</div><p style="font-size:13px;color:rgba(255,255,255,.65);line-height:1.5;margin:0">Retenemos solo el 7%. El resto, directo a quien entrena.</p></div></div>
+    </div>
+  </section>
+
+  <!-- footer mini -->
+  <footer style="background:#08131f;padding:30px 20px 110px;text-align:center;border-top:1px solid rgba(255,255,255,.07)">
+    <div style="font-family:Oswald;font-weight:700;font-size:24px;letter-spacing:.08em;margin-bottom:6px">GRANITO</div>
+    <div style="display:flex;gap:3px;justify-content:center;margin-bottom:16px"><span style="width:16px;height:3px;background:#0072CE"></span><span style="width:16px;height:3px;background:#F4C300"></span><span style="width:16px;height:3px;background:#1A1A1A"></span><span style="width:16px;height:3px;background:#009F3D"></span><span style="width:16px;height:3px;background:#DF0024"></span></div>
+    <p style="font-size:11px;color:rgba(255,255,255,.4);line-height:1.6;margin:0 auto;max-width:280px">GRANITO es independiente y no está afiliada al COI, COA ni a ningún organismo olímpico. No usamos símbolos ni marcas olímpicas.</p>
+  </footer>
+
+  <!-- bottom tab bar -->
+  <div style="position:sticky;bottom:0;z-index:45;display:flex;align-items:center;justify-content:space-around;padding:10px 14px 22px;background:rgba(8,19,31,.94);backdrop-filter:blur(14px);border-top:1px solid rgba(255,255,255,.08)">
+    <div style="display:flex;flex-direction:column;align-items:center;gap:3px;color:#C9A227"><span style="font-size:19px">⌂</span><span style="font-size:9px;font-weight:600;letter-spacing:.04em">Home</span></div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:3px;color:rgba(255,255,255,.5)"><span style="font-size:19px">⌕</span><span style="font-size:9px;font-weight:600;letter-spacing:.04em">Atletas</span></div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:4px;margin-top:-18px"><div style="width:52px;height:52px;border-radius:50%;background:#C9A227;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 26px rgba(201,162,39,.45);color:#0A1A2F;font-size:24px;font-weight:700">+</div><span style="font-size:9px;font-weight:600;letter-spacing:.04em;color:#C9A227">Apoyá</span></div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:3px;color:rgba(255,255,255,.5)"><span style="font-size:19px">♔</span><span style="font-size:9px;font-weight:600;letter-spacing:.04em">Hinchas</span></div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:3px;color:rgba(255,255,255,.5)"><span style="font-size:19px">◍</span><span style="font-size:9px;font-weight:600;letter-spacing:.04em">Perfil</span></div>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { sport: 'Todos', feed: this.makeFeed(4) };
+    this._obs = null;
+    this._tilt = [];
+    this._feedTimer = null;
+    this._counterPoll = null;
+  }
+
+  sportsRaw() {
+    return [
+      { n: 'Todos', c: '#C9A227' },
+      { n: 'Canotaje', c: '#0072CE' },
+      { n: 'Escalada', c: '#DF0024' },
+      { n: 'Natación', c: '#3E8FD0' },
+      { n: 'Vela', c: '#009F3D' },
+      { n: 'Judo', c: '#7A4DD0' },
+      { n: 'Atletismo', c: '#F4C300' }
+    ];
+  }
+
+  athletesRaw() {
+    return [
+      { name: 'Lucía Ferrari', sport: 'Canotaje', color: '#0072CE', location: 'Tigre, Buenos Aires', supporters: 312, slotId: 'hero-athlete' },
+      { name: 'Mateo Ríos', sport: 'Escalada', color: '#DF0024', location: 'Bariloche, Río Negro', supporters: 198, slotId: 'ath-2' },
+      { name: 'Valentina Sosa', sport: 'Natación', color: '#3E8FD0', location: 'Mar del Plata', supporters: 421, slotId: 'ath-3' },
+      { name: 'Tomás Aguirre', sport: 'Vela', color: '#009F3D', location: 'Rosario, Santa Fe', supporters: 156, slotId: 'ath-4' },
+      { name: 'Brisa Medina', sport: 'Judo', color: '#7A4DD0', location: 'Córdoba Capital', supporters: 267, slotId: 'ath-5' },
+      { name: 'Joaquín Vega', sport: 'Atletismo', color: '#F4C300', location: 'Salta', supporters: 389, slotId: 'ath-6' }
+    ];
+  }
+
+  fanNames() { return ['Carla M.', 'Nicolás P.', 'Sofía R.', 'Martín G.', 'Julieta F.', 'Federico L.', 'Agustina V.', 'Lucas D.']; }
+  fmt(n) { return '$' + Math.round(n).toLocaleString('es-AR'); }
+
+  makeFeedItem() {
+    const fans = this.fanNames();
+    const aths = this.athletesRaw();
+    const fan = fans[Math.floor(Math.random() * fans.length)];
+    const a = aths[Math.floor(Math.random() * aths.length)];
+    const amt = (Math.floor(Math.random() * 48) + 5) * 500;
+    return { id: Date.now() + '-' + Math.random(), fan: fan, initial: fan[0], ath: a.name.split(' ')[0], sport: a.sport, color: a.color, amount: this.fmt(amt) };
+  }
+  makeFeed(n) { const out = []; for (let i = 0; i < n; i++) out.push(this.makeFeedItem()); return out; }
+
+  componentDidMount() {
+    this._feedTimer = setInterval(() => {
+      this.setState(s => ({ feed: [this.makeFeedItem(), ...s.feed].slice(0, 4) }));
+    }, 3800);
+    this._counterPoll = setInterval(() => { try { this.countVisible(); } catch (e) {} }, 350);
+    this.refresh();
+  }
+  componentWillUnmount() {
+    clearInterval(this._feedTimer);
+    clearInterval(this._counterPoll);
+    if (this._obs) this._obs.disconnect();
+    this._tilt.forEach(fn => fn());
+  }
+  refresh() {
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      try { this.setupReveals(); } catch (e) {}
+      try { this.countVisible(); } catch (e) {}
+      try { this.setupTilt(); } catch (e) {}
+    }));
+  }
+  root() { return document.getElementById('home-m'); }
+
+  setupReveals() {
+    const root = this.root(); if (!root) return;
+    if (this._obs) this._obs.disconnect();
+    const els = Array.from(root.querySelectorAll('[data-reveal]'));
+    els.forEach(el => {
+      if (el._revealed) return;
+      const d = el.getAttribute('data-reveal-delay') || 0;
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(24px)';
+      el.style.transition = 'opacity .65s cubic-bezier(.2,.8,.2,1) ' + d + 'ms, transform .65s cubic-bezier(.2,.8,.2,1) ' + d + 'ms';
+    });
+    this._obs = new IntersectionObserver((ents) => {
+      ents.forEach(e => {
+        if (e.isIntersecting) {
+          e.target._revealed = true;
+          e.target.style.opacity = '1';
+          e.target.style.transform = 'none';
+          this._obs.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.08, rootMargin: '0px 0px -6% 0px' });
+    els.forEach(el => { if (!el._revealed) this._obs.observe(el); });
+  }
+
+  setupTilt() {
+    const root = this.root(); if (!root) return;
+    this._tilt.forEach(fn => fn());
+    this._tilt = [];
+    root.querySelectorAll('[data-tilt]').forEach(el => {
+      const max = parseFloat(el.getAttribute('data-tilt')) || 8;
+      el.style.transformStyle = 'preserve-3d';
+      const onMove = (ev) => {
+        const r = el.getBoundingClientRect();
+        const px = (ev.clientX - r.left) / r.width - 0.5;
+        const py = (ev.clientY - r.top) / r.height - 0.5;
+        el.style.transition = 'transform .08s linear';
+        el.style.transform = 'perspective(900px) rotateY(' + (px * max) + 'deg) rotateX(' + (-py * max) + 'deg)';
+      };
+      const onLeave = () => {
+        el.style.transition = 'transform .5s cubic-bezier(.2,.8,.2,1)';
+        el.style.transform = 'perspective(900px) rotateY(0deg) rotateX(0deg)';
+      };
+      el.addEventListener('mousemove', onMove);
+      el.addEventListener('mouseleave', onLeave);
+      this._tilt.push(() => { el.removeEventListener('mousemove', onMove); el.removeEventListener('mouseleave', onLeave); });
+    });
+  }
+
+  countVisible() {
+    const root = this.root(); if (!root) return;
+    const vh = window.innerHeight || document.documentElement.clientHeight;
+    root.querySelectorAll('[data-count]').forEach(el => {
+      if (el._counted || el.offsetParent === null) return;
+      const r = el.getBoundingClientRect();
+      if (r.top < vh * 0.98 && r.bottom > 0) { el._counted = true; this.countUp(el); }
+    });
+  }
+  countUp(el) {
+    const target = parseFloat(el.getAttribute('data-count'));
+    const pre = el.getAttribute('data-prefix') || '';
+    const dur = 1400;
+    const start = Date.now();
+    const id = setInterval(() => {
+      const t = Math.min(1, (Date.now() - start) / dur);
+      const e = 1 - Math.pow(1 - t, 3);
+      el.textContent = pre + Math.round(target * e).toLocaleString('es-AR');
+      if (t >= 1) clearInterval(id);
+    }, 28);
+  }
+
+  renderVals() {
+    const sport = this.state.sport;
+    const sports = this.sportsRaw().map(s => {
+      const active = s.n === sport;
+      return {
+        n: s.n,
+        onClick: () => this.setState({ sport: s.n }),
+        chipStyle: 'flex:none;font-family:Inter;font-weight:600;font-size:12px;padding:8px 15px;border-radius:999px;cursor:pointer;transition:all .2s;white-space:nowrap;border:1px solid ' +
+          (active ? s.c : 'rgba(255,255,255,.16)') + ';background:' + (active ? s.c : 'transparent') + ';color:' + (active ? '#fff' : 'rgba(255,255,255,.7)')
+      };
+    });
+    const all = this.athletesRaw().map(a => ({
+      name: a.name, sport: a.sport, color: a.color, location: a.location, supporters: a.supporters, slotId: a.slotId
+    }));
+    const list = sport === 'Todos' ? all : all.filter(a => a.sport === sport);
+    return { sports, list, feed: this.state.feed };
+  }
+}
+</script>
+</body>
+</html>
