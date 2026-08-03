@@ -16,6 +16,8 @@ import {
 } from "@/lib/data/campaigns";
 import { AthleteTimeline } from "@/components/AthleteTimeline";
 import { SITE, asset } from "@/config/site";
+import { campaignShare } from "@/lib/share";
+import { ShareStoryButton } from "@/components/ShareStoryButton";
 
 export async function generateStaticParams() {
   const campaigns = await getTeamCampaigns();
@@ -34,11 +36,23 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const c = await getTeamCampaignBySlug(params.slug);
   if (!c) return { title: SITE.brand };
+  const share = campaignShare(c);
+  // `openGraph` explícito: si no, hereda la bajada genérica del layout raíz.
   return {
     title: `${c.team_name} — Campaña — ${SITE.brand}`,
-    description:
-      c.goal_purpose ??
-      `Sumá tu granito para que ${c.team_name} llegue a ${c.competition ?? "su próxima competencia"}.`,
+    description: share.description,
+    openGraph: {
+      type: "article",
+      siteName: SITE.brand,
+      title: share.title,
+      description: share.description,
+      url: `${SITE.url}/equipos/${c.slug}/`,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: share.title,
+      description: share.description,
+    },
   };
 }
 
@@ -226,6 +240,11 @@ export default async function TeamCampaignPage({
               <div className="lg:sticky lg:top-24 lg:self-start">
                 <Reveal>
                   <TeamPledgeWidget campaign={campaign} />
+                  <ShareStoryButton
+                    imageUrl={asset(`/equipos/${campaign.slug}/historia.jpg`)}
+                    fileName={`granito-${campaign.slug}.jpg`}
+                    shareText={`${campaignShare(campaign).title} — ${SITE.url}/equipos/${campaign.slug}/`}
+                  />
                 </Reveal>
               </div>
             </div>

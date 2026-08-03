@@ -10,6 +10,7 @@ import { getTeams, getTeamBySlug, getTeamMembers } from "@/lib/data/athletes";
 import { SEED_TEAMS } from "@/lib/data/teams";
 import { getSport } from "@/config/sports";
 import { asset, SITE } from "@/config/site";
+import { teamShare } from "@/lib/share";
 import { formatMoney } from "@/lib/money";
 
 export async function generateStaticParams() {
@@ -25,9 +26,23 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const team = await getTeamBySlug(params.slug);
   if (!team) return { title: SITE.brand };
+  const share = teamShare(team);
+  // `openGraph` explícito: si no, hereda la bajada genérica del layout raíz.
   return {
     title: `${team.name} — ${SITE.brand}`,
-    description: `Apoyá a los jugadores de ${team.name}, la ${team.discipline}. Tu aporte va directo a cada uno.`,
+    description: share.description,
+    openGraph: {
+      type: "article",
+      siteName: SITE.brand,
+      title: share.title,
+      description: share.description,
+      url: `${SITE.url}/equipo/${team.slug}/`,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: share.title,
+      description: share.description,
+    },
   };
 }
 

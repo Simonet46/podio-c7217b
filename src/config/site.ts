@@ -8,8 +8,13 @@ export const SITE = {
   /** Nombre de marca (cambiar acá para renombrar todo el sitio). */
   brand: "GRANITO",
   tagline: "Apoyo directo al deporte argentino",
+  /**
+   * Texto que ven las redes al compartir el sitio (og:description).
+   * No mencionar la comisión acá: en una card de WhatsApp, un porcentaje
+   * suelto se lee como letra chica y no invita a entrar.
+   */
   description:
-    "Apoyá directo a los atletas argentinos: desde el alto rendimiento hasta el juvenil del barrio. El 93% va al atleta.",
+    "Talento sobra. Lo que falta es apoyo. Elegí a un atleta argentino y tu aporte llega directo a su cuenta.",
   /** URL canónica del sitio (usada para callbacks de pago). */
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://somosgranito.com",
 } as const;

@@ -17,6 +17,8 @@ import { formatMoney, progressPct } from "@/lib/money";
 import { ProgressBar } from "@/components/ProgressBar";
 import { supporterCount } from "@/lib/supporters";
 import { SITE, asset } from "@/config/site";
+import { athleteShare } from "@/lib/share";
+import { ShareStoryButton } from "@/components/ShareStoryButton";
 
 export async function generateStaticParams() {
   const athletes = await getAllAthletes();
@@ -30,9 +32,25 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const athlete = await getAthleteBySlug(params.slug);
   if (!athlete) return { title: SITE.brand };
+  const share = athleteShare(athlete);
+  // OJO: hay que pisar `openGraph` explícitamente. Next NO deriva og:description
+  // de `description`: si no lo declaramos acá, hereda el del layout raíz y
+  // WhatsApp muestra el texto genérico del sitio en vez de la historia del atleta.
   return {
     title: `${athlete.full_name} — ${SITE.brand}`,
-    description: `Apoyá a ${athlete.full_name}, ${getSport(athlete.sport)?.label ?? athlete.sport} de ${athlete.city}.`,
+    description: share.description,
+    openGraph: {
+      type: "profile",
+      siteName: SITE.brand,
+      title: share.title,
+      description: share.description,
+      url: `${SITE.url}/atleta/${athlete.slug}/`,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: share.title,
+      description: share.description,
+    },
   };
 }
 
@@ -48,6 +66,7 @@ export default async function AthletePage({
   if (!athlete) notFound();
 
   const sport = getSport(athlete.sport);
+  const share = athleteShare(athlete);
   const color = sport?.color ?? "#1E6E8C";
   const backers = supporterCount(athlete.raised_amount);
   const team = athlete.team ? await getTeamBySlug(athlete.team) : null;
@@ -110,13 +129,20 @@ export default async function AthletePage({
                 <SponsorLogo sponsor={sponsor} />
               </div>
             )}
-            {/* Próxima competencia floating pill */}
+            {/* Próxima competencia floating pill.
+                La fila de perfil se monta sobre el cover (-mt-12 / -mt-[58px]),
+                así que la franja de abajo NO es zona libre: ahí se superponía
+                con el chip del deporte. En mobile la píldora va arriba a la
+                derecha (ángulo libre: el badge de sponsor recién aparece en sm)
+                y de sm para arriba queda apoyada por encima de esa franja.
+                El max-w evita que una competencia de nombre largo se estire de
+                borde a borde y vuelva a alcanzar el chip. */}
             {athlete.next_competition && (
               <div
-                className="podio-float absolute bottom-7 right-5 sm:right-9 inline-flex items-center gap-2.5 rounded-full px-4 py-2 shadow-[0_14px_36px_rgba(201,162,39,.4)]"
+                className="podio-float absolute right-4 top-4 max-w-[calc(100%-2rem)] inline-flex items-center gap-2.5 rounded-full px-4 py-2 shadow-[0_14px_36px_rgba(201,162,39,.4)] sm:bottom-[74px] sm:right-9 sm:top-auto sm:max-w-[62%]"
                 style={{ background: "#C9A227" }}
               >
-                <span className="h-1.5 w-1.5 rounded-full bg-ink" aria-hidden />
+                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-ink" aria-hidden />
                 <span className="font-display text-[12px] font-600 uppercase tracking-wide text-ink">
                   Próxima: {athlete.next_competition}
                 </span>
@@ -321,6 +347,12 @@ export default async function AthletePage({
                   slug: athlete.slug,
                   title: `Apoyá a ${athlete.first_name}`,
                 }}
+              />
+
+              <ShareStoryButton
+                imageUrl={asset(`/atleta/${athlete.slug}/historia.jpg`)}
+                fileName={`granito-${athlete.slug}.jpg`}
+                shareText={`${share.title} — ${SITE.url}/atleta/${athlete.slug}/`}
               />
 
               {/* Nota de confianza */}
