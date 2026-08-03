@@ -3,8 +3,6 @@ import Link from "next/link";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Reveal } from "@/components/Reveal";
-import { getGlobalStats } from "@/lib/data/athletes";
-import { formatMoney } from "@/lib/money";
 import { PLATFORM_FEE_RATE, SITE } from "@/config/site";
 
 export const metadata: Metadata = {
@@ -41,7 +39,6 @@ const FAQ = [
 ];
 
 export default async function TransparenciaPage() {
-  const { athleteCount, totalRaised } = await getGlobalStats();
   const netPct = Math.round((1 - PLATFORM_FEE_RATE) * 100);
   const feePct = Math.round(PLATFORM_FEE_RATE * 100);
 
@@ -123,7 +120,7 @@ export default async function TransparenciaPage() {
                   <p className="mt-2 text-[14px] leading-relaxed text-white/65">
                     Infraestructura, revisión a mano de cada postulación y
                     crecimiento de la comunidad. Es lo que hace posible que esto
-                    exista y dure. No hay otros cargos: ni para vos, ni para el atleta.
+                    exista y dure.
                   </p>
                 </div>
               </div>
@@ -173,46 +170,6 @@ export default async function TransparenciaPage() {
               </Reveal>
             ))}
           </div>
-        </section>
-
-        {/* ── NÚMEROS REALES ── */}
-        <section className="mx-auto max-w-[900px] px-4 pb-6 pt-14 sm:px-6">
-          <Reveal>
-            <div
-              className="rounded-[16px] p-8 text-center"
-              style={{
-                background: "linear-gradient(160deg,#12283f,#0d2238)",
-                border: "1px solid rgba(201,162,39,.25)",
-              }}
-            >
-              <div className="eyebrow mb-6 text-gold">Los números, hoy</div>
-              <div className="flex flex-wrap items-start justify-center gap-x-14 gap-y-6">
-                <div>
-                  <div className="font-display text-[44px] font-700 leading-none text-gold">
-                    {athleteCount}
-                  </div>
-                  <div className="eyebrow mt-2 text-white/55">
-                    {athleteCount === 1 ? "atleta en campaña" : "atletas en campaña"}
-                  </div>
-                </div>
-                <div>
-                  <div className="font-display text-[44px] font-700 leading-none text-gold">
-                    {formatMoney(totalRaised)}
-                  </div>
-                  <div className="eyebrow mt-2 text-white/55">aportado a la fecha</div>
-                </div>
-                <div>
-                  <div className="font-display text-[44px] font-700 leading-none text-gold">3</div>
-                  <div className="eyebrow mt-2 text-white/55">atletas olímpicos fundadores</div>
-                </div>
-              </div>
-              <p className="mx-auto mt-7 max-w-[520px] text-[13px] leading-relaxed text-white/45">
-                Números reales, aunque sean chicos: la comunidad recién empieza.
-                A medida que crezca vamos a publicar acá el historial agregado de
-                aportes y transferencias, período por período.
-              </p>
-            </div>
-          </Reveal>
         </section>
 
         {/* ── FAQ ── */}
