@@ -25,3 +25,8 @@ create policy teams_public_read on public.teams
 drop policy if exists teams_admin_all on public.teams;
 create policy teams_admin_all on public.teams
   for all to authenticated using (public.is_admin()) with check (public.is_admin());
+
+-- Estado real de conexión MP de una postulación (solo admins; sin tokens).
+create or replace view public.application_mp_status as
+  select application_id from public.application_mp_accounts where public.is_admin();
+grant select on public.application_mp_status to authenticated;

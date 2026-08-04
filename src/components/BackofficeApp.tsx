@@ -331,6 +331,18 @@ export function BackofficeApp() {
   const [athletes, setAthletes] = useState<AthleteRow[]>([]);
   const [selectedAppId, setSelectedAppId] = useState<string | null>(null);
   const [loadingList, setLoadingList] = useState(false);
+  // Postulaciones con credencial de MP realmente guardada (vista solo-admin).
+  const [mpTokenApps, setMpTokenApps] = useState<Set<string>>(new Set());
+  /** Estado REAL de MP de una postulación: si fue aprobada manda el atleta
+   *  (el token migra ahí al aprobar); si no, la existencia del token. */
+  function appMpConnected(app: Application): boolean {
+    if (app.status === "approved") {
+      const ath = athletes.find((x) => x.dni && app.dni && x.dni === app.dni)
+        ?? athletes.find((x) => x.full_name.trim().toLowerCase() === app.full_name.trim().toLowerCase());
+      if (ath) return !!ath.mp_connected;
+    }
+    return mpTokenApps.has(app.id);
+  }
   const [draft, setDraft] = useState<Draft | null>(null);
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState("");
@@ -375,7 +387,7 @@ export function BackofficeApp() {
     const supa = sb();
     if (!supa) return;
     setLoadingList(true);
-    const [appsRes, athRes, teamRes, pledgesRes, changesRes, updatesRes, teamUpdatesRes, donationsRes] = await Promise.all([
+    const [appsRes, athRes, teamRes, pledgesRes, changesRes, updatesRes, teamUpdatesRes, donationsRes, mpStatusRes] = await Promise.all([
       supa.from("athlete_applications").select("*").order("created_at", { ascending: false }),
       supa.from("athletes").select("id,slug,full_name,first_name,sport,city,province,raised_amount,verified,mp_connected,dni,team,bio,next_competition,socials,supporter_message,photo_url,gender,card_tag").order("raised_amount", { ascending: false }),
       supa.from("team_applications").select("*").order("created_at", { ascending: false }),
@@ -396,7 +408,11 @@ export function BackofficeApp() {
         .from("donations")
         .select("id,athlete_id,amount,net_amount,type,status,donor_email,created_at")
         .order("created_at", { ascending: false }),
+      supa.from("application_mp_status").select("application_id"),
     ]);
+    if (!mpStatusRes.error && mpStatusRes.data) {
+      setMpTokenApps(new Set((mpStatusRes.data as { application_id: string }[]).map((r) => r.application_id)));
+    }
     if (!appsRes.error && appsRes.data) setAllApps(appsRes.data as Application[]);
     if (!athRes.error && athRes.data) setAthletes(athRes.data as AthleteRow[]);
     if (!teamRes.error && teamRes.data) setTeamApps(teamRes.data as TeamApp[]);
@@ -675,6 +691,20 @@ export function BackofficeApp() {
     );
   }
 
+  /** Devuelve una postulación rechazada a la bandeja de pendientes. */
+  async function handleReopen(app: Application) {
+    const supa = sb();
+    if (!supa) return;
+    setBusy(true);
+    const { error } = await supa
+      .from("athlete_applications")
+      .update({ status: "pending", reviewed_at: null })
+      .eq("id", app.id);
+    setBusy(false);
+    setToast(error ? "Error al reabrir: " + error.message : `La postulación de ${app.full_name} volvió a pendientes.`);
+    if (!error) { setFilter("pending"); loadApps(); }
+  }
+
   async function handleRejectTeam(team: TeamApp) {
     const supa = sb();
     if (!supa) return;
@@ -774,7 +804,7 @@ export function BackofficeApp() {
     setInfoMsg(
       "¡Gracias por postularte! Tu historia nos encantó. Para terminar de aprobar tu perfil nos falta que completes un par de datos:\n\n- ",
     );
-    setInfoIncludeMp(!app.mp_connected);
+    setInfoIncludeMp(!appMpConnected(app));
     setInfoBusy(false);
   }
 
@@ -1019,6 +1049,8 @@ export function BackofficeApp() {
               onApprove={(app) => setDraft(buildDraft(app))}
               onReject={handleReject}
               onMoreInfo={askMoreInfo}
+              onReopen={handleReopen}
+              appMpConnected={appMpConnected}
               busy={busy}
               teamApps={teamApps}
               onApproveTeam={handleApproveTeam}
@@ -1403,6 +1435,8 @@ function PostulacionesSection({
   onApprove,
   onReject,
   onMoreInfo,
+  onReopen,
+  appMpConnected,
   busy,
   teamApps,
   onApproveTeam,
@@ -1419,6 +1453,8 @@ function PostulacionesSection({
   onApprove: (app: Application) => void;
   onReject: (app: Application) => void;
   onMoreInfo: (app: Application) => void;
+  onReopen: (app: Application) => void;
+  appMpConnected: (app: Application) => boolean;
   busy: boolean;
   teamApps: TeamApp[];
   onApproveTeam: (team: TeamApp) => Promise<void>;
@@ -1556,14 +1592,14 @@ function PostulacionesSection({
                   className="flex items-center gap-2.5 rounded-[9px] px-3 py-2.5"
                   style={{ background: "#0a1828", border: `1px solid rgba(255,255,255,.06)` }}
                 >
-                  <span style={{ color: selected.mp_connected ? C.greenBright : C.gold, fontSize: 14 }}>
-                    {selected.mp_connected ? "✓" : "◔"}
+                  <span style={{ color: appMpConnected(selected) ? C.greenBright : C.gold, fontSize: 14 }}>
+                    {appMpConnected(selected) ? "✓" : "◔"}
                   </span>
                   <span className="flex-1 text-[13px]" style={{ color: "rgba(255,255,255,.8)" }}>
                     Mercado Pago
                   </span>
-                  <span className="text-[12px] font-600" style={{ color: selected.mp_connected ? C.greenBright : C.gold }}>
-                    {selected.mp_connected ? "Conectado por la atleta" : "Sin conectar"}
+                  <span className="text-[12px] font-600" style={{ color: appMpConnected(selected) ? C.greenBright : C.gold }}>
+                    {appMpConnected(selected) ? "Conectado (verificado)" : "Sin conectar"}
                   </span>
                 </div>
                 {selected.payment_mp && (
@@ -1587,9 +1623,23 @@ function PostulacionesSection({
                   <button onClick={() => onMoreInfo(selected)} className="flex-1 rounded-[10px] py-3.5 font-display text-[14px] font-600 uppercase tracking-[.04em]" style={{ background: "transparent", border: "1px solid rgba(255,255,255,.16)", color: "rgba(255,255,255,.8)" }}>Pedir más info</button>
                   <button onClick={() => onReject(selected)} disabled={busy} className="rounded-[10px] px-4 font-display text-[16px] font-600" style={{ width: 52, background: "transparent", border: "1px solid rgba(223,0,36,.4)", color: C.redBright }}>✕</button>
                 </div>
+              ) : selected.status === "rejected" ? (
+                <div className="flex flex-col gap-2.5">
+                  <div className="rounded-[10px] px-4 py-2.5 text-center text-[13px]" style={{ background: "#0a1828", border: `1px solid ${C.border}`, color: C.txtDim }}>
+                    Postulación rechazada — se puede reconsiderar.
+                  </div>
+                  <div className="flex gap-2.5">
+                    <button onClick={() => onApprove(selected)} className="flex-1 rounded-[10px] py-3.5 font-display text-[14px] font-600 uppercase tracking-[.04em] text-white" style={{ background: C.green }}>
+                      ✓ Revisar y dar de alta
+                    </button>
+                    <button onClick={() => onReopen(selected)} className="flex-1 rounded-[10px] py-3.5 font-display text-[14px] font-600 uppercase tracking-[.04em]" style={{ background: "transparent", border: "1px solid rgba(255,255,255,.16)", color: "rgba(255,255,255,.8)" }}>
+                      Volver a pendientes
+                    </button>
+                  </div>
+                </div>
               ) : (
                 <div className="rounded-[10px] px-4 py-3 text-center text-[13px]" style={{ background: "#0a1828", border: `1px solid ${C.border}`, color: C.txtDim }}>
-                  {selected.status === "approved" ? "✓ Ya aprobada — atleta creado" : "Postulación rechazada"}
+                  ✓ Ya aprobada — atleta creado
                 </div>
               )}
             </div>
