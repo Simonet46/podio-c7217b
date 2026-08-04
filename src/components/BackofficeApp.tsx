@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { SPORT_LIST, getSport } from "@/config/sports";
 import { SEED_TEAMS } from "@/lib/data/teams";
+import { TeamsManager, type DbTeam } from "./BackofficeSelections";
 import { formatMoney } from "@/lib/money";
 
 // ── Cliente Supabase del navegador (singleton, mantiene sesión) ──────────
@@ -1043,7 +1044,7 @@ export function BackofficeApp() {
 
           {/* ===== SELECCIONES ===== */}
           {active === "Selecciones" && (
-            <SeleccionesSection athletes={athletes} loading={loadingList} onSetTeam={handleSetTeam} />
+            <SeleccionesSection athletes={athletes} loading={loadingList} onSetTeam={handleSetTeam} onToast={setToast} />
           )}
 
           {/* ===== CAMBIOS DE PERFIL ===== */}
@@ -2413,19 +2414,28 @@ function SeleccionesSection({
   athletes,
   loading,
   onSetTeam,
+  onToast,
 }: {
   athletes: AthleteRow[];
   loading: boolean;
   onSetTeam: (a: AthleteRow, teamSlug: string) => void;
+  onToast: (msg: string) => void;
 }) {
+  // Selecciones cargadas desde el admin (tabla `teams`). Pisan al seed por slug.
+  const [dbTeams, setDbTeams] = useState<DbTeam[]>([]);
   if (loading) {
     return <div className="py-16 text-center text-[14px]" style={{ color: C.txtDim }}>Cargando…</div>;
   }
   const sinSeleccion = athletes.filter((a) => !a.team);
+  const allTeams = [
+    ...SEED_TEAMS.filter((t) => !dbTeams.some((d) => d.slug === t.slug)),
+    ...dbTeams.filter((d) => d.verified),
+  ];
 
   return (
     <div className="flex flex-col gap-5">
-      {SEED_TEAMS.map((t) => {
+      <TeamsManager supa={sb()} onTeams={setDbTeams} onToast={onToast} />
+      {allTeams.map((t) => {
         const roster = athletes.filter((a) => a.team === t.slug);
         return (
           <section

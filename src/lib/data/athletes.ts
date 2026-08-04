@@ -100,16 +100,48 @@ function withTeamTotals(team: Team, all: Athlete[]): Team {
   };
 }
 
+/** Selecciones: las del seed + las cargadas desde el backoffice (tabla
+ *  `teams`). Si una fila de la base repite un slug del seed, la base gana —
+ *  así una selección histórica se puede "adoptar" y editar desde el admin. */
+async function allTeamsRaw(): Promise<Team[]> {
+  const bySlug = new Map<string, Team>();
+  for (const t of SEED_TEAMS) bySlug.set(t.slug, t);
+  if (isSupabaseConfigured) {
+    const supabase = await getSupabase();
+    if (supabase) {
+      const { data, error } = await supabase
+        .from("teams")
+        .select("*")
+        .eq("verified", true)
+        .order("created_at", { ascending: true });
+      if (!error && data) {
+        for (const row of data as Record<string, unknown>[]) {
+          bySlug.set(row.slug as string, {
+            member_slugs: [],
+            ...(row as unknown as Team),
+            stats: (row.stats as Team["stats"]) ?? [],
+            fund_items: (row.fund_items as Team["fund_items"]) ?? [],
+            goal_amount: Number(row.goal_amount) || 0,
+            raised_amount: Number(row.raised_amount) || 0,
+          });
+        }
+      }
+    }
+  }
+  return [...bySlug.values()];
+}
+
 /** Selecciones nacionales. */
 export async function getTeams(): Promise<Team[]> {
-  const all = await allAthletesRaw();
-  return SEED_TEAMS.filter((t) => !ONLY_VERIFIED || t.verified).map((t) =>
+  const [teams, all] = await Promise.all([allTeamsRaw(), allAthletesRaw()]);
+  return teams.filter((t) => !ONLY_VERIFIED || t.verified).map((t) =>
     withTeamTotals(t, all),
   );
 }
 
 export async function getTeamBySlug(slug: string): Promise<Team | null> {
-  const team = SEED_TEAMS.find((t) => t.slug === slug);
+  const teams = await allTeamsRaw();
+  const team = teams.find((t) => t.slug === slug);
   if (!team) return null;
   const all = await allAthletesRaw();
   return withTeamTotals(team, all);
