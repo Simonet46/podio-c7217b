@@ -15,6 +15,19 @@ const TO_ATHLETE = 100 - FEE;
 
 const FAQS: { q: string; a: React.ReactNode }[] = [
   {
+    q: "¿Qué pasa si un proyecto no llega a su objetivo?",
+    a: (
+      <>
+        Nada malo: el equipo recibe igual todo lo recaudado. Acá no funciona el
+        "todo o nada": cada aporte se debita al instante y va directo a la cuenta
+        de Mercado Pago del equipo en ese momento — GRANITO nunca retiene el
+        dinero. El objetivo es una referencia para motivar, no una condición. Y si
+        un proyecto supera su objetivo, sigue recibiendo aportes: cada peso extra
+        va por el mismo camino directo.
+      </>
+    ),
+  },
+  {
     q: "¿Qué es GRANITO?",
     a: (
       <>

@@ -263,14 +263,27 @@ export default async function TeamPage({
                           {m.role && <div className="mt-0.5 text-[11px] text-white/65">{m.role}</div>}
                         </div>
                       </div>
-                      <div className="flex items-center justify-between px-3.5 py-3">
-                        <span className="text-[12px] text-white/55">
-                          <strong className="font-display text-[14px] font-600 text-gold">
-                            {formatMoney(m.raised_amount)}
-                          </strong>{" "}
-                          aportados
-                        </span>
-                        <span className="font-display text-[12px] font-600 uppercase tracking-[.04em] text-gold">
+                      {/* Teaser de la historia, como en las cards del home */}
+                      {m.bio?.trim() && (
+                        <p className="line-clamp-2 px-3.5 pt-2.5 text-[12px] leading-snug text-white/55">
+                          {m.bio.trim()}
+                        </p>
+                      )}
+                      <div className="flex items-center justify-between gap-2 px-3.5 py-3">
+                        {/* Misma señal de vida que el grid: bajo umbral, nada de "$ 0" */}
+                        {m.raised_amount >= 5000 ? (
+                          <span className="text-[12px] text-white/55">
+                            <strong className="font-display text-[14px] font-600 text-gold">
+                              {formatMoney(m.raised_amount)}
+                            </strong>{" "}
+                            aportados
+                          </span>
+                        ) : (
+                          <span className="min-w-0 truncate rounded-full border border-white/[.12] bg-white/[.05] px-2.5 py-1 text-[10px] font-600 uppercase tracking-[.06em] text-white/70">
+                            {m.card_tag?.trim() || (m.next_competition ? `📅 ${m.next_competition}` : "Nuevo en GRANITO")}
+                          </span>
+                        )}
+                        <span className="shrink-0 font-display text-[12px] font-600 uppercase tracking-[.04em] text-gold">
                           Apoyar →
                         </span>
                       </div>

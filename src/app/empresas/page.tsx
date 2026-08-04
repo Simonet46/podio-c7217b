@@ -344,6 +344,13 @@ export default async function EmpresasPage() {
                 </p>
               </div>
             </Reveal>
+
+            {/* Aclaración legal: propuesta en diseño, no oferta contractual */}
+            <p className="mt-6 text-center text-[12px] leading-relaxed text-white/40">
+              Montos y beneficios orientativos de una propuesta comercial en etapa
+              de diseño: no constituyen oferta contractual. Todo acuerdo se
+              formaliza por convenio escrito.
+            </p>
           </div>
         </section>
 

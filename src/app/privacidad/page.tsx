@@ -32,6 +32,12 @@ export default function PrivacidadPage() {
           <li><strong>Imágenes:</strong> fotos de perfil y de acción que subís.</li>
           <li><strong>Datos de cobro:</strong> alias/CVU/CBU o email de Mercado Pago u otro medio, para que recibas los aportes.</li>
           <li><strong>Datos de aportes:</strong> historial de aportes realizados o recibidos.</li>
+          <li><strong>Nombre para el muro de hinchas (opcional):</strong> si al aportar
+            elegís escribir tu nombre, se publica en el muro de hinchas del atleta o
+            proyecto que apoyaste, junto a un nivel de reconocimiento (bronce, plata
+            u oro) que no revela el monto exacto. Es voluntario: si no lo escribís,
+            tu aporte figura como anónimo. Podés pedir que lo quitemos cuando quieras
+            escribiendo a nuestro correo de contacto.</li>
           <li><strong>Redes sociales:</strong> el usuario o enlace que nos compartas.</li>
           <li><strong>Datos técnicos:</strong> dirección IP, navegador/dispositivo y registros de uso necesarios para operar el sitio y conservar evidencia de aceptaciones.</li>
         </ul>
