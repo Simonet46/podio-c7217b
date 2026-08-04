@@ -99,18 +99,26 @@ export function CampaignBar({
         />
       </div>
 
-      {/* % + recaudado bajo la manija */}
-      <div className="relative mt-2 h-[20px]">
-        <span className="absolute left-0 top-0 font-display text-[14px] font-700 tabular-nums" style={{ color: accent }}>
-          {pctLabel(pct)}
-        </span>
-        <span
-          className="absolute top-0 -translate-x-1/2 font-display text-[14px] font-700 tabular-nums"
-          style={{ left: `${labelLeft}%`, color: accent }}
-        >
-          {formatMoney(raised)}
-        </span>
-      </div>
+      {/* % + recaudado bajo la manija. Sin aportes todavía, nada de "0% $0":
+          invitamos a ser el primero. Y con % chico, el monto se corre a la
+          derecha para no pisarse con el porcentaje. */}
+      {raised > 0 ? (
+        <div className="relative mt-2 h-[20px]">
+          <span className="absolute left-0 top-0 font-display text-[14px] font-700 tabular-nums" style={{ color: accent }}>
+            {pctLabel(pct)}
+          </span>
+          <span
+            className={`absolute top-0 font-display text-[14px] font-700 tabular-nums ${clamped < 22 ? "right-0" : "-translate-x-1/2"}`}
+            style={clamped < 22 ? { color: accent } : { left: `${labelLeft}%`, color: accent }}
+          >
+            {formatMoney(raised)}
+          </span>
+        </div>
+      ) : (
+        <div className="mt-2 text-[12px] text-white/55">
+          Sé la primera persona en aportar tu granito.
+        </div>
+      )}
 
       {over && (
         <div className="mt-1.5 text-[11px] font-600 uppercase tracking-wide" style={{ color: "#6CB4E4" }}>
