@@ -24,6 +24,7 @@ export function DonationWidget({ target }: { target: DonationTarget }) {
   const [amount, setAmount] = useState<number>(PRESET_AMOUNTS.once[1]);
   const [custom, setCustom] = useState<string>("");
   const [loading, setLoading] = useState(false);
+  const [donorName, setDonorName] = useState("");
   const router = useRouter();
 
   const presets = PRESET_AMOUNTS.once;
@@ -70,7 +71,7 @@ export function DonationWidget({ target }: { target: DonationTarget }) {
         if (supabase) {
           const { data } = await supabase.functions.invoke(
             "mp-create-preference",
-            { body: { slug: target.slug, amount, type: "once" } },
+            { body: { slug: target.slug, amount, type: "once", donorName: donorName.trim() || undefined } },
           );
           const url = data?.init_point ?? data?.sandbox_init_point;
           if (url) {
@@ -160,6 +161,18 @@ export function DonationWidget({ target }: { target: DonationTarget }) {
             />
           </div>
         </label>
+
+        {/* Nombre para el muro de hinchas (opcional) */}
+        <input
+          type="text"
+          value={donorName}
+          onChange={(e) => setDonorName(e.target.value)}
+          placeholder="Tu nombre (opcional, aparece en el muro de hinchas)"
+          autoComplete="name"
+          maxLength={60}
+          className="mt-3 w-full rounded-lg px-3 py-2.5 text-[14px] text-white outline-none placeholder:text-white/35"
+          style={{ background: "rgba(255,255,255,.05)", border: "1px solid rgba(255,255,255,.12)" }}
+        />
 
         {/* Desglose transparente en vivo */}
         <dl

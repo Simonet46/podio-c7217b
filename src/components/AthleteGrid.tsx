@@ -9,7 +9,6 @@ import { breakdown, formatMoney } from "@/lib/money";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
 import { recordAcceptance } from "@/lib/legal";
 import { AthleteCard } from "./AthleteCard";
-import { TeamCard } from "./TeamCard";
 import { Reveal } from "./Reveal";
 
 /** Máximo de atletas por aporte repartido: con más, las comisiones fijas de
@@ -62,12 +61,10 @@ export function AthleteGrid({
     ? athletes.filter((a) => a.sport === active)
     : athletes;
 
-  // Mezcla: 1 equipo cada 2 atletas. Como el carrusel llena las columnas de a
-  // 3 (de arriba hacia abajo), esto reparte un equipo por columna y quedan
-  // atletas y equipos entreverados a la vista.
+  // Solo atletas en el carrusel: las selecciones tienen su propia fila arriba
+  // (mezclarlas entre las fotos hacía que los escudos parecieran placeholders).
   const items = useMemo(() => {
-    const out: { key: string; node: React.ReactNode }[] = [];
-    const ath = shownAthletes.map((a) => ({
+    return shownAthletes.map((a) => ({
       key: `ath-${a.id}`,
       node: (
         <AthleteCard
@@ -77,20 +74,8 @@ export function AthleteGrid({
         />
       ),
     }));
-    const tms = shownTeams.map((t) => ({
-      key: `team-${t.id}`,
-      node: <TeamCard team={t} />,
-    }));
-    let ti = 0;
-    for (let i = 0; i < ath.length; i++) {
-      out.push(ath[i]);
-      // Después de cada par de atletas, entra un equipo (si queda).
-      if (i % 2 === 1 && ti < tms.length) out.push(tms[ti++]);
-    }
-    while (ti < tms.length) out.push(tms[ti++]);
-    return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shownAthletes, shownTeams, seleccion]);
+  }, [shownAthletes, seleccion]);
 
   // Estado de las flechas según la posición del scroll.
   useEffect(() => {
@@ -120,6 +105,40 @@ export function AthleteGrid({
 
   return (
     <div>
+      {/* Selecciones y equipos: fila propia, tamaño intermedio (más que una
+          pill, menos que una card de atleta). Escala sola al sumar deportes. */}
+      {shownTeams.length > 0 && (
+        <div className="mb-5 flex flex-wrap items-center gap-3">
+          <span className="eyebrow text-white/45">Selecciones</span>
+          {shownTeams.map((t) => {
+            const color = t.color ?? getSport(t.sport)?.color ?? "#C9A227";
+            return (
+              <a
+                key={t.id}
+                href={`/equipo/${t.slug}`}
+                className="group/team flex items-center gap-3 rounded-xl border py-2 pl-2 pr-4 transition-transform hover:-translate-y-0.5"
+                style={{ borderColor: `${color}55`, background: `${color}14` }}
+              >
+                <span
+                  className="flex h-9 w-9 items-center justify-center rounded-lg font-display text-[13px] font-700 text-white"
+                  style={{ background: `${color}33`, border: `2px solid ${color}` }}
+                >
+                  🇦🇷
+                </span>
+                <span className="leading-tight">
+                  <span className="block font-display text-[13px] font-600 uppercase text-white">
+                    {t.name}
+                  </span>
+                  <span className="block text-[10px] text-white/55">
+                    {getSport(t.sport)?.label ?? t.sport} · Conocé al plantel →
+                  </span>
+                </span>
+              </a>
+            );
+          })}
+        </div>
+      )}
+
       {/* Chips de filtro */}
       <div className="mb-8 flex flex-wrap gap-2">
         <Chip label="Todos" active={active === null} onClick={() => setActive(null)} />

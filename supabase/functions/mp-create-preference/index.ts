@@ -17,7 +17,7 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   if (req.method !== "POST") return json({ error: "Método no permitido" }, 405);
 
-  const { slug, amount, type, donorEmail } = await req.json().catch(() => ({}));
+  const { slug, amount, type, donorEmail, donorName } = await req.json().catch(() => ({}));
   const amt = Number(amount);
   if (!slug || !Number.isFinite(amt) || amt <= 0) {
     return json({ error: "Datos inválidos." }, 400);
@@ -65,7 +65,7 @@ Deno.serve(async (req) => {
     // vendedor consultar el pago (el token de plataforma no puede leerlo).
     notification_url: `${supabaseUrl}/functions/v1/mp-webhook?athlete=${athlete.id}`,
     external_reference: `${athlete.id}:${t}`,
-    metadata: { athlete_id: athlete.id, type: t, amount: amt, fee },
+    metadata: { athlete_id: athlete.id, type: t, amount: amt, fee, donor_name: typeof donorName === "string" ? donorName.slice(0, 60) : null },
   };
 
   const res = await fetch("https://api.mercadopago.com/checkout/preferences", {

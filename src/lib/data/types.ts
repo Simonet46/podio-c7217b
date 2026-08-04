@@ -25,6 +25,11 @@ export interface Athlete {
   photo_secondary_url?: string | null;
   /** Próxima competencia (texto libre), opcional. */
   next_competition?: string | null;
+  /** Género para los copys ("la/lo apoyan", "Conocela/Conocelo"). Lo carga el admin. */
+  gender?: "f" | "m" | null;
+  /** Pill de la card del grid, personalizable desde el admin (reemplaza al
+   *  monto cuando la recaudación todavía es chica). */
+  card_tag?: string | null;
   stats: StatPair[];
   fund_items: FundItem[];
   verified: boolean;

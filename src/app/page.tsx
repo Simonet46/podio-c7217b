@@ -162,8 +162,8 @@ export default async function HomePage() {
                 <Step
                   n="01"
                   numColor="text-gold"
-                  title="Elegí un atleta"
-                  body="Buscá por deporte, mirá su historia y su próxima competencia. Cada atleta fue revisado y aprobado por nosotros."
+                  title="Elegí un atleta o un proyecto"
+                  body="Buscá por deporte, mirá su historia y su próxima competencia. Cada atleta y cada proyecto fue revisado y aprobado por nosotros."
                 />
               </Reveal>
               <Reveal delay={110}>
@@ -178,8 +178,8 @@ export default async function HomePage() {
                 <Step
                   n="03"
                   numColor="text-[#009F3D]"
-                  title="Directo al atleta"
-                  body="El aporte no pasa por intermediarios ni organismos: va directo a la cuenta de Mercado Pago o PayPal del atleta."
+                  title="Directo, sin intermediarios"
+                  body="El aporte no pasa por organismos: va directo a la cuenta de Mercado Pago del atleta o del equipo, al instante."
                 />
               </Reveal>
             </div>
@@ -203,9 +203,9 @@ export default async function HomePage() {
                   </p>
                 </div>
                 <div className="flex gap-7">
-                  <Founder name="Diego Simonet" sport="Handball" />
-                  <Founder name="Pablo Simonet" sport="Handball" />
-                  <Founder name="Pilar Campoy" sport="Hockey" />
+                  <Founder name="Diego Simonet" sport="Handball" photo="/founders/diego-simonet.webp" />
+                  <Founder name="Pablo Simonet" sport="Handball" photo="/founders/pablo-simonet.webp" />
+                  <Founder name="Pilar Campoy" sport="Hockey" photo="/founders/pilar-campoy.webp" />
                 </div>
               </div>
             </Reveal>
@@ -285,7 +285,7 @@ export default async function HomePage() {
           </div>
         </section>
       </main>
-      <Footer />
+      <Footer logos={false} />
     </>
   );
 }
@@ -378,16 +378,17 @@ function Step({
   );
 }
 
-function Founder({ name, sport }: { name: string; sport: string }) {
-  const initials = name
-    .split(" ")
-    .map((w) => w[0])
-    .slice(0, 2)
-    .join("");
+function Founder({ name, sport, photo }: { name: string; sport: string; photo: string }) {
   return (
     <div className="text-center">
-      <div className="mx-auto mb-2.5 flex h-20 w-20 items-center justify-center rounded-full border-2 border-white/20 bg-ink font-display text-xl font-700 text-white">
-        {initials}
+      <div className="mx-auto mb-2.5 h-20 w-20 overflow-hidden rounded-full border-2 border-gold/60">
+        <Image
+          src={asset(photo)}
+          alt={name}
+          width={80}
+          height={80}
+          className="h-full w-full object-cover"
+        />
       </div>
       <div className="font-display text-[15px] font-600 uppercase leading-none text-white">
         {name}

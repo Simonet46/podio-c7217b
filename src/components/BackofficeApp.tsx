@@ -59,6 +59,8 @@ type AthleteRow = {
   socials: string | null;
   supporter_message: string | null;
   photo_url: string | null;
+  gender: string | null;
+  card_tag: string | null;
 };
 
 type TeamApp = {
@@ -374,7 +376,7 @@ export function BackofficeApp() {
     setLoadingList(true);
     const [appsRes, athRes, teamRes, pledgesRes, changesRes, updatesRes, teamUpdatesRes, donationsRes] = await Promise.all([
       supa.from("athlete_applications").select("*").order("created_at", { ascending: false }),
-      supa.from("athletes").select("id,slug,full_name,first_name,sport,city,province,raised_amount,verified,mp_connected,dni,team,bio,next_competition,socials,supporter_message,photo_url").order("raised_amount", { ascending: false }),
+      supa.from("athletes").select("id,slug,full_name,first_name,sport,city,province,raised_amount,verified,mp_connected,dni,team,bio,next_competition,socials,supporter_message,photo_url,gender,card_tag").order("raised_amount", { ascending: false }),
       supa.from("team_applications").select("*").order("created_at", { ascending: false }),
       supa.from("team_pledges").select("id,team_id,donor_name,donor_email,amount,status,created_at").order("created_at", { ascending: false }),
       supa
@@ -2240,6 +2242,8 @@ function AthleteEditModal({
     city: athlete.city ?? "",
     province: athlete.province ?? "",
     photo_url: athlete.photo_url ?? "",
+    gender: athlete.gender ?? "",
+    card_tag: athlete.card_tag ?? "",
   });
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -2277,6 +2281,9 @@ function AthleteEditModal({
       if (form[k] !== cur) (patch as Record<string, string>)[k] = form[k];
     });
     if (Object.keys(patch).length === 0) { onClose(); return; }
+    // gender tiene CHECK ('f','m') en la base: vacío debe viajar como null.
+    if ("gender" in patch) (patch as Record<string, string | null>).gender = form.gender || null;
+    if ("card_tag" in patch) (patch as Record<string, string | null>).card_tag = form.card_tag || null;
     await onSave(athlete, patch);
     setBusy(false);
     onClose();
@@ -2347,6 +2354,16 @@ function AthleteEditModal({
           </EditRow>
           <EditRow label="Próxima competencia">
             <input value={form.next_competition} onChange={(e) => set("next_competition", e.target.value)} style={inputDark} />
+          </EditRow>
+          <EditRow label="Género (para los textos: la/lo apoyan, Conocela/Conocelo)">
+            <select value={form.gender} onChange={(e) => set("gender", e.target.value)} style={inputDark}>
+              <option value="">Sin definir (texto neutro)</option>
+              <option value="f">Femenino</option>
+              <option value="m">Masculino</option>
+            </select>
+          </EditRow>
+          <EditRow label="Pill de la card (reemplaza al monto si recaudó poco; vacío = automático)">
+            <input value={form.card_tag} onChange={(e) => set("card_tag", e.target.value)} maxLength={40} placeholder='Ej: "Rumbo a LA 2028", "Debuta en agosto"' style={inputDark} />
           </EditRow>
           <EditRow label="Instagram">
             <input value={form.socials} onChange={(e) => set("socials", e.target.value)} style={inputDark} />

@@ -15,9 +15,9 @@ import { AthleteTimeline } from "@/components/AthleteTimeline";
 import { getSport } from "@/config/sports";
 import { formatMoney, progressPct } from "@/lib/money";
 import { ProgressBar } from "@/components/ProgressBar";
-import { supporterCount } from "@/lib/supporters";
 import { SITE, asset } from "@/config/site";
 import { athleteShare } from "@/lib/share";
+import { apoyanLabel } from "@/lib/gender";
 import { ShareStoryButton } from "@/components/ShareStoryButton";
 
 export async function generateStaticParams() {
@@ -68,7 +68,6 @@ export default async function AthletePage({
   const sport = getSport(athlete.sport);
   const share = athleteShare(athlete);
   const color = sport?.color ?? "#1E6E8C";
-  const backers = supporterCount(athlete.raised_amount);
   const team = athlete.team ? await getTeamBySlug(athlete.team) : null;
   const sponsor = getSponsorForSlug(athlete.slug);
   const updates = await getAthleteUpdates(athlete.slug);
@@ -197,34 +196,31 @@ export default async function AthletePage({
                 </h1>
               </div>
 
-              {/* Stats */}
+            {/* Stats: solo cuando hay recaudación real. Mostrar "$ 0" o
+                hinchas inventados era anunciar la plaza vacía. */}
+            {athlete.raised_amount > 0 && (
               <div className="hidden sm:flex gap-7 pb-3.5">
-                <div className="text-right">
-                  <div className="font-display text-[32px] font-700 leading-none sm:text-[34px]">
-                    {backers}
-                  </div>
-                  <div className="text-[12px] text-white/55">la apoyan</div>
-                </div>
                 <div className="text-right">
                   <div className="font-display text-[32px] font-700 leading-none text-gold sm:text-[34px]">
                     {formatMoney(athlete.raised_amount)}
                   </div>
-                  <div className="text-[12px] text-white/55">recaudados</div>
+                  <div className="text-[12px] text-white/55">
+                    {apoyanLabel(athlete.gender)} con esto
+                  </div>
                 </div>
               </div>
+            )}
             </div>
 
             {/* Stats mobile */}
-            <div className="mt-4 flex gap-6 sm:hidden">
-              <div>
-                <div className="font-display text-2xl font-700 text-white">{backers}</div>
-                <div className="text-[12px] text-white/55">la apoyan</div>
+            {athlete.raised_amount > 0 && (
+              <div className="mt-4 flex gap-6 sm:hidden">
+                <div>
+                  <div className="font-display text-2xl font-700 text-gold">{formatMoney(athlete.raised_amount)}</div>
+                  <div className="text-[12px] text-white/55">{apoyanLabel(athlete.gender)} con esto</div>
+                </div>
               </div>
-              <div>
-                <div className="font-display text-2xl font-700 text-gold">{formatMoney(athlete.raised_amount)}</div>
-                <div className="text-[12px] text-white/55">recaudados</div>
-              </div>
-            </div>
+            )}
           </div>
         </section>
 
@@ -312,12 +308,7 @@ export default async function AthletePage({
 
               {/* Muro de hinchas */}
               <Reveal>
-                <SupporterWall
-                  slug={athlete.slug}
-                  count={backers}
-                  label={athlete.first_name}
-                  dark
-                />
+                <SupporterWall slug={athlete.slug} kind="athlete" gender={athlete.gender} />
               </Reveal>
             </div>
 

@@ -5,10 +5,10 @@ import { Ribbon } from "./Ribbon";
 import { Wordmark } from "./Wordmark";
 import { PartnerLogos } from "./PartnerLogos";
 
-export function Footer() {
+export function Footer({ logos = true }: { logos?: boolean } = {}) {
   return (
     <>
-      <PartnerLogos />
+      {logos && <PartnerLogos />}
       <footer className="bg-ink text-white/70">
       <Ribbon />
       <div className="mx-auto max-w-container px-4 py-12 sm:px-6">

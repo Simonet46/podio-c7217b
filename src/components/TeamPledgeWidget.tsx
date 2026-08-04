@@ -27,6 +27,7 @@ export function TeamPledgeWidget({ campaign }: { campaign: TeamCampaign }) {
   const [amount, setAmount] = useState<number | null>(PRESETS[1]);
   const [custom, setCustom] = useState("");
   const [email, setEmail] = useState("");
+  const [donorName, setDonorName] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -77,7 +78,7 @@ export function TeamPledgeWidget({ campaign }: { campaign: TeamCampaign }) {
     });
     try {
       const { data } = await supabase.functions.invoke("mp-create-team-preference", {
-        body: { slug: campaign.slug, amount: finalAmount, donorEmail: email.trim() || undefined },
+        body: { slug: campaign.slug, amount: finalAmount, donorEmail: email.trim() || undefined, donorName: donorName.trim() || undefined },
       });
       const url = data?.init_point ?? data?.sandbox_init_point;
       if (url) {
@@ -143,6 +144,16 @@ export function TeamPledgeWidget({ campaign }: { campaign: TeamCampaign }) {
           onChange={(e) => setEmail(e.target.value)}
           placeholder="Tu email (opcional, para el comprobante)"
           autoComplete="email"
+          className="rounded-[10px] border border-white/[.14] bg-white/[.05] px-4 py-3 text-[14px] text-white outline-none placeholder:text-white/35 focus:border-white/40"
+        />
+
+        <input
+          type="text"
+          value={donorName}
+          onChange={(e) => setDonorName(e.target.value)}
+          placeholder="Tu nombre (opcional, aparece en el muro de hinchas)"
+          autoComplete="name"
+          maxLength={60}
           className="rounded-[10px] border border-white/[.14] bg-white/[.05] px-4 py-3 text-[14px] text-white outline-none placeholder:text-white/35 focus:border-white/40"
         />
 

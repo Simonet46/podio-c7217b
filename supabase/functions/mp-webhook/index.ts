@@ -263,8 +263,10 @@ Deno.serve(async (req) => {
         justCompleted = existing.status !== "completed" && status === "completed";
       }
     } else {
+      const meta = p.metadata as { donor_name?: string } | undefined;
       const { error } = await supa.from("team_pledges").insert({
         team_id: teamId,
+        donor_name: meta?.donor_name?.slice(0, 60) || null,
         donor_email: payer?.email ?? "sin-email@granito",
         amount,
         status,
@@ -313,8 +315,10 @@ Deno.serve(async (req) => {
   };
 
   const payer = p.payer as { email?: string } | undefined;
+  const donMeta = p.metadata as { donor_name?: string } | undefined;
   const row = {
     athlete_id: athleteId,
+    donor_name: donMeta?.donor_name?.slice(0, 60) || null,
     amount,
     type: refType === "monthly" ? "monthly" : "once",
     platform_fee: fee,

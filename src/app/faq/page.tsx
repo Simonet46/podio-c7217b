@@ -29,7 +29,7 @@ const FAQS: { q: string; a: React.ReactNode }[] = [
     a: (
       <>
         Entrá al perfil del atleta que quieras, elegí tu aporte y completás el pago
-        con Mercado Pago o PayPal. No hace falta crear una cuenta para aportar.
+        con Mercado Pago. No hace falta crear una cuenta para aportar.
       </>
     ),
   },
@@ -48,7 +48,7 @@ const FAQS: { q: string; a: React.ReactNode }[] = [
     q: "¿El dinero pasa por algún intermediario?",
     a: (
       <>
-        No. El aporte va directo a la cuenta de Mercado Pago o PayPal que el
+        No. El aporte va directo a la cuenta de Mercado Pago que el
         atleta informó, sin intermediarios ni organismos de por medio.
       </>
     ),

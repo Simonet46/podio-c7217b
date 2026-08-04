@@ -86,7 +86,7 @@ export function HomeHero({ featured }: { featured: HeroAthlete[] }) {
             Creado por atletas para atletas
           </p>
           <h1 className="mt-5 font-display text-4xl font-700 uppercase leading-[0.98] tracking-tight sm:text-5xl lg:text-[64px]">
-            La primer plataforma especializada en impulsar el{" "}
+            La primera plataforma especializada en impulsar el{" "}
             <span className="text-gold">deporte argentino</span>
           </h1>
           <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-white/70">
@@ -98,7 +98,7 @@ export function HomeHero({ featured }: { featured: HeroAthlete[] }) {
               href="/#atletas"
               className="rounded-md bg-gold px-7 py-3.5 font-display text-base font-700 uppercase tracking-wide text-ink transition-transform hover:-translate-y-0.5"
             >
-              Apoyar un atleta
+              Apoyá a un atleta
             </Link>
             <Link
               href="/#como-funciona"

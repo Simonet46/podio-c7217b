@@ -5,6 +5,7 @@ import { getSport } from "@/config/sports";
 import { asset } from "@/config/site";
 import { formatMoney } from "@/lib/money";
 import { Monogram } from "./Monogram";
+import { conoceLabel } from "@/lib/gender";
 
 export function AthleteCard({
   athlete,
@@ -102,19 +103,53 @@ export function AthleteCard({
         </div>
       </Link>
 
+      {/* Teaser de la historia: llena el aire muerto de la card e invita a
+          entrar a leer el resto. */}
+      {athlete.bio?.trim() && (
+        <Link
+          href={`/atleta/${athlete.slug}`}
+          className="block px-[14px] pt-2.5 text-[12px] leading-snug text-white/55"
+        >
+          <span className="line-clamp-2">{athlete.bio.trim()}</span>
+        </Link>
+      )}
+
       {/* footer row */}
       <Link
         href={`/atleta/${athlete.slug}`}
-        className="flex items-center justify-between px-[14px] py-3"
+        className="flex items-center justify-between gap-2 px-[14px] py-3"
       >
-        <div className="text-[11px] text-white/60">
-          <strong className="font-display text-[14px] text-gold">{formatMoney(athlete.raised_amount)}</strong>{" "}
-          aportados
-        </div>
-        <span className="font-display text-[11px] font-600 uppercase tracking-[.04em] text-gold">
-          Conocelo →
+        <CardSignal athlete={athlete} />
+        <span className="shrink-0 font-display text-[11px] font-600 uppercase tracking-[.04em] text-gold">
+          {conoceLabel(athlete.gender)}
         </span>
       </Link>
     </article>
+  );
+}
+
+/** Con recaudación chica, mostrar "$ 0 aportados" es anunciar un boliche
+ *  vacío. Debajo del umbral la card muestra otra señal de vida:
+ *  pill del admin (card_tag) > próxima competencia > "Nuevo en GRANITO". */
+const MONTO_VISIBLE_DESDE = 5000;
+
+function CardSignal({ athlete }: { athlete: Athlete }) {
+  if (athlete.raised_amount >= MONTO_VISIBLE_DESDE) {
+    return (
+      <div className="text-[11px] text-white/60">
+        <strong className="font-display text-[14px] text-gold">
+          {formatMoney(athlete.raised_amount)}
+        </strong>{" "}
+        aportados
+      </div>
+    );
+  }
+  const tag =
+    athlete.card_tag?.trim() ||
+    (athlete.next_competition ? `📅 ${athlete.next_competition}` : "Nuevo en GRANITO");
+  return (
+    <span className="min-w-0 truncate rounded-full border border-white/[.12] bg-white/[.05] px-2.5 py-1 text-[10px] font-600 uppercase tracking-[.06em] text-white/70">
+      {tag}
+    </span>
   );
 }

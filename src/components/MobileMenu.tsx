@@ -96,7 +96,7 @@ export function MobileMenu() {
               onClick={close}
               className="block rounded-md bg-gold py-4 text-center font-display text-base font-700 uppercase tracking-wide text-ink"
             >
-              Apoyar a un atleta
+              Apoyá a un atleta
             </Link>
             <Link
               href="/mi-perfil"

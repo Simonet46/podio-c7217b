@@ -35,9 +35,9 @@ function Logo({
 const IMPULSORAS = [{ name: "DS Connect", src: "/logos/ds-connect.png" }];
 
 /** Nivel de entrada: aportan y llevan el logo más chico. */
-const SPONSORS = [
-  { name: "Kingdom Group Yacht Supply", src: "/logos/kingdom-group.jpeg" },
-];
+/** Sin sponsors por ahora (Kingdom Group finalmente no lo es). El bloque
+ *  entero se oculta mientras la lista esté vacía. */
+const SPONSORS: { name: string; src: string }[] = [];
 
 export function PartnerLogos() {
   return (
@@ -55,17 +55,21 @@ export function PartnerLogos() {
           ))}
         </div>
 
-        <p className="eyebrow mt-12 text-steel">Empresas sponsor</p>
-        <div className="mt-5 flex flex-wrap items-center justify-center gap-x-10 gap-y-5">
-          {SPONSORS.map((l) => (
-            <Logo
-              key={l.name}
-              name={l.name}
-              src={l.src}
-              className="h-12 max-w-[200px] rounded-lg sm:h-14"
-            />
-          ))}
-        </div>
+        {SPONSORS.length > 0 && (
+          <>
+            <p className="eyebrow mt-12 text-steel">Empresas sponsor</p>
+            <div className="mt-5 flex flex-wrap items-center justify-center gap-x-10 gap-y-5">
+              {SPONSORS.map((l) => (
+                <Logo
+                  key={l.name}
+                  name={l.name}
+                  src={l.src}
+                  className="h-12 max-w-[200px] rounded-lg sm:h-14"
+                />
+              ))}
+            </div>
+          </>
+        )}
 
         <p className="mx-auto mt-8 max-w-md text-sm leading-relaxed text-steel">
           Las empresas que impulsan al deporte argentino con GRANITO.

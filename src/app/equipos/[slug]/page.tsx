@@ -18,6 +18,7 @@ import { AthleteTimeline } from "@/components/AthleteTimeline";
 import { SITE, asset } from "@/config/site";
 import { campaignShare } from "@/lib/share";
 import { ShareStoryButton } from "@/components/ShareStoryButton";
+import { SupporterWall } from "@/components/SupporterWall";
 
 export async function generateStaticParams() {
   const campaigns = await getTeamCampaigns();
@@ -234,6 +235,13 @@ export default async function TeamCampaignPage({
                     </div>
                   </Reveal>
                 )}
+
+                {/* Muro de hinchas (donantes reales del proyecto) */}
+                <Reveal>
+                  <div className="mt-12">
+                    <SupporterWall slug={campaign.slug} kind="team" />
+                  </div>
+                </Reveal>
               </div>
 
               {/* ── Columna aporte ── */}

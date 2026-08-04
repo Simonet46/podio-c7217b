@@ -58,6 +58,15 @@ export function Ambassadors() {
           className="relative mx-auto flex h-[300px] items-end justify-center sm:h-[340px]"
           style={{ perspective: "1600px" }}
         >
+          {/* Precarga: todas las figuras montadas pero invisibles. Al rotar,
+              el re-monte del protagonista toma la imagen ya cacheada y no
+              parpadea (antes, con lazy-load, desaparecía un instante). */}
+          <div className="pointer-events-none absolute h-px w-px overflow-hidden opacity-0" aria-hidden>
+            {AMBASSADORS.map((am) => (
+              <Image key={am.image} src={asset(am.image)} alt="" width={220} height={300} priority={false} />
+            ))}
+          </div>
+
           {/* Glow bajo el protagonista */}
           <div
             className="pointer-events-none absolute bottom-0 left-1/2 h-[180px] w-[420px] -translate-x-1/2"

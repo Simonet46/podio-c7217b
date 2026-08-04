@@ -53,7 +53,7 @@ export function Header() {
               href="/#atletas"
               className="hidden whitespace-nowrap rounded-md bg-gold px-4 py-2 font-display text-sm font-600 uppercase tracking-wide text-ink transition-transform hover:scale-[1.03] sm:inline-block"
             >
-              Apoyar a un atleta
+              Apoyá a un atleta
             </Link>
             <AuthMenu />
             <MobileMenu />
