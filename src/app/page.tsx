@@ -5,7 +5,7 @@ import { Footer } from "@/components/Footer";
 import { AthleteGrid } from "@/components/AthleteGrid";
 import { CoverBand } from "@/components/CoverBand";
 import { HomeHero, type HeroAthlete } from "@/components/HomeHero";
-import { getAthletes, getTeams, getAllAthletes } from "@/lib/data/athletes";
+import { getAthletes, getTeams } from "@/lib/data/athletes";
 import { getTeamCampaigns } from "@/lib/data/campaigns";
 import { TeamCampaignCard, sportColorForTeam } from "@/components/TeamCampaignCard";
 import { getSport } from "@/config/sports";
@@ -15,14 +15,10 @@ import { Ambassadors } from "@/components/Ambassadors";
 
 export default async function HomePage() {
   const athletes = await getAthletes();
-  const allTeams = await getTeams();
-  const allAth = await getAllAthletes();
-  // En el home mostramos las selecciones con jugadores asignados y TODAS las
-  // creadas desde el admin (si las cargaron a propósito, tienen que verse).
-  // Las vacías del seed histórico siguen ocultas para no ensuciar la portada.
-  const teams = allTeams.filter(
-    (t) => t.fromDb || allAth.some((a) => a.team === t.slug),
-  );
+  // Todas las selecciones visibles (las del código y las del backoffice):
+  // lo que se ve en el admin, se ve en la web. Se ocultan solo con el tilde
+  // "Visible en el sitio" del backoffice.
+  const teams = await getTeams();
   const campaigns = await getTeamCampaigns();
 
   // Desfile del hero: atletas + equipos en campaña. El orden se mezcla en el

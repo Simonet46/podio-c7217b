@@ -47,19 +47,24 @@ export function AthleteGrid({
     });
   }
 
-  // Chips solo de deportes presentes (en atletas o equipos).
-  const availableSports = useMemo(() => {
+  // Deportes con chip propio; el resto (ciclismo, judo, remo…) cae en "Otros".
+  const FEATURED = ["atletismo", "hockey", "handball", "voley", "basquet", "futbol"];
+  const { availableSports, hayOtros } = useMemo(() => {
     const present = new Set<string>([
       ...athletes.map((a) => a.sport),
       ...teams.map((t) => t.sport),
     ]);
-    return SPORT_LIST.filter((s) => present.has(s.key));
+    return {
+      availableSports: SPORT_LIST.filter((s) => FEATURED.includes(s.key) && present.has(s.key)),
+      hayOtros: [...present].some((k) => !FEATURED.includes(k)),
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [athletes, teams]);
 
-  const shownTeams = active ? teams.filter((t) => t.sport === active) : teams;
-  const shownAthletes = active
-    ? athletes.filter((a) => a.sport === active)
-    : athletes;
+  const matches = (sport: string) =>
+    active === null ? true : active === "otros" ? !FEATURED.includes(sport) : sport === active;
+  const shownTeams = teams.filter((t) => matches(t.sport));
+  const shownAthletes = athletes.filter((a) => matches(a.sport));
 
   // Solo atletas en el carrusel: las selecciones tienen su propia fila arriba
   // (mezclarlas entre las fotos hacía que los escudos parecieran placeholders).
@@ -108,15 +113,15 @@ export function AthleteGrid({
       {/* Selecciones y equipos: fila propia, tamaño intermedio (más que una
           pill, menos que una card de atleta). Escala sola al sumar deportes. */}
       {shownTeams.length > 0 && (
-        <div className="mb-5 flex flex-wrap items-center gap-3">
-          <span className="eyebrow text-white/45">Selecciones</span>
+        <div className="mb-5 flex items-center gap-3 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <span className="eyebrow shrink-0 text-white/45">Selecciones</span>
           {shownTeams.map((t) => {
             const color = t.color ?? getSport(t.sport)?.color ?? "#C9A227";
             return (
               <a
                 key={t.id}
                 href={`/equipo/${t.slug}`}
-                className="group/team flex items-center gap-3 rounded-xl border py-2 pl-2 pr-4 transition-transform hover:-translate-y-0.5"
+                className="group/team flex shrink-0 items-center gap-3 rounded-xl border py-2 pl-2 pr-4 transition-transform hover:-translate-y-0.5"
                 style={{ borderColor: `${color}55`, background: `${color}14` }}
               >
                 <span
@@ -152,6 +157,9 @@ export function AthleteGrid({
             onClick={() => setActive(s.key)}
           />
         ))}
+        {hayOtros && (
+          <Chip label="Otros" color="#8A97A8" active={active === "otros"} onClick={() => setActive("otros")} />
+        )}
       </div>
 
       {/* Carrusel: 3 filas, columnas de ~4.5 visibles en desktop */}
