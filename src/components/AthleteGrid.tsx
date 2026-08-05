@@ -270,6 +270,8 @@ function PanelAporte({
   /** Atletas cuyo pago ya se abrió en Mercado Pago (pestaña nueva). */
   const [pagados, setPagados] = useState<Set<string>>(new Set());
   const [abriendo, setAbriendo] = useState<string | null>(null);
+  // Nombre opcional del hincha: aparece en el muro de cada atleta apoyado.
+  const [nombreHincha, setNombreHincha] = useState("");
 
   const n = seleccion.length;
   const parte = Math.floor(monto / n);
@@ -307,7 +309,7 @@ function PanelAporte({
         const supabase = await getSupabase();
         if (supabase) {
           const { data } = await supabase.functions.invoke("mp-create-preference", {
-            body: { slug: a.slug, amount: parte, type: "once" },
+            body: { slug: a.slug, amount: parte, type: "once", donorName: nombreHincha.trim() || undefined },
           });
           url = data?.init_point ?? data?.sandbox_init_point ?? null;
         }
@@ -377,8 +379,11 @@ function PanelAporte({
                     {sport?.label ?? a.sport} · {a.city}
                   </div>
                 </div>
-                <div className="text-right font-display text-[14px] font-700 text-gold">
-                  {formatMoney(net)}
+                <div className="text-right">
+                  <div className="font-display text-[14px] font-700 leading-none text-gold">
+                    {formatMoney(net)}
+                  </div>
+                  <div className="mt-0.5 text-[10px] text-white/45">recibe</div>
                 </div>
                 {!bloqueado && (
                   <button
@@ -469,6 +474,18 @@ function PanelAporte({
           <strong className="text-white/75">pestaña nueva</strong>; esta ventana te
           espera para el siguiente ({n} en total).
         </p>
+
+        {/* Nombre para el muro de hinchas: un solo campo, vale para los 3 */}
+        <input
+          type="text"
+          value={nombreHincha}
+          onChange={(e) => setNombreHincha(e.target.value)}
+          placeholder="Tu nombre (opcional, aparece en el muro de cada atleta)"
+          autoComplete="name"
+          maxLength={60}
+          className="mt-4 w-full rounded-lg px-3 py-2.5 text-[14px] text-white outline-none placeholder:text-white/35"
+          style={{ background: "rgba(255,255,255,.05)", border: "1px solid rgba(255,255,255,.12)" }}
+        />
 
         {/* CTA por atleta */}
         <div className="mt-5 space-y-2">
