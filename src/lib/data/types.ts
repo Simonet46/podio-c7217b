@@ -72,6 +72,8 @@ export interface Team {
    * membresía es dinámica: los jugadores son los atletas con `team === slug`.
    */
   member_slugs?: string[];
+  /** true si la selección fue creada/adoptada desde el backoffice (tabla teams). */
+  fromDb?: boolean;
   created_at: string;
 }
 

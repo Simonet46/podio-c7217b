@@ -118,6 +118,7 @@ async function allTeamsRaw(): Promise<Team[]> {
         for (const row of data as Record<string, unknown>[]) {
           bySlug.set(row.slug as string, {
             member_slugs: [],
+            fromDb: true,
             ...(row as unknown as Team),
             stats: (row.stats as Team["stats"]) ?? [],
             fund_items: (row.fund_items as Team["fund_items"]) ?? [],

@@ -17,9 +17,12 @@ export default async function HomePage() {
   const athletes = await getAthletes();
   const allTeams = await getTeams();
   const allAth = await getAllAthletes();
-  // En el home solo mostramos selecciones que ya tienen jugadores en GRANITO
-  // (las vacías existen y son accesibles, pero no ensucian la portada).
-  const teams = allTeams.filter((t) => allAth.some((a) => a.team === t.slug));
+  // En el home mostramos las selecciones con jugadores asignados y TODAS las
+  // creadas desde el admin (si las cargaron a propósito, tienen que verse).
+  // Las vacías del seed histórico siguen ocultas para no ensuciar la portada.
+  const teams = allTeams.filter(
+    (t) => t.fromDb || allAth.some((a) => a.team === t.slug),
+  );
   const campaigns = await getTeamCampaigns();
 
   // Desfile del hero: atletas + equipos en campaña. El orden se mezcla en el
