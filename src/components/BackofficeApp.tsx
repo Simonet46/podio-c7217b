@@ -60,6 +60,7 @@ type AthleteRow = {
   socials: string | null;
   supporter_message: string | null;
   photo_url: string | null;
+  photo_secondary_url: string | null;
   gender: string | null;
   card_tag: string | null;
 };
@@ -389,7 +390,7 @@ export function BackofficeApp() {
     setLoadingList(true);
     const [appsRes, athRes, teamRes, pledgesRes, changesRes, updatesRes, teamUpdatesRes, donationsRes, mpStatusRes] = await Promise.all([
       supa.from("athlete_applications").select("*").order("created_at", { ascending: false }),
-      supa.from("athletes").select("id,slug,full_name,first_name,sport,city,province,raised_amount,verified,mp_connected,dni,team,bio,next_competition,socials,supporter_message,photo_url,gender,card_tag").order("raised_amount", { ascending: false }),
+      supa.from("athletes").select("id,slug,full_name,first_name,sport,city,province,raised_amount,verified,mp_connected,dni,team,bio,next_competition,socials,supporter_message,photo_url,photo_secondary_url,gender,card_tag").order("raised_amount", { ascending: false }),
       supa.from("team_applications").select("*").order("created_at", { ascending: false }),
       supa.from("team_pledges").select("id,team_id,donor_name,donor_email,amount,status,created_at").order("created_at", { ascending: false }),
       supa
@@ -2293,6 +2294,7 @@ function AthleteEditModal({
     city: athlete.city ?? "",
     province: athlete.province ?? "",
     photo_url: athlete.photo_url ?? "",
+    photo_secondary_url: athlete.photo_secondary_url ?? "",
     gender: athlete.gender ?? "",
     card_tag: athlete.card_tag ?? "",
   });
@@ -2304,7 +2306,7 @@ function AthleteEditModal({
     setForm((f) => ({ ...f, [k]: v }));
   }
 
-  async function uploadPhoto(file: File) {
+  async function uploadPhoto(file: File, field: "photo_url" | "photo_secondary_url" = "photo_url") {
     if (uploading) return;
     if (file.size > 5 * 1024 * 1024) { setErr("La foto no puede pesar más de 5 MB."); return; }
     setUploading(true);
@@ -2335,6 +2337,7 @@ function AthleteEditModal({
     // gender tiene CHECK ('f','m') en la base: vacío debe viajar como null.
     if ("gender" in patch) (patch as Record<string, string | null>).gender = form.gender || null;
     if ("card_tag" in patch) (patch as Record<string, string | null>).card_tag = form.card_tag || null;
+    if ("photo_secondary_url" in patch) (patch as Record<string, string | null>).photo_secondary_url = form.photo_secondary_url || null;
     await onSave(athlete, patch);
     setBusy(false);
     onClose();
@@ -2386,6 +2389,34 @@ function AthleteEditModal({
                   onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadPhoto(f); e.target.value = ""; }}
                 />
               </label>
+            </div>
+          </div>
+
+          <div>
+            <p className="mb-1.5 text-[11px] font-600 uppercase tracking-wide" style={{ color: C.txtFaint }}>Foto en acción (la 2da del perfil: portada y fondo del hero)</p>
+            <div className="flex items-center gap-4">
+              <div
+                className="flex h-[60px] w-[104px] shrink-0 items-center justify-center overflow-hidden rounded-[10px] text-[11px] text-white/40"
+                style={{ background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.12)" }}
+              >
+                {form.photo_secondary_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={form.photo_secondary_url} alt="" className="h-full w-full object-cover" />
+                ) : "Sin foto"}
+              </div>
+              <label className="cursor-pointer rounded-[9px] border border-white/25 px-4 py-2 font-display text-[12px] font-600 uppercase tracking-wide text-white/80 hover:border-white/50">
+                {uploading ? "Subiendo…" : form.photo_secondary_url ? "Cambiar foto" : "Subir foto"}
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="hidden"
+                  disabled={uploading}
+                  onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadPhoto(f, "photo_secondary_url"); e.target.value = ""; }}
+                />
+              </label>
+              {form.photo_secondary_url && (
+                <button type="button" onClick={() => set("photo_secondary_url", "")} className="text-[12px] text-white/40 hover:text-white/80">Quitar</button>
+              )}
             </div>
           </div>
 
