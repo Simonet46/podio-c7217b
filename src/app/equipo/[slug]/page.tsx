@@ -57,6 +57,10 @@ export default async function TeamPage({
   const sport = getSport(team.sport);
   const color = team.color ?? sport?.color ?? "#1B7A4B";
   const members = await getTeamMembers(team);
+  // Cuadrante: la foto principal (las del admin). Las históricas del seed
+  // tienen fotos grupales pensadas para el hero: siguen a sangre a la derecha.
+  const squarePhoto = team.fromDb ? team.photo_url : null;
+  const heroPhoto = team.photo_secondary_url ?? (team.fromDb ? null : team.photo_url);
 
   return (
     <>
@@ -79,12 +83,22 @@ export default async function TeamPage({
                 <div className="relative z-[2] p-10 lg:p-12">
                   <div className="mb-5 flex items-center gap-4">
                     <div
-                      className="flex h-[62px] w-[62px] flex-none items-center justify-center overflow-hidden rounded-xl"
+                      className="flex h-[92px] w-[92px] flex-none items-center justify-center overflow-hidden rounded-xl"
                       style={{ border: "2px solid rgba(255,255,255,.16)", background: color }}
                     >
-                      <span className="font-display text-2xl font-700 text-white">
-                        {team.name.replace(/^(Los|Las|La|El)\s/i, "").slice(0, 2).toUpperCase()}
-                      </span>
+                      {squarePhoto ? (
+                        <Image
+                          src={asset(squarePhoto)}
+                          alt={team.name}
+                          width={92}
+                          height={92}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <span className="font-display text-2xl font-700 text-white">
+                          {team.name.replace(/^(Los|Las|La|El)\s/i, "").slice(0, 2).toUpperCase()}
+                        </span>
+                      )}
                     </div>
                     <span
                       className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-display text-[11px] font-600 uppercase tracking-[.1em] text-white"
@@ -136,11 +150,13 @@ export default async function TeamPage({
                   )}
                 </div>
 
-                {/* Derecha: foto del equipo */}
+                {/* Derecha: la "foto en acción" (photo_secondary_url). La foto
+                    principal vive en el cuadrante de la izquierda; acá solo va
+                    una imagen pensada para lucirse a sangre. */}
                 <div className="relative min-h-[320px]">
-                  {team.photo_url ? (
+                  {heroPhoto ? (
                     <Image
-                      src={asset(team.photo_url)}
+                      src={asset(heroPhoto)}
                       alt={team.name}
                       fill
                       priority

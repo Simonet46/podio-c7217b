@@ -17,7 +17,6 @@ import { formatMoney, progressPct } from "@/lib/money";
 import { ProgressBar } from "@/components/ProgressBar";
 import { SITE, asset } from "@/config/site";
 import { athleteShare } from "@/lib/share";
-import { apoyanLabel } from "@/lib/gender";
 import { ShareStoryButton } from "@/components/ShareStoryButton";
 
 export async function generateStaticParams() {
@@ -204,9 +203,7 @@ export default async function AthletePage({
                   <div className="font-display text-[32px] font-700 leading-none text-gold sm:text-[34px]">
                     {formatMoney(athlete.raised_amount)}
                   </div>
-                  <div className="text-[12px] text-white/55">
-                    {apoyanLabel(athlete.gender)} con esto
-                  </div>
+                  <div className="text-[12px] text-white/55">recaudados</div>
                 </div>
               </div>
             )}
@@ -217,7 +214,7 @@ export default async function AthletePage({
               <div className="mt-4 flex gap-6 sm:hidden">
                 <div>
                   <div className="font-display text-2xl font-700 text-gold">{formatMoney(athlete.raised_amount)}</div>
-                  <div className="text-[12px] text-white/55">{apoyanLabel(athlete.gender)} con esto</div>
+                  <div className="text-[12px] text-white/55">recaudados</div>
                 </div>
               </div>
             )}

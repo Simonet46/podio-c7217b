@@ -16,11 +16,12 @@ export interface DbTeam {
   national: boolean;
   verified: boolean;
   photo_url: string | null;
+  photo_secondary_url: string | null;
 }
 
 const VACIO: Omit<DbTeam, "id"> = {
   slug: "", name: "", sport: SPORT_LIST[0]?.key ?? "handball", discipline: "",
-  bio: "", color: "#C9A227", national: true, verified: true, photo_url: null,
+  bio: "", color: "#C9A227", national: true, verified: true, photo_url: null, photo_secondary_url: null,
 };
 
 function slugify(s: string): string {
@@ -83,7 +84,7 @@ export function TeamsManager({
     void load();
   }
 
-  async function uploadPhoto(file: File) {
+  async function uploadPhoto(file: File, field: "photo_url" | "photo_secondary_url" = "photo_url") {
     if (!supa || !editing) return;
     if (file.size > 5 * 1024 * 1024) { setErr("La foto no puede pesar más de 5 MB."); return; }
     setErr("");
@@ -92,7 +93,7 @@ export function TeamsManager({
     const { error } = await supa.storage.from("athlete-media").upload(path, file, { contentType: file.type });
     if (error) { setErr(error.message); return; }
     const url = supa.storage.from("athlete-media").getPublicUrl(path).data.publicUrl;
-    setEditing((e) => ({ ...e, photo_url: url }));
+    setEditing((e) => ({ ...e, [field]: url }));
   }
 
   const input: CSSProperties = {
@@ -167,12 +168,19 @@ export function TeamsManager({
             <span style={label}>Color (acentos y escudo)</span>
             <input type="color" style={{ ...input, height: 42, padding: 4 }} value={editing.color ?? "#C9A227"} onChange={(e) => setEditing({ ...editing, color: e.target.value })} />
 
-            <span style={label}>Foto (opcional)</span>
+            <span style={label}>Foto principal (escudo/retrato — va en el cuadrante)</span>
             {editing.photo_url && (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={editing.photo_url} alt="" className="mb-2 h-24 w-full rounded-[8px] object-cover" />
             )}
             <input type="file" accept="image/*" style={{ ...input, padding: 8 }} onChange={(e) => { const f = e.target.files?.[0]; if (f) void uploadPhoto(f); }} />
+
+            <span style={label}>Foto en acción (opcional — se luce grande en el hero)</span>
+            {editing.photo_secondary_url && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={editing.photo_secondary_url} alt="" className="mb-2 h-24 w-full rounded-[8px] object-cover" />
+            )}
+            <input type="file" accept="image/*" style={{ ...input, padding: 8 }} onChange={(e) => { const f = e.target.files?.[0]; if (f) void uploadPhoto(f, "photo_secondary_url"); }} />
 
             <label className="mt-4 flex items-center gap-2 text-[13px] text-white/80">
               <input type="checkbox" checked={editing.verified ?? true} onChange={(e) => setEditing({ ...editing, verified: e.target.checked })} />

@@ -60,6 +60,8 @@ export interface Team {
   goal_amount: number;
   raised_amount: number;
   photo_url: string | null;
+  /** Foto "en acción" del hero de la página de la selección (opcional). */
+  photo_secondary_url?: string | null;
   stats: StatPair[];
   fund_items: FundItem[];
   verified: boolean;
