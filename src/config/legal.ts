@@ -16,6 +16,27 @@
  *  el footer marca los datos pendientes. */
 export const LEGAL_DATA_COMPLETE = false;
 
+/** Textos de transparencia societaria mientras la sociedad está EN FORMACIÓN.
+ *  Se muestran solo cuando LEGAL_DATA_COMPLETE es false y desaparecen solos
+ *  al completar los datos de la sociedad. Redacción a validar con el estudio. */
+export const EN_FORMACION = {
+  footer:
+    "GRANITO se encuentra en proceso de constitución como sociedad en Argentina. " +
+    "Hasta entonces, la plataforma es operada por sus fundadores, y los documentos " +
+    "legales se publican en carácter de borrador.",
+  transparenciaQ: "¿Y mientras se constituye la sociedad?",
+  transparenciaA:
+    "Tu aporte no depende de eso: se acredita directo en la cuenta de Mercado Pago " +
+    "del atleta o del equipo en el momento del pago — GRANITO nunca lo custodia, " +
+    "exista o no la sociedad. Lo único que percibe la plataforma es la comisión del " +
+    "7%, que hasta la constitución de la sociedad reciben sus fundadores y será " +
+    "regularizada en ella.",
+  terminos:
+    "La sociedad se encuentra en proceso de constitución. Hasta su inscripción, la " +
+    "plataforma es operada por sus fundadores a título personal, y estos Términos se " +
+    "actualizarán con los datos societarios definitivos al completarse ese proceso.",
+} as const;
+
 /** Datos de la sociedad operadora (identificación del operador — Ley 24.240).
  *  Placeholders `[PENDIENTE: …]` hasta que se constituya la sociedad. */
 export const COMPANY = {

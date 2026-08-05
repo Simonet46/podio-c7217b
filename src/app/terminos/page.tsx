@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { LegalLayout, Section } from "@/components/legal/LegalLayout";
 import { SITE, PLATFORM_FEE_RATE } from "@/config/site";
-import { COMPANY, LEGAL_CONTACT } from "@/config/legal";
+import { COMPANY, LEGAL_CONTACT, LEGAL_DATA_COMPLETE, EN_FORMACION } from "@/config/legal";
 
 export const metadata: Metadata = {
   title: `Términos y Condiciones — ${SITE.brand}`,
@@ -36,6 +36,7 @@ export default function TerminosPage() {
           que quieren apoyar el deporte argentino con atletas y equipos verificados, y
           facilita que ese apoyo llegue de forma directa.
         </p>
+        {!LEGAL_DATA_COMPLETE && <p>{EN_FORMACION.terminos}</p>}
         <p>
           Al registrarte, postularte o realizar un aporte, declarás haber leído y
           aceptado estos Términos, la{" "}

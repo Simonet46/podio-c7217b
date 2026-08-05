@@ -4,6 +4,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Reveal } from "@/components/Reveal";
 import { PLATFORM_FEE_RATE, SITE } from "@/config/site";
+import { LEGAL_DATA_COMPLETE, EN_FORMACION } from "@/config/legal";
 
 export const metadata: Metadata = {
   title: `Transparencia — ${SITE.brand}`,
@@ -12,6 +13,9 @@ export const metadata: Metadata = {
 };
 
 const FAQ = [
+  ...(!LEGAL_DATA_COMPLETE
+    ? [{ q: EN_FORMACION.transparenciaQ, a: EN_FORMACION.transparenciaA }]
+    : []),
   {
     q: "¿Cómo sé que el atleta recibe el dinero?",
     a: "Porque nunca pasa por nuestras manos. Cuando aportás, Mercado Pago acredita el dinero directamente en la cuenta del atleta. GRANITO no custodia fondos: no podríamos quedarnos con tu aporte ni queriendo.",

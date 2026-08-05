@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { SITE, LEGAL_DISCLAIMER, PLATFORM_FEE_RATE } from "@/config/site";
-import { COMPANY, LEGAL_CONTACT, LEGAL_DATA_COMPLETE } from "@/config/legal";
+import { COMPANY, LEGAL_CONTACT, LEGAL_DATA_COMPLETE, EN_FORMACION } from "@/config/legal";
 import { Ribbon } from "./Ribbon";
 import { Wordmark } from "./Wordmark";
 import { PartnerLogos } from "./PartnerLogos";
@@ -88,6 +88,11 @@ export function Footer({ logos = true }: { logos?: boolean } = {}) {
           <p className="text-xs leading-relaxed text-white/45">
             {LEGAL_DISCLAIMER}
           </p>
+          {!LEGAL_DATA_COMPLETE && (
+            <p className="mt-2 text-xs leading-relaxed text-white/45">
+              {EN_FORMACION.footer}
+            </p>
+          )}
           <p className="mt-3 text-xs text-white/35">
             Atención y reclamos:{" "}
             <a href={`mailto:${LEGAL_CONTACT.reclamos}`} className="hover:text-white/60">
