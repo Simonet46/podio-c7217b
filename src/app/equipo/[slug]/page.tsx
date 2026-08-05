@@ -68,7 +68,7 @@ export default async function TeamPage({
       <main className="overflow-x-hidden bg-ink text-white">
 
         {/* ── Hero card ── */}
-        <section className="mx-auto max-w-[1440px] px-6 pb-0 pt-10">
+        <section className="mx-auto max-w-[1440px] px-6 pb-0 pt-5">
           <Reveal>
             <div
               className="relative overflow-hidden rounded-[18px]"

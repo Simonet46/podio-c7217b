@@ -85,7 +85,7 @@ export default async function AthletePage({
           {/* Cover: fondo ambiente (la foto difuminada + oscurecida). Robusto a
               cualquier proporción — nunca queda estirado ni recorta mal al atleta.
               El retrato nítido de abajo es el protagonista. */}
-          <div className="relative h-[220px] overflow-hidden sm:h-[300px] lg:h-[340px]">
+          <div className="relative h-[160px] overflow-hidden sm:h-[220px] lg:h-[240px]">
             {hasCover || hasPortrait ? (
               <Image
                 src={asset((athlete.photo_secondary_url ?? athlete.photo_url)!)}
@@ -137,7 +137,7 @@ export default async function AthletePage({
                 borde a borde y vuelva a alcanzar el chip. */}
             {athlete.next_competition && (
               <div
-                className="podio-float absolute right-4 top-4 max-w-[calc(100%-2rem)] inline-flex items-center gap-2.5 rounded-full px-4 py-2 shadow-[0_14px_36px_rgba(201,162,39,.4)] sm:bottom-[74px] sm:right-9 sm:top-auto sm:max-w-[62%]"
+                className="podio-float absolute right-4 top-4 max-w-[calc(100%-2rem)] inline-flex items-center gap-2.5 rounded-full px-4 py-2 shadow-[0_14px_36px_rgba(201,162,39,.4)] sm:bottom-[64px] sm:right-9 sm:top-auto sm:max-w-[62%]"
                 style={{ background: "#C9A227" }}
               >
                 <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-ink" aria-hidden />
