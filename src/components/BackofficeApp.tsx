@@ -115,7 +115,7 @@ type Section =
   | "Resumen"
   | "Postulaciones"
   | "Atletas"
-  | "Equipos"
+  | "Proyectos deportivos"
   | "Selecciones"
   | "Cambios"
   | "Novedades"
@@ -290,7 +290,7 @@ const NAV_MAIN: { label: Section; icon: string }[] = [
   { label: "Resumen", icon: "◧" },
   { label: "Postulaciones", icon: "◔" },
   { label: "Atletas", icon: "◉" },
-  { label: "Equipos", icon: "🛡" },
+  { label: "Proyectos deportivos", icon: "🛡" },
   { label: "Selecciones", icon: "🇦🇷" },
   { label: "Cambios", icon: "✎" },
   { label: "Novedades", icon: "✦" },
@@ -306,7 +306,7 @@ const PAGE_META: Record<Section, { t: string; s: string }> = {
   Resumen: { t: "Resumen general", s: "Lo que pasó esta semana" },
   Postulaciones: { t: "Postulaciones", s: "Revisá cada caso a mano, uno por uno" },
   Atletas: { t: "Atletas", s: "Atletas publicados en la plataforma" },
-  Equipos: { t: "Equipos", s: "Equipos aprobados — objetivos, fechas y estado" },
+  "Proyectos deportivos": { t: "Proyectos deportivos", s: "Equipos aprobados — objetivos, fechas y estado" },
   Selecciones: { t: "Selecciones nacionales", s: "Armá los planteles de los equipos nacionales" },
   Cambios: { t: "Cambios de perfil", s: "Pedidos de edición enviados por atletas" },
   Novedades: { t: "Novedades", s: "Publicaciones que los atletas quieren mostrar en su perfil" },
@@ -666,7 +666,7 @@ export function BackofficeApp() {
       .eq("id", team.id);
     if (error) { setToast("Error al aprobar: " + error.message); return; }
     setTeamApps((prev) => prev.map((t) => t.id === team.id ? { ...t, status: "approved", active: true, slug } : t));
-    setToast(`✓ ${team.team_name} aprobado. Cargale el objetivo en "Equipos" y tocá "Publicar ahora" para que su campaña salga en el sitio.`);
+    setToast(`✓ ${team.team_name} aprobado. Cargale el objetivo en "Proyectos deportivos" y tocá "Publicar ahora" para que su campaña salga en el sitio.`);
   }
 
   /** Genera el link de conexión OAuth de Mercado Pago para un EQUIPO
@@ -1064,7 +1064,7 @@ export function BackofficeApp() {
           {active === "Atletas" && <AtletasSection athletes={athletes} loading={loadingList} onConnect={genMpLink} onToggleStatus={handleToggleStatus} onViewMpInfo={handleViewMpInfo} onSetTeam={handleSetTeam} onSendAccess={sendAccess} onSave={handleSaveAthlete} />}
 
           {/* ===== EQUIPOS ===== */}
-          {active === "Equipos" && (
+          {active === "Proyectos deportivos" && (
             <EquiposSection
               teams={teamApps}
               pledges={teamPledges}
