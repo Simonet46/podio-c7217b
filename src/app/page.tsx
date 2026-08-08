@@ -33,6 +33,8 @@ export default async function HomePage() {
     nextCompetition: a.next_competition ?? null,
     photo: a.photo_url,
     href: `/atleta/${a.slug}`,
+    // Píldora propia del atleta (la escribe el admin). Vacío = sello por defecto.
+    badge: a.hero_badge ?? null,
   }));
   const heroTeams: HeroAthlete[] = campaigns.map((c) => ({
     slug: c.slug,

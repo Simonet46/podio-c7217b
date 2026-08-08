@@ -63,6 +63,7 @@ type AthleteRow = {
   photo_secondary_url: string | null;
   gender: string | null;
   card_tag: string | null;
+  hero_badge: string | null;
 };
 
 type TeamApp = {
@@ -390,7 +391,10 @@ export function BackofficeApp() {
     setLoadingList(true);
     const [appsRes, athRes, teamRes, pledgesRes, changesRes, updatesRes, teamUpdatesRes, donationsRes, mpStatusRes] = await Promise.all([
       supa.from("athlete_applications").select("*").order("created_at", { ascending: false }),
-      supa.from("athletes").select("id,slug,full_name,first_name,sport,city,province,raised_amount,verified,mp_connected,dni,team,bio,next_competition,socials,supporter_message,photo_url,photo_secondary_url,gender,card_tag").order("raised_amount", { ascending: false }),
+      // `*` a propósito: con la lista explícita, agregar una columna nueva en
+      // la base rompía toda la pestaña Atletas hasta redeployar el admin.
+      // Acá no hay dato sensible (los tokens de MP viven en otra tabla).
+      supa.from("athletes").select("*").order("raised_amount", { ascending: false }),
       supa.from("team_applications").select("*").order("created_at", { ascending: false }),
       supa.from("team_pledges").select("id,team_id,donor_name,donor_email,amount,status,created_at").order("created_at", { ascending: false }),
       supa
@@ -2297,6 +2301,7 @@ function AthleteEditModal({
     photo_secondary_url: athlete.photo_secondary_url ?? "",
     gender: athlete.gender ?? "",
     card_tag: athlete.card_tag ?? "",
+    hero_badge: athlete.hero_badge ?? "",
   });
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -2337,6 +2342,8 @@ function AthleteEditModal({
     // gender tiene CHECK ('f','m') en la base: vacío debe viajar como null.
     if ("gender" in patch) (patch as Record<string, string | null>).gender = form.gender || null;
     if ("card_tag" in patch) (patch as Record<string, string | null>).card_tag = form.card_tag || null;
+    // Vacío = null, así el hero vuelve solo a la frase por defecto.
+    if ("hero_badge" in patch) (patch as Record<string, string | null>).hero_badge = form.hero_badge || null;
     if ("photo_secondary_url" in patch) (patch as Record<string, string | null>).photo_secondary_url = form.photo_secondary_url || null;
     await onSave(athlete, patch);
     setBusy(false);
@@ -2446,6 +2453,9 @@ function AthleteEditModal({
           </EditRow>
           <EditRow label="Pill de la card (reemplaza al monto si recaudó poco; vacío = automático)">
             <input value={form.card_tag} onChange={(e) => set("card_tag", e.target.value)} maxLength={40} placeholder='Ej: "Rumbo a LA 2028", "Debuta en agosto"' style={inputDark} />
+          </EditRow>
+          <EditRow label="Píldora del hero (el cartelito sobre la card grande de la home; vacío = &quot;Historia real, revisada a mano&quot;)">
+            <input value={form.hero_badge} onChange={(e) => set("hero_badge", e.target.value)} maxLength={42} placeholder='Ej: "Clasificó al Mundial de Alemania"' style={inputDark} />
           </EditRow>
           <EditRow label="Instagram">
             <input value={form.socials} onChange={(e) => set("socials", e.target.value)} style={inputDark} />

@@ -17,7 +17,14 @@ export type HeroAthlete = {
   photo: string | null;
   /** Adónde linkea (por defecto /atleta/slug; los equipos usan /equipos/slug). */
   href?: string;
+  /** Texto de la píldora que flota sobre la card. Lo edita el admin por
+   *  atleta; vacío = el sello de confianza por defecto. */
+  badge?: string | null;
 };
+
+/** Lo que dice la píldora cuando el atleta no tiene una propia: el sello de
+ *  confianza de GRANITO, que es verdad para todos (revisamos a mano). */
+const DEFAULT_BADGE = "Historia real, revisada a mano";
 
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -209,15 +216,17 @@ export function HomeHero({ featured }: { featured: HeroAthlete[] }) {
               </div>
             </Link>
 
-            {/* Badge: caso revisado (real — es el proceso de GRANITO).
-                Anclado arriba a la derecha de la card, con puntito "live". */}
-            <div className="absolute -right-3 -top-3 z-20 flex items-center gap-2 rounded-full border border-white/[.12] bg-ink-2/95 px-3.5 py-2 shadow-[0_14px_36px_rgba(0,0,0,.45)] sm:-right-6">
-              <span className="relative flex h-2 w-2" aria-hidden>
+            {/* Badge: por defecto el sello de "revisado a mano" (real — es el
+                proceso de GRANITO); el admin puede escribir uno propio por
+                atleta desde el backoffice. Anclado arriba a la derecha de la
+                card, con puntito "live". */}
+            <div className="absolute -right-3 -top-3 z-20 flex max-w-[240px] items-center gap-2 rounded-full border border-white/[.12] bg-ink-2/95 px-3.5 py-2 shadow-[0_14px_36px_rgba(0,0,0,.45)] sm:-right-6 sm:max-w-[300px]">
+              <span className="relative flex h-2 w-2 shrink-0" aria-hidden>
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-gold opacity-75" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-gold" />
               </span>
-              <span className="text-[13px] font-500 text-white">
-                Historia real, revisada a mano
+              <span className="text-[13px] font-500 leading-tight text-white">
+                {center.badge?.trim() || DEFAULT_BADGE}
               </span>
             </div>
           </div>

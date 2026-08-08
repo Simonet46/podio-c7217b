@@ -30,6 +30,9 @@ export interface Athlete {
   /** Pill de la card del grid, personalizable desde el admin (reemplaza al
    *  monto cuando la recaudación todavía es chica). */
   card_tag?: string | null;
+  /** Píldora que flota sobre la card grande del hero. Vacío = la frase por
+   *  defecto ("Historia real, revisada a mano"). La edita el admin. */
+  hero_badge?: string | null;
   stats: StatPair[];
   fund_items: FundItem[];
   verified: boolean;
