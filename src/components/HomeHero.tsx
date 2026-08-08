@@ -31,6 +31,9 @@ function shuffle<T>(arr: T[]): T[] {
 /** Cada cuánto avanza solo el desfile (sincronizado con .hero-progress). */
 const ROTATE_MS = 3000;
 
+/** Hasta cuántas historias mostramos puntitos; de ahí en más, contador. */
+const MAX_DOTS = 12;
+
 export function HomeHero({ featured }: { featured: HeroAthlete[] }) {
   const [items, setItems] = useState<HeroAthlete[]>(featured);
   const [idx, setIdx] = useState(0);
@@ -59,6 +62,10 @@ export function HomeHero({ featured }: { featured: HeroAthlete[] }) {
   // Segunda fila de cards (desfile de 5): solo si hay suficientes historias.
   const left2 = n > 4 ? items[(idx - 2 + n) % n] : null;
   const right2 = n > 4 ? items[(idx + 2) % n] : null;
+  // El desfile crece con cada alta del backoffice: pasados los 12 los puntitos
+  // se vuelven ilegibles (y en mobile ocupan tres renglones), así que ahí
+  // mostramos un contador "3 / 47" en su lugar.
+  const showDots = n > 1 && n <= MAX_DOTS;
   const centerHref = center.href ?? `/atleta/${center.slug}`;
 
   const prev = () => setIdx((i) => (i - 1 + n) % n);
@@ -238,19 +245,23 @@ export function HomeHero({ featured }: { featured: HeroAthlete[] }) {
               </svg>
             </button>
 
-            {/* Dots */}
-            <div className="flex gap-1.5">
-              {items.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setIdx(i)}
-                  className={`h-1.5 rounded-full transition-all duration-300 ${
-                    i === idx ? "w-6 bg-gold" : "w-1.5 bg-white/30"
-                  }`}
-                  aria-label={`Atleta ${i + 1}`}
-                />
-              ))}
-            </div>
+            {/* Dots (pocas historias) o contador (muchas) */}
+            {showDots ? (
+              <div className="flex gap-1.5">
+                {items.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setIdx(i)}
+                    className={`h-1.5 rounded-full transition-all duration-300 ${
+                      i === idx ? "w-6 bg-gold" : "w-1.5 bg-white/30"
+                    }`}
+                    aria-label={`Atleta ${i + 1}`}
+                  />
+                ))}
+              </div>
+            ) : (
+              <Counter idx={idx} n={n} />
+            )}
 
             <button
               onClick={next}
@@ -273,8 +284,8 @@ export function HomeHero({ featured }: { featured: HeroAthlete[] }) {
           </div>
         )}
 
-        {/* Dots — desktop */}
-        {n > 1 && (
+        {/* Dots — desktop (o contador si el desfile ya es largo) */}
+        {showDots && (
           <div className="mt-3 hidden items-center justify-center gap-1.5 lg:flex">
             {items.map((_, i) => (
               <button
@@ -288,6 +299,11 @@ export function HomeHero({ featured }: { featured: HeroAthlete[] }) {
             ))}
           </div>
         )}
+        {!showDots && n > 1 && (
+          <div className="mt-3 hidden items-center justify-center lg:flex">
+            <Counter idx={idx} n={n} />
+          </div>
+        )}
 
         {/* Barra de progreso del desfile automático (se reinicia por key y
             se pausa junto con la rotación al pasar el mouse). */}
@@ -298,6 +314,17 @@ export function HomeHero({ featured }: { featured: HeroAthlete[] }) {
         )}
       </div>
     </section>
+  );
+}
+
+/* ── Contador del desfile: reemplaza a los puntitos cuando hay muchas
+      historias. Dice cuántas hay, que es información que los puntitos ya no
+      transmiten cuando son cuarenta. ── */
+function Counter({ idx, n }: { idx: number; n: number }) {
+  return (
+    <span className="font-display text-[13px] font-600 uppercase tracking-[.1em] tabular-nums text-white/55">
+      <span className="text-gold">{idx + 1}</span> / {n} historias
+    </span>
   );
 }
 

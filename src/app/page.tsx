@@ -45,12 +45,11 @@ export default async function HomePage() {
     photo: c.photo_url,
     href: `/equipos/${c.slug}`,
   }));
-  // Atletas Y proyectos deportivos en el desfile: cupo para cada grupo, así
-  // los proyectos nunca quedan afuera por cantidad de atletas.
-  const featured: HeroAthlete[] = [
-    ...heroAthletes.slice(0, 8),
-    ...heroTeams.slice(0, 4),
-  ];
+  // Desfile completo: TODOS los atletas y TODOS los proyectos deportivos
+  // publicados. Sin cupos: el que se da de alta en el backoffice entra solo
+  // en el hero, igual que entra en el grid. El orden se mezcla en el cliente,
+  // así ninguno queda condenado al final de la fila.
+  const featured: HeroAthlete[] = [...heroAthletes, ...heroTeams];
 
   return (
     <>
