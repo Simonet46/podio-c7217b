@@ -335,6 +335,8 @@ export default async function AthletePage({
                   slug: athlete.slug,
                   title: `Apoyá a ${athlete.first_name}`,
                 }}
+                // Publicado sin Mercado Pago: se ve el perfil, no se puede aportar.
+                canReceive={athlete.mp_connected !== false}
               />
 
               <ShareStoryButton

@@ -626,13 +626,23 @@ export function BackofficeApp() {
     const supa = sb();
     if (!supa) return;
     const next = !athlete.verified;
+    // Publicar sin Mercado Pago es válido pero tiene consecuencia: el perfil se
+    // ve y los aportes quedan deshabilitados. Lo decimos antes, no después.
     const msg = next
-      ? `¿Reactivar a ${athlete.full_name}?`
+      ? athlete.mp_connected
+        ? `¿Reactivar a ${athlete.full_name}?`
+        : `${athlete.full_name} todavía no conectó su Mercado Pago.\n\n¿Publicar igual? Su perfil va a estar en la web, pero con los aportes deshabilitados hasta que conecte su cuenta de cobro.`
       : `¿Suspender a ${athlete.full_name}? No podrá recibir aportes.`;
     if (!confirm(msg)) return;
     const { error } = await supa.from("athletes").update({ verified: next }).eq("id", athlete.id);
     if (error) { setToast("Error: " + error.message); return; }
-    setToast(`${athlete.full_name} ${next ? "reactivado ✓" : "suspendido."}`);
+    setToast(
+      next
+        ? athlete.mp_connected
+          ? `${athlete.full_name} reactivado ✓ Tocá "Publicar ahora".`
+          : `${athlete.full_name} publicado sin cobros (le falta MP). Tocá "Publicar ahora".`
+        : `${athlete.full_name} suspendido.`,
+    );
     loadApps();
   }
 
@@ -2205,28 +2215,34 @@ function AtletasSection({
             </div>
             <div className="text-right font-display text-[15px] font-600" style={{ color: C.gold }}>{formatMoney(raised)}</div>
             <div className="flex justify-end">
-              {!a.verified && !a.mp_connected ? (
-                // Creado sin vía de cobro: no es una suspensión, le falta MP.
-                // Se publica solo cuando el atleta conecta su Mercado Pago.
-                <span
-                  title="Oculto hasta que conecte su Mercado Pago. Se publica automáticamente al conectarlo."
-                  className="rounded-full px-2.5 py-[3px] font-display text-[10px] font-600 uppercase tracking-[.04em]"
-                  style={{ background: "rgba(201,162,39,.14)", color: C.gold }}
-                >
-                  Falta MP
-                </span>
-              ) : (
-                <button
-                  onClick={() => onToggleStatus(a)}
-                  title={a.verified ? "Suspender atleta" : "Reactivar atleta"}
-                  className="rounded-full px-2.5 py-[3px] font-display text-[10px] font-600 uppercase tracking-[.04em] transition-opacity hover:opacity-70"
-                  style={a.verified
-                    ? { background: "rgba(34,197,94,.14)", color: C.greenBright, border: "none", cursor: "pointer" }
-                    : { background: "rgba(223,0,36,.12)", color: C.redBright, border: "none", cursor: "pointer" }}
-                >
-                  {a.verified ? "Activo" : "Suspendido"}
-                </button>
-              )}
+              {/* Cuatro estados reales, y todos se pueden cambiar a mano:
+                  Activo (publicado y cobrando) · Sin cobros (publicado, le
+                  falta MP) · Suspendido · Falta MP (oculto, se publica solo
+                  al conectar MP, o a mano si querés adelantarlo). */}
+              <button
+                onClick={() => onToggleStatus(a)}
+                title={
+                  a.verified
+                    ? a.mp_connected
+                      ? "Suspender atleta"
+                      : "Publicado sin Mercado Pago: se ve el perfil pero no puede recibir aportes. Tocá para ocultarlo."
+                    : a.mp_connected
+                      ? "Reactivar atleta"
+                      : "Oculto hasta que conecte su Mercado Pago (se publica solo al conectarlo). Tocá para publicarlo igual, con los aportes deshabilitados."
+                }
+                className="rounded-full px-2.5 py-[3px] font-display text-[10px] font-600 uppercase tracking-[.04em] transition-opacity hover:opacity-70"
+                style={
+                  a.verified
+                    ? a.mp_connected
+                      ? { background: "rgba(34,197,94,.14)", color: C.greenBright, border: "none", cursor: "pointer" }
+                      : { background: "rgba(201,162,39,.16)", color: C.gold, border: "none", cursor: "pointer" }
+                    : a.mp_connected
+                      ? { background: "rgba(223,0,36,.12)", color: C.redBright, border: "none", cursor: "pointer" }
+                      : { background: "rgba(201,162,39,.14)", color: C.gold, border: "none", cursor: "pointer" }
+                }
+              >
+                {a.verified ? (a.mp_connected ? "Activo" : "Sin cobros") : a.mp_connected ? "Suspendido" : "Falta MP"}
+              </button>
             </div>
             <div className="flex items-center justify-end gap-1.5">
               <button

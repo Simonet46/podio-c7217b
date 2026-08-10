@@ -20,7 +20,17 @@ export interface DonationTarget {
   splitCount?: number;
 }
 
-export function DonationWidget({ target }: { target: DonationTarget }) {
+export function DonationWidget({
+  target,
+  canReceive = true,
+}: {
+  target: DonationTarget;
+  /** false cuando el beneficiario todavía no tiene vía de cobro (sin Mercado
+   *  Pago conectado). El perfil se ve, pero no se puede aportar: si dejáramos
+   *  el botón activo, el aporte caería al modo demo y el hincha se iría
+   *  creyendo que donó, sin que se cobre nada. */
+  canReceive?: boolean;
+}) {
   const [amount, setAmount] = useState<number>(PRESET_AMOUNTS.once[1]);
   const [custom, setCustom] = useState<string>("");
   const [loading, setLoading] = useState(false);
@@ -50,7 +60,7 @@ export function DonationWidget({ target }: { target: DonationTarget }) {
   }
 
   async function handleSubmit() {
-    if (amount <= 0 || loading) return;
+    if (amount <= 0 || loading || !canReceive) return;
     setLoading(true);
 
     // Registrar evidencia de aceptación de los Términos del Donante (Kahale
@@ -93,6 +103,42 @@ export function DonationWidget({ target }: { target: DonationTarget }) {
     if (target.slug) params.set("slug", target.slug);
     if (split) params.set("split", String(split));
     router.push(`/gracias?${params.toString()}`);
+  }
+
+  // Sin vía de cobro: mostramos el perfil igual, pero decimos la verdad en
+  // lugar de simular un aporte que no se cobraría.
+  if (!canReceive) {
+    return (
+      <div
+        className="overflow-hidden rounded-xl"
+        style={{
+          background: "#0d2238",
+          border: "1px solid rgba(255,255,255,.12)",
+          boxShadow: "0 24px 60px rgba(0,0,0,.45)",
+        }}
+      >
+        <Ribbon tall />
+        <div className="p-5 sm:p-6">
+          <h2 className="font-display text-xl font-600 uppercase tracking-wide text-white">
+            {target.title}
+          </h2>
+          <p className="mt-4 text-sm leading-relaxed text-white/70">
+            Todavía no puede recibir aportes: está terminando de conectar su
+            cuenta de cobro. En cuanto la conecte, vas a poder apoyar desde acá.
+          </p>
+          <button
+            disabled
+            className="mt-5 w-full cursor-not-allowed rounded-lg py-3.5 font-display text-base font-700 uppercase tracking-wide"
+            style={{ background: "rgba(255,255,255,.07)", color: "rgba(255,255,255,.45)" }}
+          >
+            Aportes no disponibles todavía
+          </button>
+          <p className="mt-3 text-center text-xs leading-relaxed text-white/35">
+            Mientras tanto, podés seguir su historia y compartirla.
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return (

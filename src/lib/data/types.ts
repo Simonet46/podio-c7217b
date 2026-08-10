@@ -38,6 +38,9 @@ export interface Athlete {
   verified: boolean;
   stripe_account_id: string | null;
   created_at: string;
+  /** ¿Conectó su Mercado Pago? Sin esto no hay vía de cobro: el perfil puede
+   *  estar publicado, pero los aportes quedan deshabilitados. */
+  mp_connected?: boolean | null;
   /** Slug del equipo al que pertenece (solo jugadores de deportes de equipo). */
   team?: string;
   /** Posición/rol dentro del equipo (ej. "Arquera", "Lateral izquierdo"). */
