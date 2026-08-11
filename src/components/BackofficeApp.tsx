@@ -47,6 +47,7 @@ type AthleteRow = {
   slug: string;
   full_name: string;
   first_name: string | null;
+  email: string | null;
   sport: string;
   city: string | null;
   province: string | null;
@@ -64,6 +65,15 @@ type AthleteRow = {
   gender: string | null;
   card_tag: string | null;
   hero_badge: string | null;
+};
+
+/** A quién le estamos por escribir desde el modal "pedir más info". */
+type InfoTarget = {
+  kind: "application" | "athlete" | "team";
+  id: string;
+  name: string;
+  email: string | null;
+  mpConnected: boolean;
 };
 
 type TeamApp = {
@@ -356,8 +366,9 @@ export function BackofficeApp() {
   const [athleteUpdates, setAthleteUpdates] = useState<AthleteUpdateRow[]>([]);
   const [teamUpdates, setTeamUpdates] = useState<TeamUpdateRow[]>([]);
   const [donations, setDonations] = useState<AdminDonation[]>([]);
-  // Modal "pedir más info" a un postulante (email vía Resend, sin mailto).
-  const [infoModal, setInfoModal] = useState<Application | null>(null);
+  // Modal "pedir más info" (email vía Resend, sin mailto). Sirve para los tres
+  // destinatarios: postulante, atleta ya dado de alta y proyecto deportivo.
+  const [infoModal, setInfoModal] = useState<InfoTarget | null>(null);
   const [infoMsg, setInfoMsg] = useState("");
   const [infoIncludeMp, setInfoIncludeMp] = useState(true);
   const [infoBusy, setInfoBusy] = useState(false);
@@ -813,23 +824,73 @@ export function BackofficeApp() {
     );
   }
 
-  /** Abre el modal para pedirle info al postulante SIN salir del backoffice. */
+  /** Abre el modal para escribirle a alguien SIN salir del backoffice. */
+  function openInfoModal(target: InfoTarget, draft: string) {
+    setInfoModal(target);
+    setInfoMsg(draft);
+    setInfoIncludeMp(!target.mpConnected);
+    setInfoBusy(false);
+  }
+
+  /** Postulante todavía sin aprobar. */
   function askMoreInfo(app: Application) {
-    setInfoModal(app);
-    setInfoMsg(
+    openInfoModal(
+      {
+        kind: "application",
+        id: app.id,
+        name: app.full_name,
+        email: app.email,
+        mpConnected: appMpConnected(app),
+      },
       "¡Gracias por postularte! Tu historia nos encantó. Para terminar de aprobar tu perfil nos falta que completes un par de datos:\n\n- ",
     );
-    setInfoIncludeMp(!appMpConnected(app));
-    setInfoBusy(false);
+  }
+
+  /** Atleta YA dado de alta (el caso típico: le falta conectar su MP). */
+  function askAthleteInfo(a: AthleteRow) {
+    openInfoModal(
+      {
+        kind: "athlete",
+        id: a.id,
+        name: a.full_name,
+        email: a.email,
+        mpConnected: !!a.mp_connected,
+      },
+      a.mp_connected
+        ? "Te escribimos para pedirte una mano con esto:\n\n- "
+        : "Tu perfil ya está publicado en somosgranito.com, pero todavía no podés recibir aportes porque falta conectar tu cuenta de Mercado Pago. Con el botón de acá abajo lo hacés en un minuto:\n\n- ",
+    );
+  }
+
+  /** Proyecto deportivo / equipo. */
+  function askTeamInfo(t: TeamApp) {
+    openInfoModal(
+      {
+        kind: "team",
+        id: t.id,
+        name: t.team_name,
+        email: t.email,
+        mpConnected: !!t.mp_connected,
+      },
+      t.mp_connected
+        ? "Les escribimos para pedirles una mano con esto:\n\n- "
+        : "Para que la campaña del proyecto pueda recibir aportes falta conectar la cuenta de Mercado Pago del equipo. Con el botón de acá abajo lo hacen en un minuto:\n\n- ",
+    );
   }
 
   async function sendInfoRequest() {
     const supa = sb();
     if (!supa || !infoModal || infoBusy) return;
     setInfoBusy(true);
+    const idField =
+      infoModal.kind === "application"
+        ? { application_id: infoModal.id }
+        : infoModal.kind === "athlete"
+          ? { athlete_id: infoModal.id }
+          : { team_id: infoModal.id };
     const { data, error } = await supa.functions.invoke("request-info", {
       body: {
-        application_id: infoModal.id,
+        ...idField,
         message: infoMsg.trim(),
         include_mp_link: infoIncludeMp,
       },
@@ -840,7 +901,7 @@ export function BackofficeApp() {
       return;
     }
     setToast(
-      `✓ Email enviado a ${infoModal.full_name}${data?.mp_link_included ? " (con el link para conectar su Mercado Pago)" : ""}.`,
+      `✓ Email enviado a ${infoModal.name}${data?.mp_link_included ? " (con el link para conectar su Mercado Pago)" : ""}.`,
     );
     setInfoModal(null);
   }
@@ -1075,7 +1136,7 @@ export function BackofficeApp() {
           )}
 
           {/* ===== ATLETAS ===== */}
-          {active === "Atletas" && <AtletasSection athletes={athletes} loading={loadingList} onConnect={genMpLink} onToggleStatus={handleToggleStatus} onViewMpInfo={handleViewMpInfo} onSetTeam={handleSetTeam} onSendAccess={sendAccess} onSave={handleSaveAthlete} />}
+          {active === "Atletas" && <AtletasSection athletes={athletes} loading={loadingList} onConnect={genMpLink} onToggleStatus={handleToggleStatus} onViewMpInfo={handleViewMpInfo} onSetTeam={handleSetTeam} onSendAccess={sendAccess} onAskInfo={askAthleteInfo} onSave={handleSaveAthlete} />}
 
           {/* ===== EQUIPOS ===== */}
           {active === "Proyectos deportivos" && (
@@ -1086,6 +1147,7 @@ export function BackofficeApp() {
               onToggleActive={handleToggleTeamActive}
               onSave={handleSaveTeam}
               onConnectMp={genTeamMpLink}
+              onAskInfo={askTeamInfo}
             />
           )}
 
@@ -1222,10 +1284,20 @@ export function BackofficeApp() {
             onClick={(e) => e.stopPropagation()}
             style={{ width: "100%", maxWidth: 520, background: C.surface, border: "1px solid rgba(255,255,255,.1)", borderRadius: 20, padding: 28, boxShadow: "0 30px 90px rgba(0,0,0,.65)" }}
           >
-            <div className="mb-1 font-display text-[11px] uppercase tracking-[.14em]" style={{ color: C.gold }}>Pedir más info</div>
-            <h2 className="m-0 mb-1 font-display text-[22px] font-600 leading-tight">{infoModal.full_name}</h2>
+            <div className="mb-1 font-display text-[11px] uppercase tracking-[.14em]" style={{ color: C.gold }}>
+              {infoModal.kind === "application"
+                ? "Pedir más info"
+                : infoModal.kind === "athlete"
+                  ? "Escribirle al atleta"
+                  : "Escribirle al proyecto"}
+            </div>
+            <h2 className="m-0 mb-1 font-display text-[22px] font-600 leading-tight">{infoModal.name}</h2>
             <p className="mb-4 text-[13px]" style={{ color: C.txtDim }}>
-              El email sale desde GRANITO (no-reply@somosgranito.com) a <strong style={{ color: "#fff" }}>{infoModal.email}</strong>. Si responde, llega a hola@somosgranito.com.
+              {infoModal.email ? (
+                <>El email sale desde GRANITO (no-reply@somosgranito.com) a <strong style={{ color: "#fff" }}>{infoModal.email}</strong>. Si responde, llega a hola@somosgranito.com.</>
+              ) : (
+                <span style={{ color: C.redBright }}>No tenemos un email cargado para escribirle.</span>
+              )}
             </p>
 
             <textarea
@@ -1237,16 +1309,16 @@ export function BackofficeApp() {
               style={{ background: C.sidebar, border: "1px solid rgba(255,255,255,.12)" }}
             />
 
-            <label className="mt-3 flex cursor-pointer items-start gap-2.5 text-[13px]" style={{ color: infoModal.mp_connected ? C.txtFaint : "rgba(255,255,255,.8)" }}>
+            <label className="mt-3 flex cursor-pointer items-start gap-2.5 text-[13px]" style={{ color: infoModal.mpConnected ? C.txtFaint : "rgba(255,255,255,.8)" }}>
               <input
                 type="checkbox"
-                checked={infoIncludeMp && !infoModal.mp_connected}
-                disabled={!!infoModal.mp_connected}
+                checked={infoIncludeMp && !infoModal.mpConnected}
+                disabled={!!infoModal.mpConnected}
                 onChange={(e) => setInfoIncludeMp(e.target.checked)}
                 style={{ marginTop: 2, accentColor: "#009ee3", width: 15, height: 15 }}
               />
               <span>
-                {infoModal.mp_connected
+                {infoModal.mpConnected
                   ? "Ya conectó su Mercado Pago ✓ (no hace falta el link)"
                   : <>Incluir botón <strong style={{ color: "#6cb4e4" }}>“Conectar mi Mercado Pago”</strong> (link seguro atado a su postulación, vale 30 días)</>}
               </span>
@@ -1262,7 +1334,8 @@ export function BackofficeApp() {
               </button>
               <button
                 onClick={sendInfoRequest}
-                disabled={infoBusy || !infoMsg.trim()}
+                disabled={infoBusy || !infoMsg.trim() || !infoModal.email}
+                title={infoModal.email ? undefined : "No tenemos un email para escribirle"}
                 className="flex-1 rounded-[10px] py-3 font-display text-[13px] font-600 uppercase tracking-wide disabled:opacity-50"
                 style={{ background: C.gold, color: C.ink }}
               >
@@ -1750,6 +1823,7 @@ function EquiposSection({
   onToggleActive,
   onSave,
   onConnectMp,
+  onAskInfo,
 }: {
   teams: TeamApp[];
   pledges: TeamPledge[];
@@ -1757,6 +1831,7 @@ function EquiposSection({
   onToggleActive: (t: TeamApp) => void;
   onSave: (t: TeamApp, patch: Partial<TeamApp>) => Promise<void>;
   onConnectMp: (t: TeamApp) => void;
+  onAskInfo: (t: TeamApp) => void;
 }) {
   const [editing, setEditing] = useState<TeamApp | null>(null);
   const [viewingPledges, setViewingPledges] = useState<TeamApp | null>(null);
@@ -1837,6 +1912,16 @@ function EquiposSection({
                 style={{ background: "rgba(108,180,228,.14)", color: C.celeste, border: "none", cursor: "pointer" }}
               >
                 ✎
+              </button>
+              <button
+                onClick={() => onAskInfo(t)}
+                title={t.mp_connected
+                  ? "Escribirles: les llega un email con tu mensaje"
+                  : "Escribirles: les llega un email con tu mensaje y el botón para conectar el Mercado Pago del equipo"}
+                className="flex h-[26px] w-[26px] items-center justify-center rounded-full text-[12px] transition-opacity hover:opacity-70"
+                style={{ background: "rgba(255,255,255,.08)", color: "rgba(255,255,255,.75)", border: "none", cursor: "pointer" }}
+              >
+                💬
               </button>
               {t.mp_connected ? (
                 <span
@@ -2167,6 +2252,7 @@ function AtletasSection({
   onViewMpInfo,
   onSetTeam,
   onSendAccess,
+  onAskInfo,
   onSave,
 }: {
   athletes: AthleteRow[];
@@ -2176,6 +2262,7 @@ function AtletasSection({
   onViewMpInfo: (a: AthleteRow) => void;
   onSetTeam: (a: AthleteRow, teamSlug: string) => void;
   onSendAccess: (a: AthleteRow) => void;
+  onAskInfo: (a: AthleteRow) => void;
   onSave: (a: AthleteRow, patch: Partial<AthleteRow>) => Promise<void>;
 }) {
   const [editing, setEditing] = useState<AthleteRow | null>(null);
@@ -2260,6 +2347,16 @@ function AtletasSection({
                 style={{ background: "rgba(201,162,39,.14)", color: C.gold, border: "none", cursor: "pointer" }}
               >
                 ✉
+              </button>
+              <button
+                onClick={() => onAskInfo(a)}
+                title={a.mp_connected
+                  ? "Escribirle: le llega un email con tu mensaje"
+                  : "Escribirle: le llega un email con tu mensaje y el botón para conectar su Mercado Pago"}
+                className="flex h-[26px] w-[26px] items-center justify-center rounded-full text-[12px] transition-opacity hover:opacity-70"
+                style={{ background: "rgba(255,255,255,.08)", color: "rgba(255,255,255,.75)", border: "none", cursor: "pointer" }}
+              >
+                💬
               </button>
               {a.mp_connected ? (
                 <button
