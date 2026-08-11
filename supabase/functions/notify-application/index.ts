@@ -3,10 +3,10 @@
 // Resend: (1) aviso al equipo de GRANITO de que llegó una postulación, y
 // (2) confirmación al atleta de que la recibimos.
 //
-// Secrets: SUPABASE_SERVICE_ROLE_KEY, RESEND_API_KEY, (opcional) SITE_URL,
+// Secrets: SUPABASE_SERVICE_ROLE_KEY, RESEND_API_KEY, (opcional) ADMIN_URL,
 //          (opcional) TEAM_EMAILS (coma-separado; default appidisko@gmail.com).
 // Deploy con --no-verify-jwt (lo llama el sitio público).
-import { cors, json, serviceClient, signState, SITE_URL } from "../_shared/util.ts";
+import { cors, json, serviceClient, signState, ADMIN_URL } from "../_shared/util.ts";
 
 const FROM = "GRANITO <no-reply@somosgranito.com>";
 const isEmail = (s: string | null | undefined) =>
@@ -100,7 +100,7 @@ function teamHtml(a: Record<string, unknown>): string {
         ${row("Instagram", a.socials)}
         ${row("MP conectado", a.mp_connected ? "Sí ✓" : "No")}
       </table>
-      <a href="${SITE_URL}/backoffice/" style="display:inline-block;margin-top:20px;background:#C9A227;color:#0A1A2F;font-weight:bold;font-size:14px;padding:12px 24px;border-radius:9px;text-decoration:none">
+      <a href="${ADMIN_URL}/backoffice/" style="display:inline-block;margin-top:20px;background:#C9A227;color:#0A1A2F;font-weight:bold;font-size:14px;padding:12px 24px;border-radius:9px;text-decoration:none">
         Revisar en el backoffice
       </a>
     </td></tr>
@@ -131,7 +131,7 @@ function teamAppHtml(t: Record<string, unknown>): string {
         ${row("Período de campaña", periodo)}
         ${row("Notas", t.notes)}
       </table>
-      <a href="${SITE_URL}/backoffice/" style="display:inline-block;margin-top:20px;background:#C9A227;color:#0A1A2F;font-weight:bold;font-size:14px;padding:12px 24px;border-radius:9px;text-decoration:none">
+      <a href="${ADMIN_URL}/backoffice/" style="display:inline-block;margin-top:20px;background:#C9A227;color:#0A1A2F;font-weight:bold;font-size:14px;padding:12px 24px;border-radius:9px;text-decoration:none">
         Revisar en el backoffice
       </a>
     </td></tr>

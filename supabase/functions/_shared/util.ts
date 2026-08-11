@@ -80,4 +80,10 @@ export async function verifyState<T = Record<string, unknown>>(
 
 export const SITE_URL =
   Deno.env.get("SITE_URL") ?? "https://somosgranito.com";
+
+/** El backoffice NO vive en el sitio público: tiene su propio deploy privado
+ *  (Cloudflare Pages + Cloudflare Access). Los mails al equipo tienen que
+ *  linkear acá, no a somosgranito.com/backoffice/, que ya no existe. */
+export const ADMIN_URL =
+  Deno.env.get("ADMIN_URL") ?? "https://granito-admin.pages.dev";
 export const PLATFORM_FEE_RATE = 0.07;
