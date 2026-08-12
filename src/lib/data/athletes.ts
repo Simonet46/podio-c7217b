@@ -40,6 +40,28 @@ export async function getAthleteUpdates(slug: string): Promise<AthleteUpdate[]> 
 
 const ONLY_VERIFIED = true;
 
+/**
+ * Recaudado real por atleta, en NETO (lo que le queda después del 7%).
+ *
+ * NO usamos `athletes.raised_amount`: esa columna no la actualiza nadie (el
+ * webhook de MP inserta la donación y no la toca), así que sólo está bien
+ * mientras alguien la mantenga a mano. La verdad son las donaciones
+ * acreditadas, agregadas en la vista `public_athlete_raised`.
+ */
+async function netRaisedByAthlete(
+  supabase: NonNullable<Awaited<ReturnType<typeof getSupabase>>>,
+): Promise<Map<string, number>> {
+  const totals = new Map<string, number>();
+  const { data, error } = await supabase
+    .from("public_athlete_raised")
+    .select("athlete_id,raised_net");
+  if (error || !data) return totals;
+  for (const row of data as { athlete_id: string; raised_net: number | string }[]) {
+    totals.set(row.athlete_id, Number(row.raised_net) || 0);
+  }
+  return totals;
+}
+
 async function allAthletesRaw(): Promise<Athlete[]> {
   if (isSupabaseConfigured) {
     const supabase = await getSupabase();
@@ -49,7 +71,15 @@ async function allAthletesRaw(): Promise<Athlete[]> {
         .select("*")
         .eq("verified", true)
         .order("created_at", { ascending: true });
-      if (!error && data) return data as Athlete[];
+      if (!error && data) {
+        const net = await netRaisedByAthlete(supabase);
+        // Sin donaciones acreditadas, 0. Nunca caemos a raised_amount: si la
+        // vista fallara, mostrar un número viejo sería peor que mostrar cero.
+        return (data as Athlete[]).map((a) => ({
+          ...a,
+          raised_amount: net.get(a.id) ?? 0,
+        }));
+      }
     }
   }
   return SEED_ATHLETES.filter((a) => !ONLY_VERIFIED || a.verified);

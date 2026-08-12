@@ -89,6 +89,10 @@ export default function MiPerfilPage() {
   const [connectingMp, setConnectingMp] = useState(false);
   const [mpJustConnected, setMpJustConnected] = useState(false);
   const [aportes, setAportes] = useState<Aporte[]>([]);
+  // Total NETO real (suma de las donaciones acreditadas, ya descontado el 7%).
+  // La lista de abajo muestra sólo los últimos 10, así que no alcanza con
+  // sumarla: el total sale de la vista public_athlete_raised.
+  const [totalNeto, setTotalNeto] = useState(0);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editForm, setEditForm] = useState<EditForm>({ photo_url: "", bio: "", next_competition: "", socials: "", supporter_message: "" });
   const [editBusy, setEditBusy] = useState(false);
@@ -142,14 +146,16 @@ export default function MiPerfilPage() {
       setAtleta(a as Atleta);
 
       // Cargar datos paralelos.
-      const [{ data: mp }, { data: changes }, { data: dons }, { data: novs }] = await Promise.all([
+      const [{ data: mp }, { data: changes }, { data: dons }, { data: novs }, { data: tot }] = await Promise.all([
         supabase.from("athlete_mp_accounts").select("mp_user_id").eq("athlete_id", a.id).maybeSingle(),
         supabase.from("profile_change_requests").select("id,changes,status,created_at").eq("athlete_id", a.id).eq("status", "pending").order("created_at", { ascending: true }),
         supabase.from("donations").select("id,amount,net_amount,type,status,created_at").eq("athlete_id", a.id).order("created_at", { ascending: false }).limit(10),
         supabase.from("athlete_updates").select("id,title,body,image_url,status,admin_note,created_at").eq("athlete_id", a.id).order("created_at", { ascending: false }),
+        supabase.from("public_athlete_raised").select("raised_net").eq("athlete_id", a.id).maybeSingle(),
       ]);
 
       setMpConectado(!!mp?.mp_user_id);
+      setTotalNeto(Number((tot as { raised_net: number | string } | null)?.raised_net) || 0);
       setPendingChanges((changes as PendingChange[]) ?? []);
       setAportes((dons as Aporte[]) ?? []);
       setNovedades((novs as Novedad[]) ?? []);
@@ -687,7 +693,7 @@ export default function MiPerfilPage() {
 
         {/* Stats rápidos */}
         <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
-          <StatCard label="Total recibido" value={formatMoney(atleta.raised_amount)} />
+          <StatCard label="Total recibido" value={formatMoney(totalNeto)} />
           <StatCard label="Tu deporte" value={sport?.label ?? atleta.sport} />
           <StatCard
             label="Mercado Pago"
