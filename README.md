@@ -65,7 +65,7 @@ src/
     api/checkout/route.ts    # crea Checkout Session (o URL demo)
     api/webhook/route.ts     # registra donación, actualiza recaudado
 supabase/
-  schema.sql         # tablas, RPC increment_raised, RLS
+  schema.sql         # FOTO real de la base (generada 13/08/2026); cambios nuevos → migrations/ + db push
   seed.sql           # 8 atletas de demo
 ```
 
