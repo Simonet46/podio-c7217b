@@ -35,6 +35,8 @@ export function DonationWidget({
   const [custom, setCustom] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [donorName, setDonorName] = useState("");
+  /** Falló la creación del pago. Se dice, no se disimula. */
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   const presets = PRESET_AMOUNTS.once;
@@ -62,6 +64,7 @@ export function DonationWidget({
   async function handleSubmit() {
     if (amount <= 0 || loading || !canReceive) return;
     setLoading(true);
+    setError(null);
 
     // Registrar evidencia de aceptación de los Términos del Donante (Kahale
     // secc. 10). Best-effort: no bloquea el aporte si falla.
@@ -73,13 +76,23 @@ export function DonationWidget({
       meta: { amount, kind: target.kind, split },
     });
 
-    // Aporte a un atleta individual con Mercado Pago conectado → checkout real
-    // (split 93/7). Si el atleta no conectó MP o algo falla, cae al modo demo.
-    if (target.kind === "athlete" && target.slug && isSupabaseConfigured) {
+    // Sin Supabase configurado no existe cobro posible: es la demo local, y la
+    // pantalla de gracias es parte de la demo. En producción NUNCA se llega
+    // acá.
+    if (!isSupabaseConfigured) {
+      irAGracias();
+      return;
+    }
+
+    // Aporte a un atleta con Mercado Pago conectado → checkout real (split
+    // 93/7). Si no conseguimos el link, se avisa: antes esto caía en la
+    // pantalla de "¡Gracias!" y el hincha se iba creyendo que había donado
+    // sin que se cobrara nada.
+    if (target.kind === "athlete" && target.slug) {
       try {
         const supabase = await getSupabase();
         if (supabase) {
-          const { data } = await supabase.functions.invoke(
+          const { data, error: fnError } = await supabase.functions.invoke(
             "mp-create-preference",
             { body: { slug: target.slug, amount, type: "once", donorName: donorName.trim() || undefined } },
           );
@@ -88,13 +101,21 @@ export function DonationWidget({
             window.location.href = url;
             return;
           }
+          console.error("mp-create-preference sin link de pago:", fnError ?? data);
         }
-      } catch {
-        // sin conexión o error → cae al modo demo de abajo
+      } catch (e) {
+        console.error("mp-create-preference falló:", e);
       }
     }
 
-    // Fallback (atleta sin MP, equipos, "apoyá a todos", o sin Supabase): demo.
+    setLoading(false);
+    setError(
+      "No pudimos abrir el pago y no se te cobró nada. Probá de nuevo en un momento; si sigue igual, escribinos a hola@somosgranito.com.",
+    );
+  }
+
+  /** Pantalla de gracias de la demo local (sin Supabase). */
+  function irAGracias() {
     const params = new URLSearchParams({
       kind: target.kind,
       amount: String(amount),
@@ -271,6 +292,16 @@ export function DonationWidget({
         >
           {loading ? "Redirigiendo…" : cta}
         </button>
+
+        {error && (
+          <p
+            role="alert"
+            className="mt-3 rounded-lg px-3.5 py-3 text-[13px] leading-relaxed"
+            style={{ background: "rgba(223,0,36,.12)", border: "1px solid rgba(223,0,36,.35)", color: "#ff9aa7" }}
+          >
+            {error}
+          </p>
+        )}
 
         <p className="mt-3 text-center text-xs leading-relaxed text-white/35">
           Pago seguro · procesado vía Mercado Pago.
