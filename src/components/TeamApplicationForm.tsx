@@ -8,6 +8,7 @@ import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
 import { legalDoc } from "@/config/legal";
 import { recordAcceptance } from "@/lib/legal";
 import { PhoneField, buildPhone } from "./PhoneField";
+import { emailValido, sugerenciaEmail } from "@/lib/email";
 
 const inputCls =
   "w-full rounded-[10px] border border-white/[.14] bg-white/[.05] px-[15px] py-[13px] text-[15px] text-white outline-none placeholder:text-white/35 focus:border-white/40";
@@ -42,7 +43,7 @@ export function TeamApplicationForm() {
   const deporteEfectivo = esOtro ? deporteOtro.trim() : deporte;
   const valido =
     equipo.trim() &&
-    email.trim() &&
+    emailValido(email) &&
     telefono.trim() &&
     deporteEfectivo &&
     (!esOtro || deporteOtro.trim()) &&
@@ -405,6 +406,23 @@ export function TeamApplicationForm() {
             placeholder="equipo@email.com"
             className={`${inputCls} mt-[7px]`}
           />
+          {/* A este email va la aprobación y el link de Mercado Pago: si está
+              mal, el proyecto queda aprobado e ilocalizable. */}
+          {email.trim() !== "" && !emailValido(email) && (
+            <p className="mt-1.5 text-[12px] leading-snug" style={{ color: "#ff9aa9" }}>
+              Ese email no parece válido — revisalo, es adonde les escribimos.
+            </p>
+          )}
+          {sugerenciaEmail(email) && (
+            <button
+              type="button"
+              onClick={() => setEmail(sugerenciaEmail(email)!)}
+              className="mt-1.5 text-[12px] font-600 underline"
+              style={{ color: "#6CB4E4" }}
+            >
+              ¿Quisiste decir {sugerenciaEmail(email)}?
+            </button>
+          )}
         </div>
       </div>
 

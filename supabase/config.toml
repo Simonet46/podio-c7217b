@@ -82,3 +82,8 @@ verify_jwt = false
 [functions.mp-app-connect-url]
 # Link de conexión de MP durante la postulación (sin cuenta todavía).
 verify_jwt = false
+
+[functions.mp-reconcile]
+# Reconciliación contra MP. Su chequeo interno de service_role confía en que
+# el gateway validó la firma del JWT: este true NO se puede apagar.
+verify_jwt = true

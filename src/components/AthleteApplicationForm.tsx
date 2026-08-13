@@ -8,6 +8,7 @@ import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
 import { legalDoc } from "@/config/legal";
 import { recordAcceptance } from "@/lib/legal";
 import { PhoneField, buildPhone } from "./PhoneField";
+import { emailValido, sugerenciaEmail } from "@/lib/email";
 
 type Step = 1 | 2 | 3 | 4 | 5; // 5 = done
 
@@ -564,6 +565,24 @@ export function AthleteApplicationForm() {
                 placeholder="tu@email.com"
                 className={`${inputCls} mt-[7px]`}
               />
+              {/* A este email va TODO (aprobación, acceso, cobros): si está
+                  mal, el atleta queda aprobado e ilocalizable. Ya pasó. */}
+              {email.trim() !== "" && !emailValido(email) && (
+                <p className="mt-1.5 text-[12px] leading-snug" style={{ color: "#ff9aa9" }}>
+                  Ese email no parece válido — revisalo, es adonde te escribimos
+                  para aprobarte.
+                </p>
+              )}
+              {sugerenciaEmail(email) && (
+                <button
+                  type="button"
+                  onClick={() => setEmail(sugerenciaEmail(email)!)}
+                  className="mt-1.5 text-[12px] font-600 underline"
+                  style={{ color: "#6CB4E4" }}
+                >
+                  ¿Quisiste decir {sugerenciaEmail(email)}?
+                </button>
+              )}
             </div>
           </div>
 
@@ -743,7 +762,7 @@ export function AthleteApplicationForm() {
           {ctaBtn(
             "Continuar",
             () => go(2),
-            !nombre || !email || !telefono.trim() || !edadValida || !nivel ||
+            !nombre || !emailValido(email) || !telefono.trim() || !edadValida || !nivel ||
               !deporte || (esOtro && !deporteOtro.trim()),
           )}
         </section>
@@ -1075,7 +1094,9 @@ export function AthleteApplicationForm() {
                   <strong className="text-white">
                     revisan cada postulación a mano
                   </strong>
-                  . Te escribimos en 3 a 5 días.
+                  . Te escribimos en 3 a 5 días a{" "}
+                  <strong className="text-white">{email.trim()}</strong> — si ese
+                  email está mal, no vamos a poder avisarte.
                 </p>
               </div>
 

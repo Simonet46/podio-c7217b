@@ -6,6 +6,7 @@ import { SPORT_LIST, getSport } from "@/config/sports";
 import { SEED_TEAMS } from "@/lib/data/teams";
 import { TeamsManager, type DbTeam } from "./BackofficeSelections";
 import { formatMoney } from "@/lib/money";
+import { emailValido } from "@/lib/email";
 
 // ── Cliente Supabase del navegador (singleton, mantiene sesión) ──────────
 const SB_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -24,6 +25,7 @@ type Application = {
   discipline: string | null;
   location: string | null;
   email: string;
+  phone: string | null;
   age: number | null;
   dni: string | null;
   next_competition: string | null;
@@ -66,6 +68,25 @@ type AthleteRow = {
   card_tag: string | null;
   hero_badge: string | null;
 };
+
+/** Último run del workflow de deploy (lo devuelve la función deploy-status). */
+type DeployInfo = {
+  status: "queued" | "in_progress" | "completed" | "none";
+  conclusion: "success" | "failure" | "cancelled" | null;
+  created_at: string;
+  updated_at: string;
+  html_url: string;
+};
+
+/** "hace 3 min", "hace 2 h", "hace 1 d" — para el semáforo del deploy. */
+function haceCuanto(iso: string): string {
+  const min = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
+  if (min < 1) return "recién";
+  if (min < 60) return `hace ${min} min`;
+  const h = Math.round(min / 60);
+  if (h < 24) return `hace ${h} h`;
+  return `hace ${Math.round(h / 24)} d`;
+}
 
 /** A quién le estamos por escribir desde el modal "pedir más info". */
 type InfoTarget = {
@@ -366,6 +387,8 @@ export function BackofficeApp() {
   const [athleteUpdates, setAthleteUpdates] = useState<AthleteUpdateRow[]>([]);
   const [teamUpdates, setTeamUpdates] = useState<TeamUpdateRow[]>([]);
   const [donations, setDonations] = useState<AdminDonation[]>([]);
+  // Estado del último deploy del sitio (semáforo junto a "Publicar ahora").
+  const [deploy, setDeploy] = useState<DeployInfo | null>(null);
   // Modal "pedir más info" (email vía Resend, sin mailto). Sirve para los tres
   // destinatarios: postulante, atleta ya dado de alta y proyecto deportivo.
   const [infoModal, setInfoModal] = useState<InfoTarget | null>(null);
@@ -466,6 +489,24 @@ export function BackofficeApp() {
   useEffect(() => {
     if (phase === "ready") loadApps();
   }, [phase, loadApps]);
+
+  // ── Semáforo del deploy: estado del último run de deploy.yml ──
+  const refreshDeploy = useCallback(async () => {
+    const supa = sb();
+    if (!supa) return;
+    const { data } = await supa.functions.invoke("deploy-status", { body: {} });
+    if (data && !data.error && data.status !== "none") setDeploy(data as DeployInfo);
+  }, []);
+
+  useEffect(() => {
+    if (phase !== "ready") return;
+    refreshDeploy();
+    // Mientras hay un deploy corriendo refrescamos seguido; si no, cada tanto
+    // (para enterarse de publicaciones disparadas desde otro lado).
+    const enCurso = deploy?.status === "in_progress" || deploy?.status === "queued";
+    const t = setInterval(refreshDeploy, enCurso ? 20000 : 120000);
+    return () => clearInterval(t);
+  }, [phase, refreshDeploy, deploy?.status]);
 
   const counts = useMemo(() => {
     const c = { pending: 0, approved: 0, rejected: 0 } as Record<StatusFilter, number>;
@@ -629,8 +670,11 @@ export function BackofficeApp() {
     setToast(
       error
         ? "No se pudo disparar la publicación (¿está configurada la función trigger-rebuild?): " + error.message
-        : "🚀 Publicación disparada. Tarda ~2-3 min en reconstruirse y hasta ~10 min más en actualizarse en todos lados (caché de GitHub). Si no lo ves enseguida, recargá con Cmd+Shift+R o esperá unos minutos.",
+        : "🚀 Publicación disparada. Seguí el semáforo de acá arriba: pasa a ⏳ mientras corre y a ✓ cuando el sitio quedó publicado (después GitHub puede tardar unos minutos más en refrescar su caché).",
     );
+    // GitHub tarda unos segundos en registrar el run: refrescamos el semáforo
+    // apenas debería existir, y el intervalo corto sigue mientras corra.
+    if (!error) setTimeout(refreshDeploy, 6000);
   }
 
   async function handleToggleStatus(athlete: AthleteRow) {
@@ -1055,6 +1099,35 @@ export function BackofficeApp() {
           </div>
           <div className="flex items-center gap-3">
             <span className="hidden text-[13px] lg:inline" style={{ color: C.txtDim }}>{userEmail}</span>
+            {deploy && (
+              // Semáforo del último deploy. Clickeable: abre el run en GitHub.
+              <a
+                href={deploy.html_url}
+                target="_blank"
+                rel="noreferrer"
+                title={
+                  deploy.status !== "completed"
+                    ? "El sitio se está reconstruyendo ahora"
+                    : deploy.conclusion === "success"
+                      ? "Última publicación del sitio: salió bien"
+                      : "La última publicación FALLÓ: el sitio quedó en la versión anterior. Tocá para ver el error y volvé a publicar."
+                }
+                className="rounded-full px-3 py-[6px] font-display text-[11px] font-600 uppercase tracking-[.05em]"
+                style={
+                  deploy.status !== "completed"
+                    ? { background: "rgba(201,162,39,.16)", color: C.gold, border: "1px solid rgba(201,162,39,.4)", textDecoration: "none" }
+                    : deploy.conclusion === "success"
+                      ? { background: "rgba(34,197,94,.12)", color: C.greenBright, border: "1px solid rgba(34,197,94,.35)", textDecoration: "none" }
+                      : { background: "rgba(223,0,36,.14)", color: C.redBright, border: "1px solid rgba(223,0,36,.45)", textDecoration: "none" }
+                }
+              >
+                {deploy.status !== "completed"
+                  ? "⏳ Publicando…"
+                  : deploy.conclusion === "success"
+                    ? `✓ Web al día · ${haceCuanto(deploy.updated_at)}`
+                    : `✗ Falló el deploy · ${haceCuanto(deploy.updated_at)}`}
+              </a>
+            )}
             <button
               onClick={handlePublish}
               disabled={publishing}
@@ -1600,6 +1673,9 @@ function PostulacionesSection({
                     <div className="flex items-center gap-2">
                       <span className="truncate text-[15px] font-600 leading-tight">{a.full_name}</span>
                       <StatusChip status={a.status} />
+                      {!emailValido(a.email) && (
+                        <span title="El email de esta postulación no es válido: todo lo que le mandemos rebota. Abrila para ver su WhatsApp." className="flex-none rounded-full px-2 py-[2px] font-display text-[9.5px] font-600 uppercase tracking-[.05em]" style={{ background: "rgba(223,0,36,.16)", color: C.redBright }}>⚠ email</span>
+                      )}
                     </div>
                     <div className="mt-0.5 text-[12px]" style={{ color: C.txtDim }}>{a.sport}{a.location ? ` · ${a.location}` : ""}</div>
                   </div>
@@ -1634,7 +1710,16 @@ function PostulacionesSection({
 
               {/* contacto */}
               <div className="mt-3.5 flex flex-wrap gap-2.5">
-                <a href={`mailto:${selected.email}`} className="flex items-center gap-2 rounded-[9px] px-3 py-2 text-[13px] font-500" style={{ background: "#0a1828", border: "1px solid rgba(255,255,255,.08)", color: C.celeste, textDecoration: "none" }}>✉ {selected.email}</a>
+                {emailValido(selected.email) ? (
+                  <a href={`mailto:${selected.email}`} className="flex items-center gap-2 rounded-[9px] px-3 py-2 text-[13px] font-500" style={{ background: "#0a1828", border: "1px solid rgba(255,255,255,.08)", color: C.celeste, textDecoration: "none" }}>✉ {selected.email}</a>
+                ) : (
+                  // Email roto: todos los mails (aprobación, acceso, MP) rebotan.
+                  // El teléfono de al lado es la única vía de contacto.
+                  <span title="Esto no es un email: todos los mails a esta persona van a rebotar. Contactala por WhatsApp y corregí el email al darla de alta." className="flex items-center gap-2 rounded-[9px] px-3 py-2 text-[13px] font-600" style={{ background: "rgba(223,0,36,.14)", border: "1px solid rgba(223,0,36,.5)", color: C.redBright }}>⚠ EMAIL INVÁLIDO: “{selected.email}”</span>
+                )}
+                {selected.phone && (
+                  <a href={`https://wa.me/${selected.phone.replace(/[^0-9]/g, "")}`} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-[9px] px-3 py-2 text-[13px] font-500" style={{ background: "#0a1828", border: "1px solid rgba(37,211,102,.35)", color: "#25D366", textDecoration: "none" }}>✆ {selected.phone}</a>
+                )}
                 {selected.socials && <span className="flex items-center gap-2 rounded-[9px] px-3 py-2 text-[13px] font-500" style={{ background: "#0a1828", border: "1px solid rgba(255,255,255,.08)", color: "rgba(255,255,255,.8)" }}>◎ {selected.socials}</span>}
               </div>
 
@@ -2405,6 +2490,7 @@ function AthleteEditModal({
   const [form, setForm] = useState({
     full_name: athlete.full_name ?? "",
     bio: athlete.bio ?? "",
+    email: athlete.email ?? "",
     next_competition: athlete.next_competition ?? "",
     socials: athlete.socials ?? "",
     supporter_message: athlete.supporter_message ?? "",
@@ -2445,9 +2531,32 @@ function AthleteEditModal({
   async function save() {
     setBusy(true);
     setErr("");
+    // El email va aparte: si el atleta ya activó su cuenta, hay que actualizar
+    // también su usuario de Auth (si no, el login sigue apuntando al viejo).
+    // De eso se encarga la función admin-update-athlete-email.
+    const emailNuevo = form.email.trim().toLowerCase();
+    if (emailNuevo !== (athlete.email ?? "").trim().toLowerCase()) {
+      if (!emailValido(emailNuevo)) {
+        setErr("Ese email no parece válido. Revisalo antes de guardar.");
+        setBusy(false);
+        return;
+      }
+      const supaMail = sb();
+      const { data, error } = supaMail
+        ? await supaMail.functions.invoke("admin-update-athlete-email", {
+            body: { athlete_id: athlete.id, email: emailNuevo },
+          })
+        : { data: null, error: { message: "sin conexión" } };
+      if (error || data?.error) {
+        setErr("No se pudo actualizar el email: " + (error?.message ?? data?.error));
+        setBusy(false);
+        return;
+      }
+    }
     // Solo mandamos lo que cambió.
     const patch: Partial<AthleteRow> = {};
     (Object.keys(form) as (keyof typeof form)[]).forEach((k) => {
+      if (k === "email") return; // lo maneja admin-update-athlete-email
       const cur = (athlete[k as keyof AthleteRow] as string | null) ?? "";
       if (form[k] !== cur) (patch as Record<string, string>)[k] = form[k];
     });
@@ -2553,6 +2662,9 @@ function AthleteEditModal({
           </div>
           <EditRow label="Historia / Bio">
             <textarea rows={4} value={form.bio} onChange={(e) => set("bio", e.target.value)} style={{ ...inputDark, resize: "vertical" }} />
+          </EditRow>
+          <EditRow label="Email (acá le llegan el acceso y los avisos; corrige también su usuario de login)">
+            <input type="email" value={form.email} onChange={(e) => set("email", e.target.value)} style={emailValido(form.email) ? inputDark : { ...inputDark, border: "1px solid rgba(223,0,36,.55)" }} />
           </EditRow>
           <EditRow label="Próxima competencia">
             <input value={form.next_competition} onChange={(e) => set("next_competition", e.target.value)} style={inputDark} />
