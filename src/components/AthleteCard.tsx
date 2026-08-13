@@ -128,10 +128,12 @@ export function AthleteCard({
   );
 }
 
-/** Con recaudación chica, mostrar "$ 0 aportados" es anunciar un boliche
- *  vacío. Debajo del umbral la card muestra otra señal de vida:
- *  pill del admin (card_tag) > próxima competencia > "Nuevo en GRANITO". */
-const MONTO_VISIBLE_DESDE = 5000;
+/** Mostrar "$ 0 aportados" es anunciar un boliche vacío: sin recaudación la
+ *  card muestra otra señal de vida (pill del admin > próxima competencia >
+ *  "Nuevo en GRANITO"). Pero apenas hay plata real, se muestra: si la
+ *  selección dice "$47 entre todos", los jugadores tienen que dar cuenta
+ *  de esos $47. */
+const MONTO_VISIBLE_DESDE = 1;
 
 function CardSignal({ athlete }: { athlete: Athlete }) {
   if (athlete.raised_amount >= MONTO_VISIBLE_DESDE) {

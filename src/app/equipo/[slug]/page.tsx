@@ -286,8 +286,8 @@ export default async function TeamPage({
                         </p>
                       )}
                       <div className="flex items-center justify-between gap-2 px-3.5 py-3">
-                        {/* Misma señal de vida que el grid: bajo umbral, nada de "$ 0" */}
-                        {m.raised_amount >= 5000 ? (
+                        {/* Misma señal de vida que el grid: con $0, nada de "$ 0" */}
+                        {m.raised_amount >= 1 ? (
                           <span className="text-[12px] text-white/55">
                             <strong className="font-display text-[14px] font-600 text-gold">
                               {formatMoney(m.raised_amount)}
