@@ -50,3 +50,35 @@ content_path = "./supabase/templates/magic_link.html"
 [auth.email.template.recovery]
 subject = "Creá tu contraseña nueva de GRANITO"
 content_path = "./supabase/templates/recovery.html"
+
+# ── Funciones PÚBLICAS: las llama gente sin JWT (Mercado Pago, el sitio
+# estático, el navegador del atleta). verify_jwt=false acá es OBLIGATORIO y
+# tiene que vivir en este archivo: si se deploya sin --no-verify-jwt, el CLI
+# toma el valor de acá. El 04/08/2026 un redeploy de mp-webhook sin el flag
+# lo dejó en true y el gateway rebotó con 401 TODAS las notificaciones de
+# pago de MP durante 9 días — se perdieron donaciones reales ($2.000) hasta
+# la reconciliación a mano del 13/08. No repetir.
+
+[functions.mp-webhook]
+# Lo llama Mercado Pago sin ningún header. Con JWT activado no entra un solo pago.
+verify_jwt = false
+
+[functions.mp-oauth-callback]
+# Redirect del OAuth de MP: llega del navegador, sin sesión.
+verify_jwt = false
+
+[functions.mp-claim-pending]
+# Lo llama el form público de postulación.
+verify_jwt = false
+
+[functions.record-acceptance]
+# Evidencia legal de aceptación: la registra el sitio público.
+verify_jwt = false
+
+[functions.athlete-recover]
+# Recupero de acceso del atleta: por definición, todavía no tiene sesión.
+verify_jwt = false
+
+[functions.mp-app-connect-url]
+# Link de conexión de MP durante la postulación (sin cuenta todavía).
+verify_jwt = false
