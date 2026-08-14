@@ -41,8 +41,10 @@ export function asset(path: string): string {
  */
 export const WEB3FORMS_ACCESS_KEY = "";
 
-/** Correo al que llegan las postulaciones (fallback mailto y referencia). */
-export const APPLICATIONS_EMAIL = "appidisko@gmail.com";
+/** Correo público de contacto (fallback mailto y referencia en los forms).
+ *  OJO: es el que ve la gente — tiene que ser el del dominio, no un Gmail
+ *  personal. Las respuestas de toda la plataforma ya van a esta casilla. */
+export const APPLICATIONS_EMAIL = "hola@somosgranito.com";
 
 /** Comisión de plataforma. 0.07 = 7%. El resto (93%) va al atleta. */
 export const PLATFORM_FEE_RATE = 0.07;

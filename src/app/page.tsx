@@ -46,6 +46,8 @@ export default async function HomePage() {
     nextCompetition: c.competition ?? null,
     photo: c.photo_url,
     href: `/equipos/${c.slug}`,
+    // Píldora propia del proyecto (la escribe el admin). Vacío = sello default.
+    badge: c.hero_badge ?? null,
   }));
   // Desfile completo: TODOS los atletas y TODOS los proyectos deportivos
   // publicados. Sin cupos: el que se da de alta en el backoffice entra solo

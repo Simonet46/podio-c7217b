@@ -9,6 +9,7 @@ import { legalDoc } from "@/config/legal";
 import { recordAcceptance } from "@/lib/legal";
 import { PhoneField, buildPhone } from "./PhoneField";
 import { emailValido, sugerenciaEmail } from "@/lib/email";
+import { limpiarTexto } from "@/lib/strings";
 
 const inputCls =
   "w-full rounded-[10px] border border-white/[.14] bg-white/[.05] px-[15px] py-[13px] text-[15px] text-white outline-none placeholder:text-white/35 focus:border-white/40";
@@ -91,7 +92,7 @@ export function TeamApplicationForm() {
       const { photo_url, photo_secondary_url } = await uploadPhotos();
       const { error } = await supabase.from("team_applications").insert({
         id,
-        team_name: equipo,
+        team_name: limpiarTexto(equipo),
         sport: deporteEfectivo,
         competition: competencia || null,
         fundraising_start: desde || null,
@@ -100,8 +101,8 @@ export function TeamApplicationForm() {
         goal_purpose: proposito || null,
         photo_url,
         photo_secondary_url,
-        contact_name: contacto || null,
-        email,
+        contact_name: limpiarTexto(contacto) || null,
+        email: email.trim(),
         phone: buildPhone(prefijo, telefono) || null,
         notes: notas || null,
         accepted_terms: acepta,

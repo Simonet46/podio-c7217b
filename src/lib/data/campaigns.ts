@@ -20,6 +20,8 @@ export interface TeamCampaign {
   active: boolean;
   photo_url: string | null;
   photo_secondary_url: string | null;
+  /** Píldora del hero editable desde el backoffice (vacío = frase default). */
+  hero_badge: string | null;
   raised_amount: number;
   donor_count: number;
 }

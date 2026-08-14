@@ -9,6 +9,7 @@ import { legalDoc } from "@/config/legal";
 import { recordAcceptance } from "@/lib/legal";
 import { PhoneField, buildPhone } from "./PhoneField";
 import { emailValido, sugerenciaEmail } from "@/lib/email";
+import { limpiarTexto } from "@/lib/strings";
 
 type Step = 1 | 2 | 3 | 4 | 5; // 5 = done
 
@@ -190,11 +191,11 @@ export function AthleteApplicationForm() {
           : connectToken;
       const payload = {
         id,
-        full_name: nombre,
+        full_name: limpiarTexto(nombre),
         sport: deporteEfectivo,
         discipline: esAtletismo ? disciplina || null : null,
-        location: ciudad || null,
-        email,
+        location: limpiarTexto(ciudad) || null,
+        email: email.trim(),
         phone: buildPhone(prefijo, telefono) || null,
         age: edad ? Number(edad) : null,
         dni: dni || null,

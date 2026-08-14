@@ -7,6 +7,7 @@ import { SEED_TEAMS } from "@/lib/data/teams";
 import { TeamsManager, type DbTeam } from "./BackofficeSelections";
 import { formatMoney } from "@/lib/money";
 import { emailValido } from "@/lib/email";
+import { limpiarTexto } from "@/lib/strings";
 
 // ── Cliente Supabase del navegador (singleton, mantiene sesión) ──────────
 const SB_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -115,6 +116,7 @@ type TeamApp = {
   slug: string | null;
   payment_mp: string | null;
   mp_connected: boolean | null;
+  hero_badge: string | null;
   photo_url: string | null;
   photo_secondary_url: string | null;
 };
@@ -295,8 +297,8 @@ function buildDraft(app: Application): Draft {
     email: app.email ?? "",
     dni: app.dni ?? "",
     slug: slugify(app.full_name),
-    full_name: app.full_name,
-    first_name: app.full_name.split(" ")[0] ?? app.full_name,
+    full_name: limpiarTexto(app.full_name),
+    first_name: limpiarTexto(app.full_name).split(" ")[0] ?? app.full_name,
     sport: sportKey,
     discipline: app.discipline ?? "",
     city: parts[0] ?? "",
@@ -2130,6 +2132,7 @@ function TeamEditModal({
 }) {
   const [form, setForm] = useState({
     team_name: team.team_name ?? "",
+    hero_badge: team.hero_badge ?? "",
     sport: team.sport ?? "",
     competition: team.competition ?? "",
     contact_name: team.contact_name ?? "",
@@ -2173,6 +2176,7 @@ function TeamEditModal({
     const patch: Partial<TeamApp> = {};
     const map: Record<string, string | number | null> = {
       team_name: form.team_name,
+      hero_badge: form.hero_badge || null,
       sport: form.sport,
       competition: form.competition || null,
       contact_name: form.contact_name || null,
@@ -2283,6 +2287,9 @@ function TeamEditModal({
               <input value={form.email} onChange={(e) => set("email", e.target.value)} style={inputDark} />
             </EditRow>
           </div>
+          <EditRow label="Píldora del hero (cartelito sobre la card grande de la home; vacío = &quot;Historia real, revisada a mano&quot;)">
+            <input value={form.hero_badge} onChange={(e) => set("hero_badge", e.target.value)} maxLength={42} placeholder='Ej: "Rumbo al Mundial de Softbol"' style={inputDark} />
+          </EditRow>
           <EditRow label="Mercado Pago del equipo (alias / CVU)">
             <input
               value={form.payment_mp}
