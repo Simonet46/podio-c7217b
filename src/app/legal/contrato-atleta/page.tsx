@@ -99,6 +99,23 @@ export default function ContratoAtletaPage() {
           Los fondos se acreditan de forma <strong>directa e inmediata</strong> a través
           del proveedor de pagos; la plataforma no los custodia.
         </p>
+        <p>
+          <strong>Asignaciones del Fondo {SITE.brand}.</strong> Además de los aportes
+          del público, el beneficiario puede recibir una asignación del Fondo{" "}
+          {SITE.brand}, que se integra con un porcentaje comprometido de los contratos
+          de patrocinio que la plataforma celebra con empresas. Esas asignaciones no se
+          acreditan por el proveedor de pagos: las abona {SITE.brand}{" "}
+          <strong>contra comprobante</strong> del gasto autorizado —pasaje, inscripción,
+          equipamiento u otro concepto aprobado— o mediante reintegro contra factura, y
+          nunca por transferencia sin respaldo. Sobre ellas no se aplica la comisión del{" "}
+          <strong>{FEE}%</strong>.
+        </p>
+        <p>
+          Postularse al Fondo <strong>no genera derecho</strong> a percibir suma alguna.
+          Las asignaciones se resuelven por convocatoria periódica conforme el Reglamento
+          del Fondo vigente, la decisión corresponde exclusivamente a {SITE.brand} y
+          ninguna empresa patrocinante elige, dirige ni condiciona a quién se asigna.
+        </p>
       </Section>
 
       <Section n="8" title="Suspensión y situaciones especiales">
@@ -118,6 +135,19 @@ export default function ContratoAtletaPage() {
           ser requerido para informar razonablemente el uso de los fondos. {SITE.brand} no
           verifica el uso efectivo de los fondos salvo que expresamente indique lo contrario
           (ver Política de Verificación).
+        </p>
+        <p>
+          <strong>Quien recibe una asignación del Fondo {SITE.brand}</strong> asume, en
+          cambio, obligaciones específicas: rendir cuenta documentada del uso de lo
+          asignado en el plazo que se le indique; participar del contenido audiovisual que
+          documenta la asignación, previo consentimiento por escrito; y mencionar a{" "}
+          {SITE.brand} al comunicar públicamente lo conseguido.
+        </p>
+        <p>
+          No se le exige, en cambio, publicar contenido de marca de ninguna empresa
+          patrocinante. Todo acuerdo de difusión entre el beneficiario y una marca es
+          voluntario, se contrata por separado y <strong>no condiciona</strong> lo que
+          recibe del Fondo ni su continuidad en la plataforma.
         </p>
       </Section>
 

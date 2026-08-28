@@ -47,18 +47,27 @@ export default function TerminosPage() {
 
       <Section n="2" title="Nuestro rol: intermediario tecnológico (y lo que no somos)">
         <p>
-          {SITE.brand} actúa exclusivamente como <strong>intermediario tecnológico y
-          de difusión</strong> entre donantes y beneficiarios. <strong>No</strong> es
+          Respecto de los aportes del público, {SITE.brand} actúa como{" "}
+          <strong>intermediario tecnológico y de difusión</strong> entre donantes y
+          beneficiarios. <strong>No</strong> es
           un club ni una entidad deportiva, <strong>no</strong> es una entidad
           financiera, <strong>no</strong> realiza intermediación financiera ni oferta
           pública de valores, y <strong>no</strong> brinda asesoramiento financiero,
           impositivo ni de inversión.
         </p>
         <p>
-          {SITE.brand} <strong>no custodia ni administra los fondos</strong> de los
+          {SITE.brand} <strong>no custodia ni administra los fondos</strong> de esos
           aportes: el dinero se procesa a través de un proveedor de pagos autorizado y
           se acredita directamente en la cuenta del beneficiario (ver punto 6). No
           garantizamos resultados deportivos ni montos de recaudación.
+        </p>
+        <p>
+          Lo anterior se refiere a los aportes del público. {SITE.brand} también
+          celebra <strong>contratos de patrocinio publicitario</strong> con empresas y,
+          con un porcentaje comprometido de esos contratos, administra el{" "}
+          <strong>Fondo {SITE.brand}</strong> descripto en el punto 6. Esos fondos sí
+          son percibidos y asignados por {SITE.brand}, que en ese circuito no actúa
+          como intermediario sino como responsable de la asignación.
         </p>
       </Section>
 
@@ -117,8 +126,25 @@ export default function TerminosPage() {
           (por ejemplo, Mercado Pago), que acreditan los fondos directamente en la cuenta
           de cobro que el beneficiario informa y que debe ser de su titularidad exclusiva.
           Esos servicios tienen sus propios términos, comisiones y tiempos de acreditación.
-          {SITE.brand} no custodia fondos ni responde por demoras, rechazos o errores
-          atribuibles a esos procesadores o a datos de cobro incorrectos.
+          {SITE.brand} no custodia esos aportes ni responde por demoras, rechazos o
+          errores atribuibles a esos procesadores o a datos de cobro incorrectos.
+        </p>
+        <p>
+          <strong>Aportes de empresas y Fondo {SITE.brand}.</strong> Las empresas no
+          aportan a través de la plataforma ni transfieren fondos a un beneficiario
+          determinado: celebran con {SITE.brand} un contrato de patrocinio
+          publicitario, con factura y contraprestación documentada. Un porcentaje
+          comprometido en cada contrato se destina al <strong>Fondo {SITE.brand}</strong>,
+          un presupuesto administrado por {SITE.brand} que se asigna por convocatoria
+          periódica entre beneficiarios aprobados y se abona contra comprobante de gasto
+          o mediante reintegro contra factura. La empresa patrocinante no elige
+          beneficiarios ni participa de la decisión de asignación, que corresponde
+          exclusivamente a {SITE.brand}.
+        </p>
+        <p>
+          La existencia del Fondo <strong>no genera derecho</strong> a percibir suma
+          alguna a favor de ningún beneficiario ni de quien se postule: no hay reparto
+          automático, cupo garantizado ni monto asegurado por postulación.
         </p>
       </Section>
 

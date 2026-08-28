@@ -28,9 +28,9 @@ export const EN_FORMACION = {
   transparenciaA:
     "Tu aporte no depende de eso: se acredita directo en la cuenta de Mercado Pago " +
     "del atleta o del equipo en el momento del pago — GRANITO nunca lo custodia, " +
-    "exista o no la sociedad. Lo único que percibe la plataforma es la comisión del " +
-    "7%, que hasta la constitución de la sociedad reciben sus fundadores y será " +
-    "regularizada en ella.",
+    "exista o no la sociedad. Lo único que percibe la plataforma sobre tu aporte es la " +
+    "comisión del 7%, que hasta la constitución de la sociedad reciben sus " +
+    "fundadores y será regularizada en ella.",
   terminos:
     "La sociedad se encuentra en proceso de constitución. Hasta su inscripción, la " +
     "plataforma es operada por sus fundadores a título personal, y estos Términos se " +

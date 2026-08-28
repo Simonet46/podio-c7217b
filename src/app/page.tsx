@@ -74,7 +74,7 @@ export default async function HomePage() {
               <TrustSeal
                 icon={<CardIcon />}
                 title="Pagos por Mercado Pago"
-                text="El dinero va directo: no custodiamos fondos"
+                text="Tu aporte va directo a la cuenta del atleta"
               />
               <TrustSeal
                 icon={<MedalIcon />}

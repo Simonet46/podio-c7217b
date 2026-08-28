@@ -6,9 +6,10 @@ import { WEB3FORMS_ACCESS_KEY, APPLICATIONS_EMAIL, SITE } from "@/config/site";
 type Status = "idle" | "loading" | "ok" | "error";
 
 const OPCIONES = [
-  "Empresa Impulsora — $600.000/mes",
-  "Empresa Sponsor — $150.000/mes",
-  "Convenio o activación a medida",
+  "Base",
+  "Bronce",
+  "Plata",
+  "Oro",
   "Todavía no sé / quiero explorar",
 ];
 
@@ -32,7 +33,6 @@ export function CompanyContactForm() {
         `Empresa: ${data.empresa ?? ""}`,
         `Contacto: ${data.contacto ?? ""}`,
         `Email: ${data.email ?? ""}`,
-        `Presupuesto: ${data.presupuesto ?? ""}`,
         `Interés: ${data.interes ?? ""}`,
         `Mensaje: ${data.mensaje ?? ""}`,
       ].join("\n");
@@ -105,15 +105,6 @@ export function CompanyContactForm() {
         value={emailVal}
         onChange={(e) => setEmailVal(e.target.value)}
       />
-      <select name="presupuesto" className={selectCls} defaultValue="">
-        <option value="" style={{ background: "#0d2238" }}>
-          Presupuesto mensual estimado
-        </option>
-        <option value="Hasta $100k" style={{ background: "#0d2238" }}>Hasta $100.000</option>
-        <option value="$100k–$500k" style={{ background: "#0d2238" }}>$100.000 – $500.000</option>
-        <option value="$500k+" style={{ background: "#0d2238" }}>Más de $500.000</option>
-        <option value="A definir" style={{ background: "#0d2238" }}>A definir</option>
-      </select>
       <select name="interes" required className={selectCls} defaultValue="">
         <option value="" disabled style={{ background: "#0d2238" }}>
           ¿Cómo querés sumarte?

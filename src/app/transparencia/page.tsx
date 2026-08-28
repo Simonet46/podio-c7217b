@@ -18,7 +18,7 @@ const FAQ = [
     : []),
   {
     q: "¿Cómo sé que el atleta recibe el dinero?",
-    a: "Porque nunca pasa por nuestras manos. Cuando aportás, Mercado Pago acredita el dinero directamente en la cuenta del atleta. GRANITO no custodia fondos: no podríamos quedarnos con tu aporte ni queriendo.",
+    a: "Porque tu aporte nunca pasa por nuestras manos. Cuando aportás, Mercado Pago lo acredita directamente en la cuenta del atleta: no podríamos quedarnos con él ni queriendo. Los aportes de empresas al Fondo Granito siguen otro camino, que explicamos más arriba.",
   },
   {
     q: "¿Cómo verifican que un atleta es quien dice ser?",
@@ -33,8 +33,12 @@ const FAQ = [
     a: "No. Cada cambio que un atleta quiere hacer en su perfil público (foto, historia, mensaje a la comunidad) pasa por la revisión del equipo de GRANITO antes de publicarse. Lo que ves en la web está moderado.",
   },
   {
+    q: "¿Qué es el Fondo Granito?",
+    a: "Es el presupuesto que se arma con un porcentaje comprometido y auditable de lo que aportan las empresas que patrocinan a GRANITO. No se reparte entre todos: se asigna por convocatoria trimestral, caso por caso, y se paga contra comprobante. Es la única plata que administramos, y se informa en cada reporte.",
+  },
+  {
     q: "¿De qué vive GRANITO?",
-    a: `De una comisión del ${Math.round(PLATFORM_FEE_RATE * 100)}% sobre cada aporte, que retiene Mercado Pago automáticamente al momento del pago. Con eso sostenemos la plataforma y su crecimiento. GRANITO no fue creada para enriquecer a sus fundadores: fue creada para que exista durante décadas una institución que impulse al deporte argentino.`,
+    a: `De dos cosas. De una comisión del ${Math.round(PLATFORM_FEE_RATE * 100)}% sobre cada aporte del público, que retiene Mercado Pago automáticamente al momento del pago. Y de los contratos de patrocinio que firman las empresas, de los cuales un porcentaje comprometido va al Fondo Granito y el resto sostiene la plataforma y el ciclo audiovisual. GRANITO no fue creada para enriquecer a sus fundadores: fue creada para que exista durante décadas una institución que impulse al deporte argentino.`,
   },
   {
     q: "¿Qué pasa con mis datos?",
@@ -114,7 +118,7 @@ export default async function TransparenciaPage() {
                   <p className="mt-2 text-[14px] leading-relaxed text-white/65">
                     Mercado Pago acredita tu aporte directamente en la cuenta del
                     atleta en el momento del pago. GRANITO nunca toca ese dinero:
-                    no custodiamos fondos.
+                    los aportes del público no pasan por nuestras cuentas.
                   </p>
                 </div>
                 <div>
@@ -128,6 +132,77 @@ export default async function TransparenciaPage() {
                   </p>
                 </div>
               </div>
+            </div>
+          </Reveal>
+        </section>
+
+        {/* ── EL FONDO GRANITO (circuito de empresas) ── */}
+        <section className="mx-auto max-w-[900px] px-4 pb-6 pt-14 sm:px-6">
+          <Reveal className="mb-10 text-center">
+            <div className="eyebrow mb-2.5 text-gold">El otro camino</div>
+            <h2 className="font-display text-[40px] font-700 uppercase leading-[.95] tracking-tight">
+              Cuando el aporte es de una empresa
+            </h2>
+          </Reveal>
+          <Reveal>
+            <div
+              className="rounded-[16px] p-8"
+              style={{ background: "#0d2238", border: "1px solid rgba(255,255,255,.08)" }}
+            >
+              <p className="text-[15px] leading-relaxed text-white/70">
+                Una empresa no aporta desde la web ni le transfiere dinero a un
+                deportista. Firma un contrato de patrocinio publicitario con
+                GRANITO, con factura y contraprestación documentada, y un
+                porcentaje comprometido y auditable de ese aporte se destina al
+                Fondo Granito.
+              </p>
+              <p className="mt-4 text-[15px] leading-relaxed text-white/70">
+                Ese Fondo sí lo administramos nosotros: se asigna por
+                convocatoria trimestral a deportistas y proyectos, y se paga
+                contra comprobante —el pasaje, la inscripción, el
+                equipamiento—, nunca por transferencia suelta. Es la única
+                plata que pasa por nuestras cuentas, y se informa en cada
+                reporte.
+              </p>
+              <p className="mt-6 text-[13px] leading-relaxed text-white/45">
+                Son dos circuitos distintos: el aporte del público va directo al
+                atleta por Mercado Pago; el aporte de una empresa entra al Fondo
+                y se asigna después. Las asignaciones las resuelve un comité de
+                tres personas, una externa e independiente, que deja acta de
+                cada ronda.
+              </p>
+              <div
+                className="mt-7 rounded-xl p-6"
+                style={{ background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.08)" }}
+              >
+                <h3 className="mb-3 font-display text-[17px] font-600 uppercase tracking-wide text-white/85">
+                  Qué publicamos de cada ronda
+                </h3>
+                <ul className="flex flex-col gap-2">
+                  {[
+                    "Monto disponible y monto asignado en la ronda",
+                    "Cuántas postulaciones se recibieron y cuántas se asignaron",
+                    "Beneficiarios, disciplina y destino del gasto, con su consentimiento",
+                    "Composición vigente del comité",
+                  ].map((item) => (
+                    <li key={item} className="flex items-start gap-3 text-[14px] leading-relaxed text-white/60">
+                      <span className="mt-[7px] h-1.5 w-1.5 flex-none rounded-full bg-celeste" aria-hidden />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-4 text-[13px] leading-relaxed text-white/40">
+                  No publicamos datos sensibles ni documentación económica
+                  personal de los postulantes. [COMPLETAR: fecha de la primera
+                  ronda y link al reporte]
+                </p>
+              </div>
+              <Link
+                href="/empresas"
+                className="mt-6 inline-block font-display text-sm font-600 uppercase tracking-wide text-celeste hover:underline"
+              >
+                Cómo funciona para empresas →
+              </Link>
             </div>
           </Reveal>
         </section>

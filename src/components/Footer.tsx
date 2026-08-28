@@ -105,7 +105,8 @@ export function Footer({ logos = true }: { logos?: boolean } = {}) {
             {Math.round(PLATFORM_FEE_RATE * 100)}% para operar; el resto va
             directo al atleta. Pagos procesados de forma segura por Mercado
             Pago: el aporte llega directo a la cuenta del atleta, la plataforma
-            no custodia los fondos.
+            no custodia los aportes del público. Los aportes de empresas al
+            Fondo Granito los administra GRANITO y se rinden por reporte.
           </p>
           <p className="mt-3 text-xs text-white/35">
             © {SITE.brand} — Hecho en Argentina.

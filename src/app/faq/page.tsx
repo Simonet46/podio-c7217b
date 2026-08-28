@@ -52,8 +52,8 @@ const FAQS: { q: string; a: React.ReactNode }[] = [
       <>
         El <strong>{TO_ATHLETE}%</strong> de cada aporte va al atleta. GRANITO
         retiene una comisión del <strong>{FEE}%</strong> para operar y sostener la
-        plataforma. La plataforma no custodia los fondos: el dinero llega directo a
-        la cuenta de cobro del atleta.
+        plataforma. La plataforma no custodia los aportes del público: el dinero
+        llega directo a la cuenta de cobro del atleta.
       </>
     ),
   },
@@ -126,11 +126,14 @@ const FAQS: { q: string; a: React.ReactNode }[] = [
     q: "Tengo una empresa, ¿cómo impulso el deporte?",
     a: (
       <>
-        Sumate como empresa impulsora desde{" "}
+        Tu empresa no le transfiere dinero a un deportista: firma un contrato de
+        patrocinio publicitario con GRANITO y un porcentaje comprometido de ese
+        aporte va al Fondo Granito, que se asigna por convocatoria trimestral y
+        paga contra comprobante. Está explicado en{" "}
         <a href="/empresas" className="text-gold underline">
           la sección para empresas
         </a>
-        . Tu marca acompaña a los atletas argentinos y forma parte de la comunidad.
+        .
       </>
     ),
   },
