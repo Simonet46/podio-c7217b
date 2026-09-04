@@ -35,12 +35,4 @@ export const AMBASSADORS: Ambassador[] = [
     color: "#B5882A",
     image: "/embajadores/luciano-de-cecco.webp",
   },
-  {
-    name: "Delfina Brea",
-    // El pádel no está en config/sports (no hay atletas de pádel todavía):
-    // etiqueta y color propios de la sección.
-    sportLabel: "Pádel",
-    color: "#227D9B",
-    image: "/embajadores/delfina-brea.webp",
-  },
 ];
