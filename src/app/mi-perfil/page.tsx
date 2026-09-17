@@ -21,6 +21,7 @@ type Atleta = {
   province: string;
   bio: string;
   photo_url: string | null;
+  photo_credit: string | null;
   verified: boolean;
   raised_amount: number;
   next_competition: string | null;
@@ -59,6 +60,7 @@ type AuthState = "loading" | "none" | "nolink" | "ok";
 
 type EditForm = {
   photo_url: string;
+  photo_credit: string;
   bio: string;
   next_competition: string;
   socials: string;
@@ -94,7 +96,7 @@ export default function MiPerfilPage() {
   // sumarla: el total sale de la vista public_athlete_raised.
   const [totalNeto, setTotalNeto] = useState(0);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [editForm, setEditForm] = useState<EditForm>({ photo_url: "", bio: "", next_competition: "", socials: "", supporter_message: "" });
+  const [editForm, setEditForm] = useState<EditForm>({ photo_url: "", photo_credit: "", bio: "", next_competition: "", socials: "", supporter_message: "" });
   const [editBusy, setEditBusy] = useState(false);
   const [editError, setEditError] = useState("");
   const [photoUploading, setPhotoUploading] = useState(false);
@@ -136,7 +138,7 @@ export default function MiPerfilPage() {
       // Cargar datos del atleta.
       const { data: a } = await supabase
         .from("athletes")
-        .select("id,slug,full_name,first_name,sport,city,province,bio,photo_url,verified,raised_amount,next_competition,socials,supporter_message,email")
+        .select("id,slug,full_name,first_name,sport,city,province,bio,photo_url,photo_credit,verified,raised_amount,next_competition,socials,supporter_message,email")
         .eq("user_id", session.user.id)
         .maybeSingle();
 
@@ -267,6 +269,7 @@ export default function MiPerfilPage() {
     if (!atleta) return;
     setEditForm({
       photo_url: effectiveValue("photo_url"),
+      photo_credit: effectiveValue("photo_credit"),
       bio: effectiveValue("bio"),
       next_competition: effectiveValue("next_competition"),
       socials: effectiveValue("socials"),
@@ -313,7 +316,7 @@ export default function MiPerfilPage() {
     // así el diff que ve el equipo encadena bien con los cambios anteriores.
     const changes: Record<string, string> = {};
     const previous: Record<string, string> = {};
-    (["photo_url", "bio", "next_competition", "socials", "supporter_message"] as (keyof EditForm)[]).forEach((k) => {
+    (["photo_url", "photo_credit", "bio", "next_competition", "socials", "supporter_message"] as (keyof EditForm)[]).forEach((k) => {
       const current = effectiveValue(k);
       if (editForm[k] !== current) {
         changes[k] = editForm[k];
@@ -1144,6 +1147,21 @@ function EditModal({
                 />
               </label>
             </div>
+          </EditField>
+
+          <EditField label="Crédito de la foto (opcional)">
+            <input
+              type="text"
+              value={form.photo_credit}
+              onChange={(e) => onChange("photo_credit", e.target.value)}
+              placeholder="Ej: @fotografo o nombre y apellido"
+              maxLength={80}
+              className="w-full rounded-[10px] border border-white/[.12] bg-white/[.04] px-4 py-3 text-[14px] text-white outline-none placeholder:text-white/30 focus:border-white/35"
+            />
+            <p className="mt-2 text-[12px] leading-relaxed text-white/40">
+              Subí fotos tuyas o que te hayan autorizado a usar. Si la sacó un
+              fotógrafo, pedile permiso y dejá su crédito: aparece como “Foto: …” en tu perfil.
+            </p>
           </EditField>
 
           <EditField label="Historia / Bio">

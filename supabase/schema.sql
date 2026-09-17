@@ -51,6 +51,7 @@ create table if not exists public.athlete_applications (
   reviewed_at          timestamp with time zone,
   photo_url            text,
   photo_secondary_url  text,
+  photo_credit         text,
   next_competition     text,
   payment_mp           text,
   payment_paypal       text,
@@ -120,6 +121,7 @@ create table if not exists public.athletes (
   role                 text,
   scope                text not null default 'la2028'::text,
   photo_secondary_url  text,
+  photo_credit         text,
   next_competition     text,
   socials              text,
   payment_mp           text,
@@ -233,7 +235,9 @@ create table if not exists public.team_applications (
   mp_connected         boolean not null default false,
   photo_url            text,
   photo_secondary_url  text,
-  phone                text
+  phone                text,
+  hero_badge           text,
+  photo_credit         text
 );
 alter table public.team_applications enable row level security;
 
@@ -490,12 +494,14 @@ create or replace view public.public_teams as
     active,
     photo_url,
     photo_secondary_url,
+    hero_badge,
     COALESCE(( SELECT sum(p.amount) AS sum
            FROM team_pledges p
           WHERE p.team_id = t.id AND p.status = 'completed'::text), 0::numeric) AS raised_amount,
     COALESCE(( SELECT count(*) AS count
            FROM team_pledges p
-          WHERE p.team_id = t.id AND p.status = 'completed'::text), 0::bigint) AS donor_count
+          WHERE p.team_id = t.id AND p.status = 'completed'::text), 0::bigint) AS donor_count,
+    photo_credit
    FROM team_applications t
   WHERE status = 'approved'::text AND slug IS NOT NULL AND mp_connected;
 

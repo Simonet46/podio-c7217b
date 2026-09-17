@@ -22,6 +22,8 @@ export interface TeamCampaign {
   photo_secondary_url: string | null;
   /** Píldora del hero editable desde el backoffice (vacío = frase default). */
   hero_badge: string | null;
+  /** Quién sacó las fotos (opcional). Se muestra como "Foto: …". */
+  photo_credit: string | null;
   raised_amount: number;
   donor_count: number;
 }

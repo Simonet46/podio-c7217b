@@ -193,6 +193,11 @@ export default async function AthletePage({
                 <h1 className="font-display text-4xl font-700 uppercase leading-[.9] tracking-tight sm:text-[56px] lg:text-[62px]">
                   {athlete.full_name}
                 </h1>
+                {athlete.photo_credit && (
+                  <p className="mt-2 text-[12px] text-white/40">
+                    Foto: {athlete.photo_credit}
+                  </p>
+                )}
               </div>
 
             {/* Stats: solo cuando hay recaudación real. Mostrar "$ 0" o

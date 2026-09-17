@@ -33,6 +33,7 @@ type Application = {
   media_url: string | null;
   photo_url: string | null;
   photo_secondary_url: string | null;
+  photo_credit: string | null;
   payment_link: string | null;
   payment_mp: string | null;
   payment_paypal: string | null;
@@ -65,6 +66,7 @@ type AthleteRow = {
   supporter_message: string | null;
   photo_url: string | null;
   photo_secondary_url: string | null;
+  photo_credit: string | null;
   gender: string | null;
   card_tag: string | null;
   hero_badge: string | null;
@@ -119,6 +121,7 @@ type TeamApp = {
   hero_badge: string | null;
   photo_url: string | null;
   photo_secondary_url: string | null;
+  photo_credit: string | null;
 };
 
 /** Compromiso de aporte a un equipo: NO hay dinero cobrado, es una promesa.
@@ -224,6 +227,8 @@ type Draft = {
   next_competition: string;
   photo_url: string | null;
   photo_secondary_url: string | null;
+  /** Quién sacó las fotos (opcional); se publica como "Foto: …". */
+  photo_credit: string;
   socials: string;
   payment_mp: string;
   payment_paypal: string;
@@ -311,6 +316,7 @@ function buildDraft(app: Application): Draft {
     next_competition: app.next_competition ?? "",
     photo_url: app.photo_url,
     photo_secondary_url: app.photo_secondary_url,
+    photo_credit: app.photo_credit ?? "",
     socials: app.socials ?? "",
     payment_mp: app.payment_mp ?? "",
     payment_paypal: app.payment_paypal ?? "",
@@ -592,6 +598,7 @@ export function BackofficeApp() {
         next_competition: draft.next_competition || null,
         photo_url: draft.photo_url,
         photo_secondary_url: draft.photo_secondary_url,
+        photo_credit: draft.photo_credit.trim() || null,
         socials: draft.socials || null,
         payment_mp: draft.payment_mp || null,
         payment_paypal: draft.payment_paypal || null,
@@ -2144,6 +2151,7 @@ function TeamEditModal({
     payment_mp: team.payment_mp ?? "",
     photo_url: team.photo_url ?? "",
     photo_secondary_url: team.photo_secondary_url ?? "",
+    photo_credit: team.photo_credit ?? "",
     notes: team.notes ?? "",
   });
   const [busy, setBusy] = useState(false);
@@ -2188,6 +2196,7 @@ function TeamEditModal({
       payment_mp: form.payment_mp || null,
       photo_url: form.photo_url || null,
       photo_secondary_url: form.photo_secondary_url || null,
+      photo_credit: form.photo_credit.trim() || null,
       notes: form.notes || null,
     };
     for (const k of Object.keys(map)) {
@@ -2252,6 +2261,10 @@ function TeamEditModal({
                 );
               })}
             </div>
+          </EditRow>
+
+          <EditRow label="Crédito de foto (quién la sacó, opcional)">
+            <input value={form.photo_credit} onChange={(e) => set("photo_credit", e.target.value)} placeholder="@fotografo o nombre" maxLength={80} style={inputDark} />
           </EditRow>
 
           <div className="grid grid-cols-2 gap-3">
@@ -2505,6 +2518,7 @@ function AthleteEditModal({
     province: athlete.province ?? "",
     photo_url: athlete.photo_url ?? "",
     photo_secondary_url: athlete.photo_secondary_url ?? "",
+    photo_credit: athlete.photo_credit ?? "",
     gender: athlete.gender ?? "",
     card_tag: athlete.card_tag ?? "",
     hero_badge: athlete.hero_badge ?? "",
@@ -2574,6 +2588,7 @@ function AthleteEditModal({
     // Vacío = null, así el hero vuelve solo a la frase por defecto.
     if ("hero_badge" in patch) (patch as Record<string, string | null>).hero_badge = form.hero_badge || null;
     if ("photo_secondary_url" in patch) (patch as Record<string, string | null>).photo_secondary_url = form.photo_secondary_url || null;
+    if ("photo_credit" in patch) (patch as Record<string, string | null>).photo_credit = form.photo_credit.trim() || null;
     await onSave(athlete, patch);
     setBusy(false);
     onClose();
@@ -2655,6 +2670,10 @@ function AthleteEditModal({
               )}
             </div>
           </div>
+
+          <EditRow label="Crédito de foto (quién la sacó, opcional)">
+            <input value={form.photo_credit} onChange={(e) => set("photo_credit", e.target.value)} placeholder="@fotografo o nombre" maxLength={80} style={inputDark} />
+          </EditRow>
 
           <EditRow label="Nombre completo">
             <input value={form.full_name} onChange={(e) => set("full_name", e.target.value)} style={inputDark} />
@@ -3091,6 +3110,9 @@ function ApprovalModal({
             />
           </div>
           {!draft.photo_url && !draft.photo_secondary_url && <p className="mt-2 text-xs" style={{ color: C.txtFaint }}>Sin fotos: el perfil usará un monograma con sus iniciales.</p>}
+          <div className="mt-3">
+            <DText label="Crédito de foto" value={draft.photo_credit} onChange={(v) => setDraft({ ...draft, photo_credit: v })} hint="Quién sacó las fotos, según lo declaró el atleta. Se publica como “Foto: …”. Vacío = sin crédito." />
+          </div>
         </div>
 
         <div className="mt-5 grid gap-4 sm:grid-cols-2">
@@ -3558,6 +3580,7 @@ function timeAgo(iso: string): string {
 // ── Cambios de perfil ─────────────────────────────────────────────────────
 const FIELD_LABELS: Record<string, string> = {
   photo_url: "Foto de perfil",
+  photo_credit: "Crédito de foto",
   bio: "Historia / Bio",
   next_competition: "Próxima competencia",
   socials: "Instagram",

@@ -39,6 +39,7 @@ export function TeamApplicationForm() {
   const [photo2File, setPhoto2File] = useState<File | null>(null);
   const [photo2Preview, setPhoto2Preview] = useState<string | null>(null);
   const [fileMsg, setFileMsg] = useState("");
+  const [fotoCredito, setFotoCredito] = useState(""); // quién sacó las fotos (opcional)
 
   const esOtro = deporte === "Otro";
   const deporteEfectivo = esOtro ? deporteOtro.trim() : deporte;
@@ -101,6 +102,7 @@ export function TeamApplicationForm() {
         goal_purpose: proposito || null,
         photo_url,
         photo_secondary_url,
+        photo_credit: fotoCredito.trim() || null,
         contact_name: limpiarTexto(contacto) || null,
         email: email.trim(),
         phone: buildPhone(prefijo, telefono) || null,
@@ -239,7 +241,9 @@ export function TeamApplicationForm() {
         </div>
         <p className="mb-4 text-[13px] leading-relaxed text-white/55">
           Al menos <strong className="text-white/80">una foto</strong> que represente al equipo (es
-          la que se ve en la campaña). Podés sumar una segunda, opcional.
+          la que se ve en la campaña). Podés sumar una segunda, opcional. Subí fotos
+          que haya sacado alguien del equipo o que les hayan autorizado a usar. Si las
+          sacó un fotógrafo, pídanle permiso y dejen su crédito acá abajo.
         </p>
         <div className="grid gap-4 sm:grid-cols-2">
           {([1, 2] as const).map((n) => {
@@ -266,6 +270,23 @@ export function TeamApplicationForm() {
           })}
         </div>
         {fileMsg && <p className="mt-3 text-[13px]" style={{ color: "#DF0024" }}>{fileMsg}</p>}
+        <div className="mt-4">
+          <label className={labelCls}>
+            ¿Quién sacó las fotos?{" "}
+            <span className="text-white/35">· opcional</span>
+          </label>
+          <input
+            value={fotoCredito}
+            onChange={(e) => setFotoCredito(e.target.value)}
+            placeholder="Ej: @fotografo o nombre y apellido"
+            maxLength={80}
+            className={`${inputCls} mt-[7px]`}
+          />
+          <p className="mt-2 text-[12px] leading-relaxed text-white/40">
+            Aparece como “Foto: …” en la campaña. Si las sacó alguien del equipo,
+            dejalo vacío.
+          </p>
+        </div>
       </div>
 
       <div className="mb-[18px]">
@@ -475,7 +496,8 @@ export function TeamApplicationForm() {
             <Link href="/terminos" target="_blank" className="text-gold underline">
               Términos y Condiciones
             </Link>{" "}
-            de {SITE.brand}, y cuento con autorización para postular al equipo.
+            de {SITE.brand}, cuento con autorización para postular al equipo, y las
+            fotos que subí son nuestras o tenemos permiso de quien las sacó.
           </span>
         </label>
       </div>

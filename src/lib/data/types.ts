@@ -23,6 +23,9 @@ export interface Athlete {
   photo_url: string | null;
   /** Foto secundaria (en acción) opcional, mostrada en el perfil. */
   photo_secondary_url?: string | null;
+  /** Quién sacó las fotos (opcional). Se muestra como "Foto: …" en el perfil:
+   *  el derecho de imagen es del atleta pero la foto es del fotógrafo. */
+  photo_credit?: string | null;
   /** Próxima competencia (texto libre), opcional. */
   next_competition?: string | null;
   /** Género para los copys ("la/lo apoyan", "Conocela/Conocelo"). Lo carga el admin. */

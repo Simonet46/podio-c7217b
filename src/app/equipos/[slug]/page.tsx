@@ -155,6 +155,11 @@ export default async function TeamCampaignPage({
                       <h1 className="mt-2 font-display text-4xl font-700 uppercase leading-[.95] tracking-tight sm:text-5xl">
                         {campaign.team_name}
                       </h1>
+                      {campaign.photo_credit && (
+                        <p className="mt-2 text-[12px] text-white/40">
+                          Foto: {campaign.photo_credit}
+                        </p>
+                      )}
                     </div>
                   </div>
 

@@ -61,6 +61,7 @@ export function AthleteApplicationForm() {
   const [portraitPreview, setPortraitPreview] = useState<string | null>(null);
   const [actionPreview, setActionPreview] = useState<string | null>(null);
   const [fileMsg, setFileMsg] = useState("");
+  const [fotoCredito, setFotoCredito] = useState(""); // quién sacó las fotos (opcional)
 
   // Consentimiento legal (checkboxes separados — Kahale Fase 3)
   const [aceptaTerminos, setAceptaTerminos] = useState(false); // Contrato del Atleta + T&C
@@ -202,6 +203,7 @@ export function AthleteApplicationForm() {
         next_competition: nextComp,
         photo_url: photos.photo_url,
         photo_secondary_url: photos.photo_secondary_url,
+        photo_credit: fotoCredito.trim() || null,
         achievements: frase || null,
         needs: historia || null,
         socials: instagram || null,
@@ -249,6 +251,7 @@ export function AthleteApplicationForm() {
       competencia: [competencia, fecha].filter(Boolean).join(" · "),
       foto_perfil: photos.photo_url ?? "(no subida)",
       foto_accion: photos.photo_secondary_url ?? "(no subida)",
+      credito_foto: fotoCredito.trim() || "(sin crédito)",
     };
     if (WEB3FORMS_ACCESS_KEY) {
       try {
@@ -955,9 +958,13 @@ export function AthleteApplicationForm() {
           <h2 className="mb-2 font-display text-[32px] font-700 uppercase leading-none tracking-tight">
             Tus fotos
           </h2>
-          <p className="mb-6 text-[15px] text-white/60">
-            Las fotos son lo que enamora a tus hinchas. Subí las mejores que
-            tengas. JPG o PNG, hasta 5 MB.
+          <p className="mb-2 text-[15px] text-white/60">
+            Las fotos son lo que enamora a tus hinchas. JPG o PNG, hasta 5 MB.
+          </p>
+          <p className="mb-6 text-[13px] leading-relaxed text-white/45">
+            Subí fotos que hayas sacado vos, alguien de tu entorno, o que te hayan
+            autorizado a usar. Si las sacó un fotógrafo, pedile permiso y dejá su
+            crédito acá abajo: aparece en tu perfil.
           </p>
 
           <div className="mb-4 grid gap-4 sm:grid-cols-2">
@@ -978,6 +985,24 @@ export function AthleteApplicationForm() {
               {fileMsg}
             </p>
           )}
+
+          <div className="mb-[18px]">
+            <label className={labelCls}>
+              ¿Quién sacó las fotos?{" "}
+              <span className="text-white/35">· opcional</span>
+            </label>
+            <input
+              value={fotoCredito}
+              onChange={(e) => setFotoCredito(e.target.value)}
+              placeholder="Ej: @fotografo o nombre y apellido"
+              maxLength={80}
+              className={`${inputCls} mt-[7px]`}
+            />
+            <p className="mt-2 text-[12px] leading-relaxed text-white/40">
+              Aparece como “Foto: …” en tu perfil. Si las sacaste vos o alguien de
+              tu familia, dejalo vacío.
+            </p>
+          </div>
 
           <div className="mt-6">{ctaBtn("Revisar y enviar", () => go(4))}</div>
         </section>
@@ -1150,7 +1175,8 @@ export function AthleteApplicationForm() {
                     className="mt-0.5 h-[18px] w-[18px] shrink-0 cursor-pointer accent-[#C9A227]"
                   />
                   <span className="text-[13px] leading-relaxed text-white/70">
-                    Autorizo el uso de mis fotos e imagen en mi perfil público y en la
+                    Las fotos que subí son mías o tengo permiso de quien las sacó, y
+                    autorizo el uso de mis fotos e imagen en mi perfil público y en la
                     difusión de mi campaña, según la{" "}
                     <Link href="/legal/propiedad-intelectual" target="_blank" className="text-gold underline">
                       Política de Propiedad Intelectual
