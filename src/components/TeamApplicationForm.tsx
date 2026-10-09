@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { SPORT_LIST } from "@/config/sports";
+import { SPORT_LIST_ALPHA } from "@/config/sports";
 import { WEB3FORMS_ACCESS_KEY, APPLICATIONS_EMAIL, SITE } from "@/config/site";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
 import { legalDoc } from "@/config/legal";
@@ -293,8 +293,8 @@ export function TeamApplicationForm() {
         <div className={`${labelCls} mb-3`}>¿Qué deporte?</div>
         <div className="flex flex-wrap gap-2.5">
           {[
-            ...SPORT_LIST.filter((s) => s.team),
-            ...SPORT_LIST.filter((s) => !s.team),
+            ...SPORT_LIST_ALPHA.filter((s) => s.team),
+            ...SPORT_LIST_ALPHA.filter((s) => !s.team),
             { key: "otro", label: "Otro", color: "#C9A227" } as const,
           ].map((s) => {
             const active = s.label === deporte;

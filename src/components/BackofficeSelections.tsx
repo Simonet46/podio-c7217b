@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState, type CSSProperties } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { SPORT_LIST } from "@/config/sports";
+import { SPORT_LIST, SPORT_LIST_ALPHA } from "@/config/sports";
 
 /** Fila de la tabla `teams` (selecciones cargadas desde el admin). */
 export interface DbTeam {
@@ -156,7 +156,7 @@ export function TeamsManager({
 
             <span style={label}>Deporte</span>
             <select style={input} value={editing.sport ?? ""} onChange={(e) => setEditing({ ...editing, sport: e.target.value })}>
-              {SPORT_LIST.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
+              {SPORT_LIST_ALPHA.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
             </select>
 
             <span style={label}>Disciplina (bajada)</span>

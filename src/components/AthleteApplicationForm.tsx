@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { SPORT_LIST } from "@/config/sports";
+import { SPORT_LIST_ALPHA } from "@/config/sports";
 import { WEB3FORMS_ACCESS_KEY, APPLICATIONS_EMAIL, SITE } from "@/config/site";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
 import { legalDoc } from "@/config/legal";
@@ -40,7 +40,7 @@ export function AthleteApplicationForm() {
   const [ciudad, setCiudad] = useState("");
   const [deporte, setDeporte] = useState("");
   const [deporteOtro, setDeporteOtro] = useState(""); // si elige "Otro"
-  const [disciplina, setDisciplina] = useState(""); // solo atletismo
+  const [disciplina, setDisciplina] = useState(""); // prueba/modalidad, si el deporte la pide
   const [nivel, setNivel] = useState(""); // aficionado | federado | profesional | alto-rendimiento
   const [club, setClub] = useState("");
 
@@ -107,10 +107,11 @@ export function AthleteApplicationForm() {
   const consentimientoOk =
     aceptaTerminos && aceptaPrivacidad && aceptaImagen && declaraCompat;
 
-  const sportObj = SPORT_LIST.find((s) => s.label === deporte);
+  const sportObj = SPORT_LIST_ALPHA.find((s) => s.label === deporte);
   const sportColor = sportObj?.color ?? "#C9A227";
   const esOtro = deporte === "Otro";
-  const esAtletismo = deporte === "Atletismo";
+  // Deportes con pruebas/modalidades piden "tu prueba" (atletismo, natación, esgrima…).
+  const pideDisciplina = Boolean(sportObj?.disciplineHint);
   // El deporte que se guarda: si eligió "Otro", el texto libre que escribió.
   const deporteEfectivo = esOtro ? deporteOtro.trim() : deporte;
 
@@ -194,7 +195,7 @@ export function AthleteApplicationForm() {
         id,
         full_name: limpiarTexto(nombre),
         sport: deporteEfectivo,
-        discipline: esAtletismo ? disciplina || null : null,
+        discipline: pideDisciplina ? disciplina || null : null,
         location: limpiarTexto(ciudad) || null,
         email: email.trim(),
         phone: buildPhone(prefijo, telefono) || null,
@@ -242,7 +243,7 @@ export function AthleteApplicationForm() {
       edad,
       ciudad,
       deporte: deporteEfectivo,
-      disciplina: esAtletismo ? disciplina : "",
+      disciplina: pideDisciplina ? disciplina : "",
       instagram,
       mercado_pago: mpAccount,
       paypal: paypalAccount,
@@ -711,7 +712,7 @@ export function AthleteApplicationForm() {
             </div>
             <div className="flex flex-wrap gap-2.5">
               {[
-                ...SPORT_LIST,
+                ...SPORT_LIST_ALPHA,
                 { key: "otro", label: "Otro", color: "#C9A227" } as const,
               ].map((s) => {
                 const active = s.label === deporte;
@@ -740,14 +741,14 @@ export function AthleteApplicationForm() {
                 <input
                   value={deporteOtro}
                   onChange={(e) => setDeporteOtro(e.target.value)}
-                  placeholder="Ej: Escalada, Tiro deportivo, Skateboarding…"
+                  placeholder="Ej: Lacrosse, Patín carrera, Karate…"
                   className={`${inputCls} mt-[7px]`}
                 />
               </div>
             )}
 
-            {/* Disciplina: solo tiene sentido en atletismo (pruebas) */}
-            {esAtletismo && (
+            {/* Prueba/modalidad: solo en deportes donde cambia la historia */}
+            {pideDisciplina && (
               <div className="mt-4">
                 <label className={labelCls}>
                   Tu prueba{" "}
@@ -756,7 +757,7 @@ export function AthleteApplicationForm() {
                 <input
                   value={disciplina}
                   onChange={(e) => setDisciplina(e.target.value)}
-                  placeholder="Ej: 400m con vallas, Salto en largo, Maratón…"
+                  placeholder={sportObj?.disciplineHint}
                   className={`${inputCls} mt-[7px]`}
                 />
               </div>

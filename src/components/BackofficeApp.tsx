@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import { SPORT_LIST, getSport } from "@/config/sports";
+import { SPORT_LIST, SPORT_LIST_ALPHA, getSport } from "@/config/sports";
 import { SEED_TEAMS } from "@/lib/data/teams";
 import { TeamsManager, type DbTeam } from "./BackofficeSelections";
 import { formatMoney } from "@/lib/money";
@@ -53,6 +53,7 @@ type AthleteRow = {
   first_name: string | null;
   email: string | null;
   sport: string;
+  discipline: string | null;
   city: string | null;
   province: string | null;
   raised_amount: number | null;
@@ -784,6 +785,18 @@ export function BackofficeApp() {
     if (!error) { setFilter("pending"); loadApps(); }
   }
 
+  /** Corrige el deporte de una postulación (p. ej. llegó como "Otro: esgrima"
+   *  antes de que Esgrima existiera en el catálogo). Guarda la etiqueta, igual
+   *  que el formulario público. */
+  async function handleChangeAppSport(app: Application, sportLabel: string) {
+    const supa = sb();
+    if (!supa || !sportLabel || sportLabel === app.sport) return;
+    setAllApps((prev) => prev.map((a) => a.id === app.id ? { ...a, sport: sportLabel } : a));
+    const { error } = await supa.from("athlete_applications").update({ sport: sportLabel }).eq("id", app.id);
+    if (error) { setToast("Error al cambiar el deporte: " + error.message); loadApps(); return; }
+    setToast(`✓ ${app.full_name} ahora figura en ${sportLabel}.`);
+  }
+
   async function handleRejectTeam(team: TeamApp) {
     const supa = sb();
     if (!supa) return;
@@ -1208,6 +1221,7 @@ export function BackofficeApp() {
               onReject={handleReject}
               onMoreInfo={askMoreInfo}
               onReopen={handleReopen}
+              onChangeSport={handleChangeAppSport}
               appMpConnected={appMpConnected}
               busy={busy}
               teamApps={teamApps}
@@ -1606,6 +1620,7 @@ function PostulacionesSection({
   onReject,
   onMoreInfo,
   onReopen,
+  onChangeSport,
   appMpConnected,
   busy,
   teamApps,
@@ -1624,6 +1639,7 @@ function PostulacionesSection({
   onReject: (app: Application) => void;
   onMoreInfo: (app: Application) => void;
   onReopen: (app: Application) => void;
+  onChangeSport: (app: Application, sportLabel: string) => void;
   appMpConnected: (app: Application) => boolean;
   busy: boolean;
   teamApps: TeamApp[];
@@ -1711,7 +1727,23 @@ function PostulacionesSection({
               </div>
               <h2 className="m-0 font-display text-[28px] font-600 leading-none">{selected.full_name}</h2>
               <div className="mt-2 flex items-center gap-2.5">
-                <SportPill label={selected.sport} />
+                {/* Deporte editable: la postulación guarda la etiqueta ("Esgrima").
+                    Si escribió uno libre en "Otro", aparece como primera opción
+                    hasta que lo pases a uno del catálogo. */}
+                <select
+                  value={selected.sport}
+                  onChange={(e) => onChangeSport(selected, e.target.value)}
+                  title="Cambiar el deporte de esta postulación"
+                  className="cursor-pointer rounded-full border-0 py-1 pl-2.5 pr-7 font-display text-[11px] font-600 uppercase tracking-[.04em] text-white"
+                  style={{ background: sportColorByLabel(selected.sport), appearance: "auto" }}
+                >
+                  {!SPORT_LIST.some((s) => s.label === selected.sport) && (
+                    <option value={selected.sport} style={{ background: C.sidebar }}>{selected.sport} (otro)</option>
+                  )}
+                  {SPORT_LIST_ALPHA.map((s) => (
+                    <option key={s.key} value={s.label} style={{ background: C.sidebar }}>{s.label}</option>
+                  ))}
+                </select>
                 <span className="text-[13px]" style={{ color: C.txtDim }}>
                   {selected.location ?? "—"}{selected.age ? ` · ${selected.age} años` : ""}
                 </span>
@@ -2509,6 +2541,8 @@ function AthleteEditModal({
 }) {
   const [form, setForm] = useState({
     full_name: athlete.full_name ?? "",
+    sport: athlete.sport ?? "",
+    discipline: athlete.discipline ?? "",
     bio: athlete.bio ?? "",
     email: athlete.email ?? "",
     next_competition: athlete.next_competition ?? "",
@@ -2589,6 +2623,10 @@ function AthleteEditModal({
     if ("hero_badge" in patch) (patch as Record<string, string | null>).hero_badge = form.hero_badge || null;
     if ("photo_secondary_url" in patch) (patch as Record<string, string | null>).photo_secondary_url = form.photo_secondary_url || null;
     if ("photo_credit" in patch) (patch as Record<string, string | null>).photo_credit = form.photo_credit.trim() || null;
+    // discipline es NOT NULL en la base: vacío viaja como "". Si cambió el
+    // deporte a uno sin pruebas, la prueba vieja se limpia sola.
+    if ("sport" in patch && !getSport(form.sport)?.disciplineHint) (patch as Record<string, string>).discipline = "";
+    if ("discipline" in patch) (patch as Record<string, string>).discipline = form.discipline.trim();
     await onSave(athlete, patch);
     setBusy(false);
     onClose();
@@ -2678,6 +2716,21 @@ function AthleteEditModal({
           <EditRow label="Nombre completo">
             <input value={form.full_name} onChange={(e) => set("full_name", e.target.value)} style={inputDark} />
           </EditRow>
+          <div className="grid grid-cols-2 gap-3">
+            <EditRow label="Deporte (cambia el color de la tarjeta y el filtro del muro)">
+              <select value={form.sport} onChange={(e) => set("sport", e.target.value)} style={inputDark}>
+                {!getSport(form.sport) && <option value={form.sport}>{form.sport || "Sin deporte"}</option>}
+                {SPORT_LIST_ALPHA.map((s) => (
+                  <option key={s.key} value={s.key} style={{ background: C.sidebar }}>{s.label}</option>
+                ))}
+              </select>
+            </EditRow>
+            {getSport(form.sport)?.disciplineHint && (
+              <EditRow label="Prueba / modalidad">
+                <input value={form.discipline} onChange={(e) => set("discipline", e.target.value)} placeholder={getSport(form.sport)?.disciplineHint} style={inputDark} />
+              </EditRow>
+            )}
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <EditRow label="Ciudad">
               <input value={form.city} onChange={(e) => set("city", e.target.value)} style={inputDark} />
@@ -3123,11 +3176,11 @@ function ApprovalModal({
             <span className="eyebrow" style={{ color: C.txtFaint }}>Deporte *</span>
             <select required value={draft.sport} onChange={(e) => setDraft({ ...draft, sport: e.target.value })} style={inputDark}>
               <option value="" disabled>Elegí deporte</option>
-              {SPORT_LIST.map((s) => <option key={s.key} value={s.key} style={{ background: C.sidebar }}>{s.label}</option>)}
+              {SPORT_LIST_ALPHA.map((s) => <option key={s.key} value={s.key} style={{ background: C.sidebar }}>{s.label}</option>)}
             </select>
           </label>
-          {draft.sport === "atletismo" && (
-            <DText label="Prueba (atletismo)" value={draft.discipline} onChange={(v) => setDraft({ ...draft, discipline: v })} hint="Ej: 400m con vallas, salto en largo…" />
+          {getSport(draft.sport)?.disciplineHint && (
+            <DText label="Prueba / modalidad" value={draft.discipline} onChange={(v) => setDraft({ ...draft, discipline: v })} hint={getSport(draft.sport)?.disciplineHint} />
           )}
           <DText label="Próxima competencia" value={draft.next_competition} onChange={(v) => setDraft({ ...draft, next_competition: v })} />
           <DText label="Ciudad" value={draft.city} onChange={(v) => setDraft({ ...draft, city: v })} />
