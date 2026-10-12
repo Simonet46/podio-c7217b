@@ -2423,7 +2423,29 @@ function AtletasSection({
               <Avatar name={a.full_name} color={color} ring />
               <span className="truncate text-[14px] font-600">{a.full_name}</span>
             </div>
-            <div><SportPill label={sport?.label ?? a.sport} color={color} /></div>
+            <div>
+              {/* Deporte editable en la tabla, con el catálogo completo. Se
+                  guarda al instante; si el deporte nuevo no tiene pruebas, la
+                  prueba vieja se limpia para no mostrar "400m vallas" en judo. */}
+              <select
+                value={sport ? a.sport : ""}
+                onChange={(e) => {
+                  const next = e.target.value;
+                  if (!next || next === a.sport) return;
+                  const patch: Partial<AthleteRow> = { sport: next };
+                  if (!getSport(next)?.disciplineHint) patch.discipline = "";
+                  onSave(a, patch);
+                }}
+                title="Cambiar el deporte del atleta"
+                className="cursor-pointer rounded-full border-0 py-1 pl-2.5 pr-6 font-display text-[11px] font-600 uppercase tracking-[.04em] text-white"
+                style={{ background: color, maxWidth: "100%" }}
+              >
+                {!sport && <option value="" disabled style={{ background: C.sidebar }}>{a.sport || "Sin deporte"}</option>}
+                {SPORT_LIST_ALPHA.map((s) => (
+                  <option key={s.key} value={s.key} style={{ background: C.sidebar }}>{s.label}</option>
+                ))}
+              </select>
+            </div>
             <div>
               <select
                 value={a.team ?? ""}
