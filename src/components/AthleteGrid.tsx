@@ -27,6 +27,19 @@ export function AthleteGrid({
 }) {
   const [active, setActive] = useState<string | null>(null);
   const scroller = useRef<HTMLDivElement>(null);
+
+  // Orden aleatorio en cada visita. El sitio es estático (el HTML trae a los
+  // atletas por fecha de alta), así que se baraja en el navegador después de
+  // hidratar: así ningún atleta queda siempre primero ni siempre último.
+  const [mezclados, setMezclados] = useState<Athlete[]>(athletes);
+  useEffect(() => {
+    const arr = [...athletes];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    setMezclados(arr);
+  }, [athletes]);
   const [canLeft, setCanLeft] = useState(false);
   const [canRight, setCanRight] = useState(false);
 
@@ -64,7 +77,7 @@ export function AthleteGrid({
   const matches = (sport: string) =>
     active === null ? true : active === "otros" ? !FEATURED.includes(sport) : sport === active;
   const shownTeams = teams.filter((t) => matches(t.sport));
-  const shownAthletes = athletes.filter((a) => matches(a.sport));
+  const shownAthletes = mezclados.filter((a) => matches(a.sport));
 
   // Solo atletas en el carrusel: las selecciones tienen su propia fila arriba
   // (mezclarlas entre las fotos hacía que los escudos parecieran placeholders).
