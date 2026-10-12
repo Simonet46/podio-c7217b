@@ -209,6 +209,10 @@ type TeamUpdateRow = {
   created_at: string;
 };
 
+/** Valor del selector de deporte para "Otro (escribir)": el texto libre se
+ *  guarda tal cual en `sport` y el sitio lo muestra con color neutro. */
+const OTRO_SPORT = "__otro__";
+
 type Draft = {
   appId: string;
   email: string;
@@ -217,6 +221,8 @@ type Draft = {
   full_name: string;
   first_name: string;
   sport: string;
+  /** Texto libre si sport === OTRO_SPORT (p. ej. "Fisicoculturismo"). */
+  sport_other: string;
   discipline: string;
   city: string;
   province: string;
@@ -296,7 +302,10 @@ function sportColorByLabel(label: string): string {
 
 function buildDraft(app: Application): Draft {
   const parts = (app.location ?? "").split(/[/,]/).map((t) => t.trim()).filter(Boolean);
-  const sportKey = SPORT_LIST.find((s) => s.label === app.sport)?.key ?? "";
+  // Si el deporte no está en el catálogo (lo escribió en "Otro"), queda
+  // precargado como "Otro" con su texto, para no perderlo al dar de alta.
+  const catalogKey = SPORT_LIST.find((s) => s.label === app.sport)?.key;
+  const sportKey = catalogKey ?? (app.sport?.trim() ? OTRO_SPORT : "");
   const bio = [app.achievements, app.needs].filter(Boolean).join("\n\n");
   return {
     appId: app.id,
@@ -306,6 +315,7 @@ function buildDraft(app: Application): Draft {
     full_name: limpiarTexto(app.full_name),
     first_name: limpiarTexto(app.full_name).split(" ")[0] ?? app.full_name,
     sport: sportKey,
+    sport_other: catalogKey ? "" : limpiarTexto(app.sport ?? ""),
     discipline: app.discipline ?? "",
     city: parts[0] ?? "",
     province: parts[1] ?? parts[0] ?? "",
@@ -569,7 +579,8 @@ export function BackofficeApp() {
     e.preventDefault();
     const supa = sb();
     if (!supa || !draft) return;
-    if (!draft.slug || !draft.sport) {
+    const sportFinal = draft.sport === OTRO_SPORT ? limpiarTexto(draft.sport_other) : draft.sport;
+    if (!draft.slug || !sportFinal) {
       setToast("Completá al menos slug y deporte.");
       return;
     }
@@ -583,7 +594,7 @@ export function BackofficeApp() {
         first_name: draft.first_name,
         email: draft.email || null,
         dni: draft.dni || null,
-        sport: draft.sport,
+        sport: sportFinal,
         discipline: draft.discipline,
         city: draft.city,
         province: draft.province,
@@ -2430,8 +2441,11 @@ function AtletasSection({
               <select
                 value={sport ? a.sport : ""}
                 onChange={(e) => {
-                  const next = e.target.value;
-                  if (!next || next === a.sport) return;
+                  let next = e.target.value;
+                  if (next === OTRO_SPORT) {
+                    next = limpiarTexto(window.prompt("¿Qué deporte? Se publica tal cual (ej: Fisicoculturismo).", "") ?? "");
+                  }
+                  if (!next || next === a.sport) { e.target.value = sport ? a.sport : ""; return; }
                   const patch: Partial<AthleteRow> = { sport: next };
                   if (!getSport(next)?.disciplineHint) patch.discipline = "";
                   onSave(a, patch);
@@ -2444,6 +2458,7 @@ function AtletasSection({
                 {SPORT_LIST_ALPHA.map((s) => (
                   <option key={s.key} value={s.key} style={{ background: C.sidebar }}>{s.label}</option>
                 ))}
+                <option value={OTRO_SPORT} style={{ background: C.sidebar }}>Otro (escribir)</option>
               </select>
             </div>
             <div>
@@ -2564,6 +2579,7 @@ function AthleteEditModal({
   const [form, setForm] = useState({
     full_name: athlete.full_name ?? "",
     sport: athlete.sport ?? "",
+    sport_other: "",
     discipline: athlete.discipline ?? "",
     bio: athlete.bio ?? "",
     email: athlete.email ?? "",
@@ -2634,6 +2650,7 @@ function AthleteEditModal({
     const patch: Partial<AthleteRow> = {};
     (Object.keys(form) as (keyof typeof form)[]).forEach((k) => {
       if (k === "email") return; // lo maneja admin-update-athlete-email
+      if (k === "sport_other") return; // no es columna: se vuelca en sport abajo
       const cur = (athlete[k as keyof AthleteRow] as string | null) ?? "";
       if (form[k] !== cur) (patch as Record<string, string>)[k] = form[k];
     });
@@ -2647,6 +2664,11 @@ function AthleteEditModal({
     if ("photo_credit" in patch) (patch as Record<string, string | null>).photo_credit = form.photo_credit.trim() || null;
     // discipline es NOT NULL en la base: vacío viaja como "". Si cambió el
     // deporte a uno sin pruebas, la prueba vieja se limpia sola.
+    if (form.sport === OTRO_SPORT) {
+      const libre = limpiarTexto(form.sport_other);
+      if (!libre) { setErr("Escribí el deporte."); setBusy(false); return; }
+      (patch as Record<string, string>).sport = libre;
+    }
     if ("sport" in patch && !getSport(form.sport)?.disciplineHint) (patch as Record<string, string>).discipline = "";
     if ("discipline" in patch) (patch as Record<string, string>).discipline = form.discipline.trim();
     await onSave(athlete, patch);
@@ -2741,12 +2763,18 @@ function AthleteEditModal({
           <div className="grid grid-cols-2 gap-3">
             <EditRow label="Deporte (cambia el color de la tarjeta y el filtro del muro)">
               <select value={form.sport} onChange={(e) => set("sport", e.target.value)} style={inputDark}>
-                {!getSport(form.sport) && <option value={form.sport}>{form.sport || "Sin deporte"}</option>}
+                {!getSport(form.sport) && form.sport !== OTRO_SPORT && <option value={form.sport}>{form.sport || "Sin deporte"}</option>}
                 {SPORT_LIST_ALPHA.map((s) => (
                   <option key={s.key} value={s.key} style={{ background: C.sidebar }}>{s.label}</option>
                 ))}
+                <option value={OTRO_SPORT} style={{ background: C.sidebar }}>Otro (escribir)</option>
               </select>
             </EditRow>
+            {form.sport === OTRO_SPORT && (
+              <EditRow label="¿Qué deporte? (se publica tal cual)">
+                <input value={form.sport_other} onChange={(e) => set("sport_other", e.target.value)} placeholder="Ej: Fisicoculturismo" style={inputDark} />
+              </EditRow>
+            )}
             {getSport(form.sport)?.disciplineHint && (
               <EditRow label="Prueba / modalidad">
                 <input value={form.discipline} onChange={(e) => set("discipline", e.target.value)} placeholder={getSport(form.sport)?.disciplineHint} style={inputDark} />
@@ -3199,8 +3227,12 @@ function ApprovalModal({
             <select required value={draft.sport} onChange={(e) => setDraft({ ...draft, sport: e.target.value })} style={inputDark}>
               <option value="" disabled>Elegí deporte</option>
               {SPORT_LIST_ALPHA.map((s) => <option key={s.key} value={s.key} style={{ background: C.sidebar }}>{s.label}</option>)}
+              <option value={OTRO_SPORT} style={{ background: C.sidebar }}>Otro (escribir)</option>
             </select>
           </label>
+          {draft.sport === OTRO_SPORT && (
+            <DText label="¿Qué deporte? *" required value={draft.sport_other} onChange={(v) => setDraft({ ...draft, sport_other: v })} hint="Se publica tal cual. Ej: Fisicoculturismo, Patín carrera…" />
+          )}
           {getSport(draft.sport)?.disciplineHint && (
             <DText label="Prueba / modalidad" value={draft.discipline} onChange={(v) => setDraft({ ...draft, discipline: v })} hint={getSport(draft.sport)?.disciplineHint} />
           )}
