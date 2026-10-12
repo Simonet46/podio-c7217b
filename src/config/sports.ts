@@ -23,6 +23,7 @@ export type SportKey =
   | "judo"
   | "lucha"
   | "natacion"
+  | "paralimpico"
   | "pentatlon"
   | "pesas"
   | "remo"
@@ -135,6 +136,13 @@ export const SPORTS: Record<SportKey, Sport> = {
     label: "Natación",
     color: "#1C7BB0",
     disciplineHint: "Ej: 100m mariposa, 400m libre, Aguas abiertas 10 km…",
+  },
+  // Categoría transversal: el atleta escribe su disciplina adaptada en "tu prueba".
+  paralimpico: {
+    key: "paralimpico",
+    label: "Paralímpico",
+    color: "#8A1C7C",
+    disciplineHint: "Ej: Atletismo adaptado, Natación adaptada, Fútbol para ciegos, Tenis en silla…",
   },
   pentatlon: { key: "pentatlon", label: "Pentatlón moderno", color: "#5A6E3A" },
   pesas: {

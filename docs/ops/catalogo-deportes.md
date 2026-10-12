@@ -45,7 +45,7 @@ Si cumple 2 de 3, entra. Si no, queda en "Otro" (que sigue existiendo).
 | Beach vóley (equipo) | Pareja argentina en París 2024. |
 | Sóftbol / Béisbol (equipo) | Argentina es campeón mundial de sóftbol masculino 2019; vuelve a LA 2028. |
 
-Total: 14 existentes + 21 nuevos = **35 deportes + "Otro"**.
+Total: 14 existentes + 22 nuevos = **36 deportes + "Otro"** (incluye Paralímpico, ver abajo).
 
 ## Deportes que quedan afuera (por ahora)
 
@@ -54,9 +54,10 @@ Total: 14 existentes + 21 nuevos = **35 deportes + "Otro"**.
 - **Karate, breaking**: no están en el programa de LA 2028.
 - **Waterpolo, clavados, natación artística**: sin presencia argentina reciente.
   Clavados y natación artística se cubren como "prueba" dentro de Natación.
-- **Deporte adaptado / paralímpico**: no es un deporte sino una categoría
-  transversal (hay fútbol para ciegos, atletismo adaptado, etc.). Conviene tratarlo
-  en el futuro como un tilde aparte, no como un chip más.
+- **Deporte adaptado / paralímpico** (agregado el 12/10/2026 a pedido de Diego):
+  no es un deporte sino una categoría transversal, así que entra como el chip
+  "Paralímpico" y el atleta escribe su disciplina (atletismo adaptado, fútbol para
+  ciegos, etc.) en el campo "tu prueba".
 
 ## Decisiones de diseño
 
