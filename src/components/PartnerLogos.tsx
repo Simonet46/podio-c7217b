@@ -32,7 +32,7 @@ function Logo({
 }
 
 /** Nivel mayor: aportan más y llevan el logo grande. */
-const IMPULSORAS = [{ name: "DS Connect", src: "/logos/ds-connect.png" }];
+const IMPULSORAS = [{ name: "iDisko", src: "/logos/idisko.png" }];
 
 /** Nivel de entrada: aportan y llevan el logo más chico. */
 /** Sin sponsors por ahora (Kingdom Group finalmente no lo es). El bloque
@@ -50,7 +50,7 @@ export function PartnerLogos() {
               key={l.name}
               name={l.name}
               src={l.src}
-              className="h-20 max-w-[280px] sm:h-24"
+              className="h-20 max-w-[280px] rounded-xl sm:h-24"
             />
           ))}
         </div>

@@ -232,7 +232,7 @@ export default async function HomePage() {
             </Reveal>
 
             <div className="grid gap-6 md:grid-cols-3">
-              {/* Impulsora fundadora: DS Connect */}
+              {/* Impulsora fundadora: iDisko */}
               <Reveal>
                 <div className="flex h-full flex-col rounded-2xl border border-gold/40 bg-white p-8 shadow-[0_10px_40px_rgba(10,26,47,.08)]">
                   <span className="self-start rounded-full bg-gold/15 px-3 py-1 font-display text-[11px] font-700 uppercase tracking-wide text-[#8a6e15]">
@@ -240,11 +240,11 @@ export default async function HomePage() {
                   </span>
                   <div className="my-9 flex flex-1 items-center justify-center">
                     <Image
-                      src={asset("/logos/ds-connect.png")}
-                      alt="DS Connect"
-                      width={300}
-                      height={130}
-                      className="h-auto w-[230px] object-contain"
+                      src={asset("/logos/idisko.png")}
+                      alt="iDisko"
+                      width={1140}
+                      height={480}
+                      className="h-auto w-[250px] rounded-xl object-contain"
                     />
                   </div>
                   <p className="text-[15px] leading-relaxed text-ink/70">

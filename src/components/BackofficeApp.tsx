@@ -3051,9 +3051,9 @@ function EmpresasSection() {
     <div className="mx-auto flex max-w-[640px] flex-col gap-4">
       {/* La primera empresa impulsora (real) */}
       <section className="flex items-center gap-5 rounded-[16px] p-6" style={{ background: C.surface, border: "1px solid rgba(201,162,39,.28)" }}>
-        <div className="flex h-14 w-14 flex-none items-center justify-center rounded-xl font-display text-[20px] font-700 text-white" style={{ background: "#0072CE" }}>DS</div>
+        <div className="flex h-14 w-14 flex-none items-center justify-center rounded-xl font-display text-[20px] font-700 text-white" style={{ background: "#4A028A" }}>iD</div>
         <div className="min-w-0 flex-1">
-          <div className="font-display text-[19px] font-600 leading-tight text-white">DS Connect</div>
+          <div className="font-display text-[19px] font-600 leading-tight text-white">iDisko</div>
           <div className="text-[13px]" style={{ color: C.txtDim }}>Primera empresa impulsora del deporte argentino con GRANITO.</div>
         </div>
         <span className="rounded-full px-2.5 py-[3px] font-display text-[10px] font-600 uppercase tracking-[.04em]" style={{ background: "rgba(34,197,94,.14)", color: C.greenBright }}>Activa</span>
