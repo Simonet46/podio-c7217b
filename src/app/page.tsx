@@ -244,7 +244,7 @@ export default async function HomePage() {
                       alt="iDisko"
                       width={1140}
                       height={480}
-                      className="h-auto w-[250px] rounded-xl object-contain"
+                      className="h-auto w-full max-w-[320px] rounded-xl object-contain"
                     />
                   </div>
                   <p className="text-[15px] leading-relaxed text-ink/70">

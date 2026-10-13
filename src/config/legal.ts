@@ -35,6 +35,18 @@ export const EN_FORMACION = {
     "La sociedad se encuentra en proceso de constitución. Hasta su inscripción, la " +
     "plataforma es operada por sus fundadores a título personal, y estos Términos se " +
     "actualizarán con los datos societarios definitivos al completarse ese proceso.",
+  contrato:
+    "La sociedad operadora se encuentra en proceso de constitución. Hasta su " +
+    "inscripción, este contrato se celebra con los fundadores de la plataforma, " +
+    "quienes la operan a título personal y asumen las obligaciones aquí previstas. " +
+    "Una vez constituida, la sociedad asumirá este contrato en los mismos términos " +
+    "sin necesidad de una nueva aceptación, y se informará al beneficiario de los " +
+    "datos societarios definitivos.",
+  contratoComision:
+    "Hasta la constitución de la sociedad, la comisión la perciben los fundadores a " +
+    "título personal, en la cuenta de Mercado Pago desde la que opera la plataforma, " +
+    "y será regularizada en la sociedad al constituirse. Esto no altera en nada el " +
+    "porcentaje ni el momento en que el beneficiario recibe su parte.",
 } as const;
 
 /** Datos de la sociedad operadora (identificación del operador — Ley 24.240).
@@ -123,8 +135,9 @@ export const LEGAL_DOCS: Record<LegalDocType, LegalDoc> = {
   },
   "contrato-beneficiario": {
     title: "Contrato del Atleta",
-    version: "2026-07-14",
-    effectiveDate: "14 de julio de 2026",
+    // 2026-10-13: cláusula de sociedad en formación (partes y comisión).
+    version: "2026-10-13",
+    effectiveDate: "13 de octubre de 2026",
     status: "borrador",
     path: "/legal/contrato-atleta",
   },

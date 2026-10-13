@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { LegalLayout, Section } from "@/components/legal/LegalLayout";
 import { SITE, PLATFORM_FEE_RATE } from "@/config/site";
-import { COMPANY, LEGAL_CONTACT } from "@/config/legal";
+import { COMPANY, LEGAL_CONTACT, EN_FORMACION, LEGAL_DATA_COMPLETE } from "@/config/legal";
 
 export const metadata: Metadata = {
   title: `Contrato del Atleta — ${SITE.brand}`,
@@ -36,6 +36,7 @@ export default function ContratoAtletaPage() {
           intermediación tecnológica y difusión para que el beneficiario reciba aportes
           con naturaleza de donación.
         </p>
+        {!LEGAL_DATA_COMPLETE && <p>{EN_FORMACION.contrato}</p>}
       </Section>
 
       <Section n="2" title="Elegibilidad del beneficiario">
@@ -99,6 +100,7 @@ export default function ContratoAtletaPage() {
           Los fondos se acreditan de forma <strong>directa e inmediata</strong> a través
           del proveedor de pagos; la plataforma no los custodia.
         </p>
+        {!LEGAL_DATA_COMPLETE && <p>{EN_FORMACION.contratoComision}</p>}
         <p>
           <strong>Asignaciones del Fondo {SITE.brand}.</strong> Además de los aportes
           del público, el beneficiario puede recibir una asignación del Fondo{" "}
