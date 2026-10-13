@@ -6,22 +6,22 @@ import { asset } from "@/config/site";
 function Logo({
   name,
   src,
+  url,
   className,
 }: {
   name: string;
   src: string;
+  /** Sitio de la empresa: el logo lleva a su home en otra pestaña. */
+  url?: string;
   className: string;
 }) {
   const [failed, setFailed] = useState(false);
-  if (failed) {
-    return (
-      <span className="font-display text-2xl font-700 uppercase tracking-wide text-ink">
-        {name}
-      </span>
-    );
-  }
-  // eslint-disable-next-line @next/next/no-img-element
-  return (
+  const inner = failed ? (
+    <span className="font-display text-2xl font-700 uppercase tracking-wide text-ink">
+      {name}
+    </span>
+  ) : (
+    // eslint-disable-next-line @next/next/no-img-element
     <img
       src={asset(src)}
       alt={name}
@@ -29,10 +29,16 @@ function Logo({
       onError={() => setFailed(true)}
     />
   );
+  if (!url) return inner;
+  return (
+    <a href={url} target="_blank" rel="noopener noreferrer" title={`Ir al sitio de ${name}`} className="inline-flex">
+      {inner}
+    </a>
+  );
 }
 
 /** Nivel mayor: aportan más y llevan el logo grande. */
-const IMPULSORAS = [{ name: "iDisko", src: "/logos/idisko.png" }];
+const IMPULSORAS = [{ name: "iDisko", src: "/logos/idisko.png", url: "https://www.idisko.com" }];
 
 /** Nivel de entrada: aportan y llevan el logo más chico. */
 /** Sin sponsors por ahora (Kingdom Group finalmente no lo es). El bloque
@@ -50,6 +56,7 @@ export function PartnerLogos() {
               key={l.name}
               name={l.name}
               src={l.src}
+              url={l.url}
               className="h-20 max-w-[280px] rounded-xl sm:h-24"
             />
           ))}

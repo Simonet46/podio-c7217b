@@ -12,8 +12,9 @@
  */
 
 /** ¿Están cargados los datos reales de la sociedad?
- *  Mientras sea `false`, las páginas legales muestran el banner de borrador y
- *  el footer marca los datos pendientes. */
+ *  Mientras sea `false`, las páginas legales muestran los párrafos de "sociedad
+ *  en formación" y el footer marca los datos pendientes. El banner "Borrador"
+ *  depende del `status` de cada documento, no de esto. */
 export const LEGAL_DATA_COMPLETE = false;
 
 /** Textos de transparencia societaria mientras la sociedad está EN FORMACIÓN.
@@ -22,8 +23,8 @@ export const LEGAL_DATA_COMPLETE = false;
 export const EN_FORMACION = {
   footer:
     "GRANITO se encuentra en proceso de constitución como sociedad en Argentina. " +
-    "Hasta entonces, la plataforma es operada por sus fundadores, y los documentos " +
-    "legales se publican en carácter de borrador.",
+    "Hasta entonces, la plataforma es operada por sus fundadores y los documentos " +
+    "legales se actualizarán con los datos societarios al completarse ese proceso.",
   transparenciaQ: "¿Y mientras se constituye la sociedad?",
   transparenciaA:
     "Tu aporte no depende de eso: se acredita directo en la cuenta de Mercado Pago " +
@@ -104,33 +105,33 @@ export interface LegalDoc {
   version: string;
   /** Fecha en texto para mostrar ("14 de julio de 2026"). */
   effectiveDate: string;
-  /** `vigente` = ya publicado y con texto real; `borrador` = pendiente Kahale. */
+  /** `vigente` = texto aprobado por el abogado; `borrador` = pendiente de revisión. */
   status: LegalDocStatus;
   /** Ruta pública si el documento tiene su propia página. */
   path?: string;
 }
 
 /**
- * Todos los documentos son borradores originales (redactados por el equipo,
- * pendientes de revisión de Kahale). El `status: "borrador"` mantiene el banner
- * de aviso hasta que la abogada apruebe cada texto; al aprobar, cambiá a
- * "vigente" y actualizá `LEGAL_DATA_COMPLETE` cuando existan los datos de la
- * sociedad. Al publicar una versión nueva de un texto, subí `version` y
- * `effectiveDate` y agregá la fila correspondiente en la tabla legal_documents.
+ * Los nueve documentos fueron aprobados por el abogado (Carlos) el 13/10/2026 y
+ * están `vigente`. Si se redacta un texto nuevo pendiente de revisión, ponelo en
+ * `borrador`: eso muestra el banner de aviso en esa página y en el centro legal.
+ * Al publicar una versión nueva de un texto, subí `version` y `effectiveDate`
+ * (la evidencia de aceptación registra esa versión). `LEGAL_DATA_COMPLETE` pasa
+ * a true recién cuando existan los datos de la sociedad.
  */
 export const LEGAL_DOCS: Record<LegalDocType, LegalDoc> = {
   "terminos-generales": {
     title: "Términos y Condiciones",
     version: "2026-07-14",
     effectiveDate: "14 de julio de 2026",
-    status: "borrador",
+    status: "vigente",
     path: "/terminos",
   },
   privacidad: {
     title: "Política de Privacidad",
     version: "2026-07-14",
     effectiveDate: "14 de julio de 2026",
-    status: "borrador",
+    status: "vigente",
     path: "/privacidad",
   },
   "contrato-beneficiario": {
@@ -138,49 +139,49 @@ export const LEGAL_DOCS: Record<LegalDocType, LegalDoc> = {
     // 2026-10-13: cláusula de sociedad en formación (partes y comisión).
     version: "2026-10-13",
     effectiveDate: "13 de octubre de 2026",
-    status: "borrador",
+    status: "vigente",
     path: "/legal/contrato-atleta",
   },
   "terminos-donante": {
     title: "Términos del Donante",
     version: "2026-07-14",
     effectiveDate: "14 de julio de 2026",
-    status: "borrador",
+    status: "vigente",
     path: "/legal/donantes",
   },
   cookies: {
     title: "Política de Cookies",
     version: "2026-07-14",
     effectiveDate: "14 de julio de 2026",
-    status: "borrador",
+    status: "vigente",
     path: "/legal/cookies",
   },
   verificacion: {
     title: "Política de Verificación",
     version: "2026-07-14",
     effectiveDate: "14 de julio de 2026",
-    status: "borrador",
+    status: "vigente",
     path: "/verificacion",
   },
   campanas: {
     title: "Política de Campañas",
     version: "2026-07-14",
     effectiveDate: "14 de julio de 2026",
-    status: "borrador",
+    status: "vigente",
     path: "/legal/campanas",
   },
   reembolsos: {
     title: "Reembolsos y Baja de Cuenta",
     version: "2026-07-14",
     effectiveDate: "14 de julio de 2026",
-    status: "borrador",
+    status: "vigente",
     path: "/legal/reembolsos",
   },
   "propiedad-intelectual": {
     title: "Propiedad Intelectual y Denuncias",
     version: "2026-07-14",
     effectiveDate: "14 de julio de 2026",
-    status: "borrador",
+    status: "vigente",
     path: "/legal/propiedad-intelectual",
   },
 };

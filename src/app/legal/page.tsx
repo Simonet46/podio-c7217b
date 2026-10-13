@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { SITE } from "@/config/site";
-import { LEGAL_INDEX, LEGAL_DOCS, LEGAL_DATA_COMPLETE } from "@/config/legal";
+import { LEGAL_INDEX, LEGAL_DOCS } from "@/config/legal";
 
 export const metadata: Metadata = {
   title: `Centro legal — ${SITE.brand}`,
@@ -16,7 +16,7 @@ export default function LegalIndexPage() {
       <Header />
       <main className="bg-ink text-white">
         <article className="mx-auto max-w-[820px] px-4 pb-24 pt-12 sm:px-6">
-          {!LEGAL_DATA_COMPLETE && (
+          {Object.values(LEGAL_DOCS).some((d) => d.status === "borrador") && (
             <div
               className="mb-8 rounded-[12px] p-4 text-[13px] leading-relaxed"
               style={{ background: "rgba(201,162,39,.1)", border: "1px solid rgba(201,162,39,.32)", color: "#e3c768" }}

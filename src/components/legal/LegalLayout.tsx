@@ -1,6 +1,6 @@
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { LEGAL_DATA_COMPLETE, legalDoc, type LegalDocType } from "@/config/legal";
+import { legalDoc, type LegalDocType } from "@/config/legal";
 
 /**
  * Layout compartido de las páginas legales. Unifica el banner "Borrador", el
@@ -23,7 +23,7 @@ export function LegalLayout({
       <Header />
       <main className="bg-ink text-white">
         <article className="mx-auto max-w-[820px] px-4 pb-24 pt-12 sm:px-6">
-          {!LEGAL_DATA_COMPLETE && (
+          {legalDoc(docType).status === "borrador" && (
             <div
               className="mb-8 rounded-[12px] p-4 text-[13px] leading-relaxed"
               style={{ background: "rgba(201,162,39,.1)", border: "1px solid rgba(201,162,39,.32)", color: "#e3c768" }}

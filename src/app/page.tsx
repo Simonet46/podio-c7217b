@@ -239,13 +239,21 @@ export default async function HomePage() {
                     Impulsora fundadora
                   </span>
                   <div className="my-9 flex flex-1 items-center justify-center">
-                    <Image
-                      src={asset("/logos/idisko.png")}
-                      alt="iDisko"
-                      width={1140}
-                      height={480}
-                      className="h-auto w-full max-w-[320px] rounded-xl object-contain"
-                    />
+                    <a
+                      href="https://www.idisko.com"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title="Ir al sitio de iDisko"
+                      className="block w-full max-w-[320px] transition hover:opacity-90"
+                    >
+                      <Image
+                        src={asset("/logos/idisko.png")}
+                        alt="iDisko"
+                        width={1140}
+                        height={480}
+                        className="h-auto w-full rounded-xl object-contain"
+                      />
+                    </a>
                   </div>
                   <p className="text-[15px] leading-relaxed text-ink/70">
                     La primera empresa que impulsa al deporte argentino con{" "}
