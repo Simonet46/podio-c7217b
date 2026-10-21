@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { shareStoryImage } from "@/lib/shareStory";
 
 /**
  * Descarga/comparte la placa vertical para historias de Instagram.
@@ -23,35 +24,8 @@ export function ShareStoryButton({
 
   async function handleClick() {
     setState("working");
-    try {
-      const res = await fetch(imageUrl);
-      if (!res.ok) throw new Error(String(res.status));
-      const blob = await res.blob();
-      const file = new File([blob], fileName, { type: "image/jpeg" });
-
-      if (typeof navigator.canShare === "function" && navigator.canShare({ files: [file] })) {
-        await navigator.share({ files: [file], text: shareText });
-        setState("idle");
-        return;
-      }
-
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = fileName;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-      setState("done");
-    } catch (err) {
-      // Cancelar el menú de compartir tira AbortError: no es un error real.
-      if (err instanceof DOMException && err.name === "AbortError") {
-        setState("idle");
-        return;
-      }
-      setState("error");
-    }
+    const r = await shareStoryImage({ imageUrl, fileName, text: shareText });
+    setState(r === "downloaded" ? "done" : r === "error" ? "error" : "idle");
   }
 
   return (

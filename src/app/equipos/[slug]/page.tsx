@@ -259,7 +259,12 @@ export default async function TeamCampaignPage({
                     fileName={`granito-${campaign.slug}.jpg`}
                     shareText={`${campaignShare(campaign).title} — ${SITE.url}/equipos/${campaign.slug}/?utm_source=instagram`}
                   />
-                  <ShareLinks url={`${SITE.url}/equipos/${campaign.slug}/`} text={campaignShare(campaign).title} />
+                  <ShareLinks
+                    url={`${SITE.url}/equipos/${campaign.slug}/`}
+                    text={campaignShare(campaign).title}
+                    storyImageUrl={asset(`/equipos/${campaign.slug}/historia.jpg`)}
+                    storyFileName={`granito-${campaign.slug}.jpg`}
+                  />
                 </Reveal>
               </div>
             </div>

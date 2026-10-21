@@ -350,7 +350,12 @@ export default async function AthletePage({
                 fileName={`granito-${athlete.slug}.jpg`}
                 shareText={`${share.title} — ${SITE.url}/atleta/${athlete.slug}/?utm_source=instagram`}
               />
-              <ShareLinks url={`${SITE.url}/atleta/${athlete.slug}/`} text={share.title} />
+              <ShareLinks
+                url={`${SITE.url}/atleta/${athlete.slug}/`}
+                text={share.title}
+                storyImageUrl={asset(`/atleta/${athlete.slug}/historia.jpg`)}
+                storyFileName={`granito-${athlete.slug}.jpg`}
+              />
 
               {/* Nota de confianza */}
               <div
