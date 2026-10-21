@@ -45,9 +45,14 @@ function thankYouHtml(opts: {
   monthly: boolean;
   /** URL del perfil a linkear (default: perfil de atleta por slug). */
   profileUrl?: string;
+  /** Página de gracias con el diploma. Mercado Pago solo vuelve solo al sitio
+   *  en pagos con tarjeta; con dinero en cuenta el donante ve el comprobante
+   *  y muchos no tocan "Volver al sitio", así que el diploma viaja acá. */
+  diplomaUrl?: string;
 }): string {
   const { athleteName, athleteSlug, amount, message, monthly } = opts;
   const profileUrl = opts.profileUrl ?? `${SITE_URL}/atleta/${encodeURIComponent(athleteSlug)}/`;
+  const diplomaUrl = opts.diplomaUrl ?? `${SITE_URL}/gracias?kind=athlete&slug=${encodeURIComponent(athleteSlug)}&amount=${amount}&type=${monthly ? "monthly" : "once"}&mp=ok`;
   const firstName = athleteName.split(" ")[0];
 
   const quote = message
@@ -110,6 +115,12 @@ function thankYouHtml(opts: {
                      style="display:inline-block;background-color:#C9A227;color:#0A1A2F;font-weight:bold;font-size:15px;padding:14px 32px;border-radius:10px;text-decoration:none">
                     Seguí el camino de ${esc(firstName)}
                   </a>
+                  <div style="padding-top:12px">
+                    <a href="${diplomaUrl}"
+                       style="display:inline-block;color:#C9A227;font-weight:bold;font-size:14px;padding:12px 28px;border:1px solid rgba(201,162,39,.6);border-radius:10px;text-decoration:none">
+                      Ver tu diploma 🥇
+                    </a>
+                  </div>
                 </td>
               </tr>
             </table>
@@ -138,6 +149,7 @@ async function sendThankYou(opts: {
   message: string | null;
   monthly: boolean;
   profileUrl?: string;
+  diplomaUrl?: string;
 }) {
   const key = (Deno.env.get("RESEND_API_KEY") ?? "").trim();
   if (!key) {
@@ -289,6 +301,7 @@ Deno.serve(async (req) => {
           athleteName: team.team_name,
           athleteSlug: team.slug ?? "",
           profileUrl: `${SITE_URL}/equipos/${encodeURIComponent(team.slug ?? "")}/`,
+          diplomaUrl: `${SITE_URL}/gracias?kind=campaign&slug=${encodeURIComponent(team.slug ?? "")}&name=${encodeURIComponent(team.team_name)}&amount=${amount}&mp=ok`,
           amount,
           message: null,
           monthly: false,
