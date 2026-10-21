@@ -51,5 +51,17 @@ Deno.serve(async (req) => {
     identification: u.identification ?? null, // { type, number } (DNI)
     site_id: u.site_id ?? null,
     live_mode: !u?.test_user,
+    // Estado de la cuenta como vendedor: si `sell.allow` es false, Checkout
+    // Pro muestra "este sitio no puede recibir pagos" aunque la preferencia
+    // se cree bien. Los `codes` dicen el motivo (p. ej. validación pendiente).
+    puede_cobrar: u?.status?.sell?.allow ?? null,
+    codigos: [
+      ...(u?.status?.sell?.codes ?? []),
+      ...(u?.status?.billing?.codes ?? []),
+    ],
+    site_status: u?.status?.site_status ?? null,
+    required_action: u?.status?.required_action ?? null,
+    account_type: u?.status?.mercadopago_account_type ?? null,
+    email_confirmado: u?.status?.confirmed_email ?? null,
   });
 });

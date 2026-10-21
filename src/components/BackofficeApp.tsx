@@ -144,6 +144,13 @@ type MpInfo = {
   last_name: string | null;
   email: string | null;
   identification: { type: string; number: string } | null;
+  /** status.sell.allow de MP: false = la cuenta no puede recibir pagos. */
+  puede_cobrar?: boolean | null;
+  codigos?: string[];
+  site_status?: string | null;
+  required_action?: string | null;
+  account_type?: string | null;
+  email_confirmado?: boolean | null;
 };
 type MpModalState = { athlete: AthleteRow; info: MpInfo | null; error: string | null } | null;
 
@@ -3609,6 +3616,24 @@ function MpInfoModal({ modal, onClose }: { modal: NonNullable<MpModalState>; onC
             <div className="mb-4 rounded-xl px-4 py-3 text-[13px] leading-relaxed" style={{ background: "rgba(34,197,94,.08)", border: "1px solid rgba(34,197,94,.22)", color: C.greenBright }}>
               ✓ El atleta autorizó esta cuenta mediante OAuth — solo quien se logueó en MP pudo conectarla.
             </div>
+            {/* ¿La cuenta puede cobrar? Es lo que falla cuando el checkout dice
+                "este sitio no puede recibir pagos": la preferencia se crea, pero
+                MP bloquea al vendedor (identidad sin validar, cuenta limitada…). */}
+            {info.puede_cobrar === false ? (
+              <div className="mb-4 rounded-xl px-4 py-3 text-[13px] leading-relaxed" style={{ background: "rgba(223,0,36,.1)", border: "1px solid rgba(223,0,36,.35)", color: C.redBright }}>
+                <strong>⚠ Mercado Pago no le permite cobrar a esta cuenta.</strong> Los aportes van a fallar con
+                “este sitio no puede recibir pagos” hasta que el atleta lo resuelva en su app de Mercado Pago.
+                {(info.codigos?.length ?? 0) > 0 && (
+                  <div className="mt-1.5 font-mono text-[12px]">Motivo de MP: {info.codigos!.join(", ")}</div>
+                )}
+                {info.required_action && <div className="mt-1 font-mono text-[12px]">Acción requerida: {info.required_action}</div>}
+                {info.site_status && info.site_status !== "active" && <div className="mt-1 font-mono text-[12px]">Estado de la cuenta: {info.site_status}</div>}
+              </div>
+            ) : info.puede_cobrar === true ? (
+              <div className="mb-4 rounded-xl px-4 py-3 text-[13px]" style={{ background: "rgba(34,197,94,.08)", border: "1px solid rgba(34,197,94,.22)", color: C.greenBright }}>
+                ✓ Habilitada para cobrar{info.email_confirmado === false ? " (email de MP sin confirmar)" : ""}.
+              </div>
+            ) : null}
             <DniCheck declaredDni={athlete.dni} mpDni={info.identification?.number ?? null} />
             <div className="flex flex-col gap-2">
               <MpInfoRow label="Nombre" value={[info.first_name, info.last_name].filter(Boolean).join(" ") || "—"} />
