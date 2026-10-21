@@ -87,3 +87,7 @@ verify_jwt = false
 # Reconciliación contra MP. Su chequeo interno de service_role confía en que
 # el gateway validó la firma del JWT: este true NO se puede apagar.
 verify_jwt = true
+
+[functions.track]
+# Medidor de visitas: lo llama el sitio público con sendBeacon (sin headers).
+verify_jwt = false

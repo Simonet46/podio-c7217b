@@ -5,6 +5,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { SPORT_LIST, SPORT_LIST_ALPHA, getSport } from "@/config/sports";
 import { SEED_TEAMS } from "@/lib/data/teams";
 import { TeamsManager, type DbTeam } from "./BackofficeSelections";
+import { DashboardSection } from "./BackofficeDashboard";
 import { formatMoney } from "@/lib/money";
 import { emailValido } from "@/lib/email";
 import { limpiarTexto } from "@/lib/strings";
@@ -158,6 +159,7 @@ type Phase = "loading" | "noenv" | "login" | "denied" | "ready";
 type StatusFilter = "pending" | "approved" | "rejected";
 type Section =
   | "Resumen"
+  | "Dashboard"
   | "Postulaciones"
   | "Atletas"
   | "Proyectos deportivos"
@@ -346,6 +348,7 @@ function buildDraft(app: Application): Draft {
 
 const NAV_MAIN: { label: Section; icon: string }[] = [
   { label: "Resumen", icon: "◧" },
+  { label: "Dashboard", icon: "▦" },
   { label: "Postulaciones", icon: "◔" },
   { label: "Atletas", icon: "◉" },
   { label: "Proyectos deportivos", icon: "🛡" },
@@ -362,6 +365,7 @@ const NAV_SEC: { label: Section; icon: string }[] = [
 ];
 const PAGE_META: Record<Section, { t: string; s: string }> = {
   Resumen: { t: "Resumen general", s: "Lo que pasó esta semana" },
+  Dashboard: { t: "Dashboard", s: "Cómo está funcionando la plataforma: aportes, atletas, proyectos y visitas." },
   Postulaciones: { t: "Postulaciones", s: "Revisá cada caso a mano, uno por uno" },
   Atletas: { t: "Atletas", s: "Atletas publicados en la plataforma" },
   "Proyectos deportivos": { t: "Proyectos deportivos", s: "Equipos aprobados — objetivos, fechas y estado" },
@@ -1224,6 +1228,11 @@ export function BackofficeApp() {
               />
             );
           })()}
+
+          {/* ===== DASHBOARD ===== */}
+          {active === "Dashboard" && (
+            <DashboardSection supa={sb()} donations={donations} athletes={athletes} teams={teamApps} pledges={teamPledges} />
+          )}
 
           {/* ===== POSTULACIONES ===== */}
           {active === "Postulaciones" && (

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Oswald, Inter } from "next/font/google";
 import { SITE } from "@/config/site";
+import { Tracker } from "@/components/Tracker";
 import "./globals.css";
 
 const oswald = Oswald({
@@ -43,7 +44,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es" className={`${oswald.variable} ${inter.variable}`}>
-      <body>{children}</body>
+      <body>
+        {children}
+        <Tracker />
+      </body>
     </html>
   );
 }

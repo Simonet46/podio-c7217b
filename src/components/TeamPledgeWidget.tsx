@@ -7,6 +7,7 @@ import { formatMoney } from "@/lib/money";
 import { recordAcceptance } from "@/lib/legal";
 import { type TeamCampaign } from "@/lib/data/campaigns";
 import { CampaignBar } from "./TeamCampaignCard";
+import { track } from "@/lib/track";
 
 const PRESETS = [5000, 10000, 25000, 50000];
 
@@ -76,12 +77,14 @@ export function TeamPledgeWidget({ campaign }: { campaign: TeamCampaign }) {
       relatedId: campaign.slug,
       meta: { amount: finalAmount, kind: "team" },
     });
+    track("apoyar_click", `/equipos/${campaign.slug}/`);
     try {
       const { data } = await supabase.functions.invoke("mp-create-team-preference", {
         body: { slug: campaign.slug, amount: finalAmount, donorEmail: email.trim() || undefined, donorName: donorName.trim() || undefined },
       });
       const url = data?.init_point ?? data?.sandbox_init_point;
       if (url) {
+        track("checkout", `/equipos/${campaign.slug}/`);
         window.location.href = url;
         return;
       }

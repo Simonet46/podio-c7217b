@@ -8,6 +8,7 @@ import { breakdown, formatMoney } from "@/lib/money";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
 import { recordAcceptance } from "@/lib/legal";
 import { Ribbon } from "./Ribbon";
+import { track } from "@/lib/track";
 
 /** A quién va el aporte. */
 export interface DonationTarget {
@@ -89,6 +90,7 @@ export function DonationWidget({
     // pantalla de "¡Gracias!" y el hincha se iba creyendo que había donado
     // sin que se cobrara nada.
     if (target.kind === "athlete" && target.slug) {
+      track("apoyar_click", `/atleta/${target.slug}/`);
       try {
         const supabase = await getSupabase();
         if (supabase) {
@@ -98,6 +100,7 @@ export function DonationWidget({
           );
           const url = data?.init_point ?? data?.sandbox_init_point;
           if (url) {
+            track("checkout", `/atleta/${target.slug}/`);
             window.location.href = url;
             return;
           }
