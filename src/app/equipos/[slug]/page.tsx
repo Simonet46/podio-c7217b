@@ -18,6 +18,7 @@ import { AthleteTimeline } from "@/components/AthleteTimeline";
 import { SITE, asset } from "@/config/site";
 import { campaignShare } from "@/lib/share";
 import { ShareStoryButton } from "@/components/ShareStoryButton";
+import { ShareLinks } from "@/components/ShareLinks";
 import { SupporterWall } from "@/components/SupporterWall";
 
 export async function generateStaticParams() {
@@ -256,8 +257,9 @@ export default async function TeamCampaignPage({
                   <ShareStoryButton
                     imageUrl={asset(`/equipos/${campaign.slug}/historia.jpg`)}
                     fileName={`granito-${campaign.slug}.jpg`}
-                    shareText={`${campaignShare(campaign).title} — ${SITE.url}/equipos/${campaign.slug}/`}
+                    shareText={`${campaignShare(campaign).title} — ${SITE.url}/equipos/${campaign.slug}/?utm_source=instagram`}
                   />
+                  <ShareLinks url={`${SITE.url}/equipos/${campaign.slug}/`} text={campaignShare(campaign).title} />
                 </Reveal>
               </div>
             </div>

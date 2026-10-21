@@ -176,6 +176,41 @@ async function sendThankYou(opts: {
   }
 }
 
+/** Aviso al atleta o al responsable del equipo: "te entró un aporte". */
+async function sendBeneficiaryNotice(opts: {
+  to: string;
+  who: string;          // nombre corto del atleta o del equipo
+  amount: number;
+  net: number;
+  donorName: string | null;
+  dashboardUrl: string;
+}) {
+  const key = (Deno.env.get("RESEND_API_KEY") ?? "").trim();
+  if (!key || !opts.to || !opts.to.includes("@")) return;
+  try {
+    const r = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+      body: JSON.stringify({
+        from: "GRANITO <no-reply@somosgranito.com>",
+        to: [opts.to],
+        subject: `¡Recibiste un aporte de ${pesos(opts.amount)}! 🥇`,
+        html: `<div style="font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#222;max-width:520px">
+<p style="font-size:12px;letter-spacing:2px;color:#C9A227;margin:0">GRANITO</p>
+<h1 style="font-size:22px;color:#0A1A2F;margin:6px 0 14px">¡Te entró un granito, ${esc(opts.who)}!</h1>
+<p>${opts.donorName ? `<strong>${esc(opts.donorName)}</strong> acaba de aportar` : "Alguien acaba de aportar"} <strong>${pesos(opts.amount)}</strong>. Mercado Pago ya acreditó <strong>${pesos(opts.net)}</strong> en tu cuenta (el 93%; el 7% sostiene la plataforma).</p>
+<p>Si querés, agradecé desde tu perfil con una novedad: los hinchas lo valoran y suele traer más apoyo.</p>
+<p><a href="${opts.dashboardUrl}" style="display:inline-block;background:#C9A227;color:#0A1A2F;font-weight:bold;padding:10px 18px;border-radius:8px;text-decoration:none">Ver mi perfil</a></p>
+<p style="font-size:12px;color:#888">Recibís este email porque tenés una campaña activa en somosgranito.com.</p>
+</div>`,
+      }),
+    });
+    if (!r.ok) console.error("Aviso al beneficiario falló:", r.status, await r.text());
+  } catch (e) {
+    console.error("Error mandando aviso al beneficiario:", e);
+  }
+}
+
 Deno.serve(async (req) => {
   // MP manda la notificación por query (?type=payment&data.id=...) o por body.
   const u = new URL(req.url);
@@ -289,13 +324,23 @@ Deno.serve(async (req) => {
       else justCompleted = status === "completed";
     }
 
-    if (justCompleted && payer?.email) {
+    if (justCompleted) {
       const { data: team } = await supa
         .from("team_applications")
-        .select("team_name, slug")
+        .select("team_name, slug, email, contact_name")
         .eq("id", teamId)
         .maybeSingle();
-      if (team) {
+      if (team?.email) {
+        await sendBeneficiaryNotice({
+          to: team.email,
+          who: team.team_name,
+          amount,
+          net: Math.round(amount * (1 - PLATFORM_FEE_RATE) * 100) / 100,
+          donorName: (p?.metadata?.donor_name as string | undefined) ?? null,
+          dashboardUrl: `${SITE_URL}/equipos/${encodeURIComponent(team.slug ?? "")}/`,
+        });
+      }
+      if (team && payer?.email) {
         await sendThankYou({
           to: payer.email,
           athleteName: team.team_name,
@@ -369,13 +414,23 @@ Deno.serve(async (req) => {
     }
   }
 
-  if (justCompleted && row.donor_email) {
+  if (justCompleted) {
     const { data: athlete } = await supa
       .from("athletes")
-      .select("full_name, slug, supporter_message")
+      .select("full_name, first_name, slug, supporter_message, email")
       .eq("id", athleteId)
       .maybeSingle();
-    if (athlete) {
+    if (athlete?.email) {
+      await sendBeneficiaryNotice({
+        to: athlete.email,
+        who: athlete.first_name ?? athlete.full_name,
+        amount,
+        net: Math.round(amount * (1 - PLATFORM_FEE_RATE) * 100) / 100,
+        donorName: row.donor_name ?? null,
+        dashboardUrl: `${SITE_URL}/mi-perfil/`,
+      });
+    }
+    if (athlete && row.donor_email) {
       await sendThankYou({
         to: row.donor_email,
         athleteName: athlete.full_name,

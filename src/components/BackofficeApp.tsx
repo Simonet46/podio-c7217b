@@ -72,6 +72,8 @@ type AthleteRow = {
   gender: string | null;
   card_tag: string | null;
   hero_badge: string | null;
+  /** Lo pone mp-health cuando MP no deja cobrar a la cuenta (motivo). */
+  mp_blocked_reason?: string | null;
 };
 
 /** Último run del workflow de deploy (lo devuelve la función deploy-status). */
@@ -2502,7 +2504,9 @@ function AtletasSection({
                   a.verified
                     ? a.mp_connected
                       ? "Suspender atleta"
-                      : "Publicado sin Mercado Pago: se ve el perfil pero no puede recibir aportes. Tocá para ocultarlo."
+                      : a.mp_blocked_reason
+                        ? `Mercado Pago bloqueó su cuenta para cobrar (${a.mp_blocked_reason}). Se publica solo cuando MP la habilite. Tocá para ocultarlo.`
+                        : "Publicado sin Mercado Pago: se ve el perfil pero no puede recibir aportes. Tocá para ocultarlo."
                     : a.mp_connected
                       ? "Reactivar atleta"
                       : "Oculto hasta que conecte su Mercado Pago (se publica solo al conectarlo). Tocá para publicarlo igual, con los aportes deshabilitados."

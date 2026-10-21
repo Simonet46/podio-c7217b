@@ -46,9 +46,13 @@ function pctLabel(pct: number): string {
 export function CampaignBar({
   campaign,
   compact,
+  previewAmount = 0,
 }: {
   campaign: TeamCampaign;
   compact?: boolean;
+  /** Aporte que el hincha está eligiendo: se dibuja como tramo extra en la
+   *  barra y se dice a qué % llegaría. Solo en el widget de aporte. */
+  previewAmount?: number;
 }) {
   const { goal_amount: goal, raised_amount: raised } = campaign;
 
@@ -70,6 +74,9 @@ export function CampaignBar({
   // perceptible (el % de texto dice el número exacto, sin redondeos).
   const visual = raised > 0 ? Math.max(clamped, 1.5) : 0;
   const over = raised > goal;
+  // Tramo de vista previa: desde donde está la manija hasta donde llegaría.
+  const preview = previewAmount > 0 ? Math.min(((raised + previewAmount) / goal) * 100, 100) : 0;
+  const previewPct = previewAmount > 0 ? ((raised + previewAmount) / goal) * 100 : 0;
   const fill = over ? "linear-gradient(90deg,#C9A227,#6CB4E4)" : "#C9A227";
   const accent = over ? "#6CB4E4" : "#C9A227";
   // La etiqueta del recaudado sigue a la manija, pero sin pegarse a los bordes.
@@ -92,6 +99,13 @@ export function CampaignBar({
           className="absolute inset-y-0 left-0 rounded-full transition-[width] duration-700"
           style={{ width: `${visual}%`, background: fill }}
         />
+        {preview > visual && (
+          <div
+            className="absolute inset-y-0 rounded-r-full transition-[width,left] duration-300"
+            style={{ left: `calc(${visual}% + 2px)`, width: `calc(${preview - visual}% - 2px)`, background: "rgba(108,180,228,.55)" }}
+            aria-hidden
+          />
+        )}
         <div
           className="absolute top-1/2 h-[18px] w-[18px] -translate-x-1/2 -translate-y-1/2 rounded-full transition-[left] duration-700"
           style={{ left: `${visual}%`, background: "#0A1A2F", border: `4px solid ${accent}`, boxShadow: "0 2px 8px rgba(0,0,0,.5)" }}
@@ -123,6 +137,12 @@ export function CampaignBar({
       {over && (
         <div className="mt-1.5 text-[11px] font-600 uppercase tracking-wide" style={{ color: "#6CB4E4" }}>
           ¡Objetivo superado!
+        </div>
+      )}
+      {previewAmount > 0 && !over && (
+        <div className="mt-1.5 text-[12px]" style={{ color: "#6CB4E4" }}>
+          Con tu aporte llegamos al <strong>{pctLabel(previewPct)}</strong>
+          {previewPct >= 100 ? " · ¡se completa el objetivo!" : ""}
         </div>
       )}
     </div>

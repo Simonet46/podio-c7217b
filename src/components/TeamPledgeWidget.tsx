@@ -5,11 +5,14 @@ import Link from "next/link";
 import { getSupabase } from "@/lib/supabase";
 import { formatMoney } from "@/lib/money";
 import { recordAcceptance } from "@/lib/legal";
-import { type TeamCampaign } from "@/lib/data/campaigns";
+import { campaignEnded, type TeamCampaign } from "@/lib/data/campaigns";
 import { CampaignBar } from "./TeamCampaignCard";
+import { AmountSlider } from "./AmountSlider";
 import { track } from "@/lib/track";
 
 const PRESETS = [5000, 10000, 25000, 50000];
+const SLIDER_MIN = 1000;
+const SLIDER_STEP = 500;
 
 /**
  * Widget de aporte a una campaña de equipo. Funciona IGUAL QUE UN ATLETA:
@@ -52,6 +55,11 @@ export function TeamPledgeWidget({ campaign }: { campaign: TeamCampaign }) {
   }, [campaign.id]);
 
   const finalAmount = custom ? Number(custom) : amount ?? 0;
+  const ended = campaignEnded(campaign);
+  // Tope del deslizador: lo que falta para el objetivo (mínimo $50.000 para que
+  // siempre tenga recorrido), redondeado al paso.
+  const faltante = Math.max(0, campaign.goal_amount - live.raised_amount);
+  const sliderMax = Math.max(50_000, Math.ceil(faltante / SLIDER_STEP) * SLIDER_STEP);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -100,15 +108,25 @@ export function TeamPledgeWidget({ campaign }: { campaign: TeamCampaign }) {
       className="rounded-2xl p-6 sm:p-7"
       style={{ background: "#0d2238", border: "1px solid rgba(255,255,255,.1)", boxShadow: "0 18px 50px rgba(0,0,0,.4)" }}
     >
-      <CampaignBar campaign={{ ...campaign, ...live }} />
-      <p className="mt-2 text-[12px] text-white/40">
-        {live.donor_count > 0
-          ? `${live.donor_count} ${live.donor_count === 1 ? "persona ya aportó" : "personas ya aportaron"} su granito.`
-          : "Sé la primera persona en aportar tu granito."}
-      </p>
+      <CampaignBar campaign={{ ...campaign, ...live }} previewAmount={ended ? 0 : finalAmount} />
+      {/* La barra ya invita a ser el primero cuando no hay aportes: acá solo el conteo. */}
+      {live.donor_count > 0 && (
+        <p className="mt-2 text-[12px] text-white/40">
+          {live.donor_count} {live.donor_count === 1 ? "persona ya aportó" : "personas ya aportaron"} su granito.
+        </p>
+      )}
 
       <div className="my-5 border-t border-white/[.08]" />
 
+      {ended ? (
+        <div className="rounded-[10px] p-4 text-center" style={{ background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.1)" }}>
+          <p className="font-display text-[15px] font-600 uppercase tracking-wide text-white">Esta campaña cerró</p>
+          <p className="mt-1.5 text-[13px] leading-relaxed text-white/60">
+            Terminó el {campaign.fundraising_end ? new Date(campaign.fundraising_end + "T12:00:00").toLocaleDateString("es-AR") : "plazo previsto"}.
+            El equipo recibió todo lo recaudado. Gracias a quienes aportaron su granito.
+          </p>
+        </div>
+      ) : (
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <p className="font-display text-[15px] font-600 uppercase tracking-wide text-white">
           Aportá al equipo
@@ -133,6 +151,13 @@ export function TeamPledgeWidget({ campaign }: { campaign: TeamCampaign }) {
             );
           })}
         </div>
+        <AmountSlider
+          value={finalAmount}
+          min={SLIDER_MIN}
+          max={sliderMax}
+          step={SLIDER_STEP}
+          onChange={(v) => { setAmount(v); setCustom(""); setError(""); }}
+        />
         <input
           type="number"
           min={1}
@@ -187,6 +212,7 @@ export function TeamPledgeWidget({ campaign }: { campaign: TeamCampaign }) {
           .
         </p>
       </form>
+      )}
     </div>
   );
 }

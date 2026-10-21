@@ -91,3 +91,11 @@ verify_jwt = true
 [functions.track]
 # Medidor de visitas: lo llama el sitio público con sendBeacon (sin headers).
 verify_jwt = false
+
+[functions.mp-health]
+# Salud de MP (tokens + ¿puede cobrar?). La llama pg_cron con el service_role.
+verify_jwt = true
+
+[functions.weekly-digest]
+# Resumen semanal a hola@. La llama pg_cron con el service_role.
+verify_jwt = true

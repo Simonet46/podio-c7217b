@@ -18,6 +18,7 @@ import { ProgressBar } from "@/components/ProgressBar";
 import { SITE, asset } from "@/config/site";
 import { athleteShare } from "@/lib/share";
 import { ShareStoryButton } from "@/components/ShareStoryButton";
+import { ShareLinks } from "@/components/ShareLinks";
 
 export async function generateStaticParams() {
   const athletes = await getAllAthletes();
@@ -347,8 +348,9 @@ export default async function AthletePage({
               <ShareStoryButton
                 imageUrl={asset(`/atleta/${athlete.slug}/historia.jpg`)}
                 fileName={`granito-${athlete.slug}.jpg`}
-                shareText={`${share.title} — ${SITE.url}/atleta/${athlete.slug}/`}
+                shareText={`${share.title} — ${SITE.url}/atleta/${athlete.slug}/?utm_source=instagram`}
               />
+              <ShareLinks url={`${SITE.url}/atleta/${athlete.slug}/`} text={share.title} />
 
               {/* Nota de confianza */}
               <div

@@ -8,6 +8,7 @@ import { breakdown, formatMoney } from "@/lib/money";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
 import { recordAcceptance } from "@/lib/legal";
 import { Ribbon } from "./Ribbon";
+import { AmountSlider } from "./AmountSlider";
 import { track } from "@/lib/track";
 
 /** A quién va el aporte. */
@@ -208,6 +209,17 @@ export function DonationWidget({
               </button>
             );
           })}
+        </div>
+
+        {/* Deslizador: arrastrás y el monto se escribe solo */}
+        <div className="mt-4">
+          <AmountSlider
+            value={amount}
+            min={1000}
+            max={100_000}
+            step={500}
+            onChange={(v) => { setAmount(v); setCustom(""); setError(null); }}
+          />
         </div>
 
         {/* Monto libre */}
